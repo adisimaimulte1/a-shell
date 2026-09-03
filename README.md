@@ -126,6 +126,3 @@ Code: [GPL-3.0](LICENSE). Icons and cursors retain their original terms. [Third-
 <div align="center">
 
 Put together by [Adrian Contraș](https://github.com/adisimaimulte1).
-
-</div>
-Maintaining a release? See [Publishing on GitHub](docs/Publishing.md).
