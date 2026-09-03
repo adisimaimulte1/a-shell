@@ -1,0 +1,9 @@
+state/
+backup/
+*.log
+*.zip
+outputs/
+.codex/
+original_desktop/
+A-Shell-Setup.exe
+A-Shell-Setup.exe.sha256

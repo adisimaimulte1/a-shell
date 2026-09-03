@@ -1,0 +1,1781 @@
+﻿{
+    "version":  "1.0",
+    "files":  [
+                  {
+                      "sha256":  "A01DED7129DF008FED91E4437BEAAD1635BCCC2739C3EE2432B9839729A685CF",
+                      "path":  ".gitattributes"
+                  },
+                  {
+                      "sha256":  "1AAF3B2B0F85D71FEE782BF98C05B3DFD70C8A127C002E3361B41E09B161F85D",
+                      "path":  ".gitignore"
+                  },
+                  {
+                      "sha256":  "57914943DEEB639EC3E7761BEDA4AFA9D3AC79B6C1E871F09C0F3B2A3E897E61",
+                      "path":  "About A-Shell.cmd"
+                  },
+                  {
+                      "sha256":  "6A701FFAB419F0D320B6E9114D0D358541EBDFFD02C39BADA0011C21DD42FB67",
+                      "path":  "ashell.cmd"
+                  },
+                  {
+                      "sha256":  "286A91E31E71C820F6E248FB70448AEC4C71E209EA65C0F64C3CE077EB811423",
+                      "path":  "Check Setup.cmd"
+                  },
+                  {
+                      "sha256":  "A845D669357AD50102C549CA73642EE182101A3E1E524B56999F6902F4602812",
+                      "path":  "Default Color.cmd"
+                  },
+                  {
+                      "sha256":  "AD9DD829C9988D0AEE30D3A52C614B7F6F5876DE61203A706C3659367924CC39",
+                      "path":  "Install Startup.cmd"
+                  },
+                  {
+                      "sha256":  "8CEB4B9EE5ADEDDE47B31E975C1D90C73AD27B6B165A1DCD80C7C545EB65B903",
+                      "path":  "LICENSE"
+                  },
+                  {
+                      "sha256":  "E7B10F8E942896E5EB13BF1E7217CE80B1A02CCCE3B19D081E2238AAF9BC24A0",
+                      "path":  "README.md"
+                  },
+                  {
+                      "sha256":  "06AE333E453B20F83074A0608307FCC664723A1DB3C923FCCA5CB10B3A1C143D",
+                      "path":  "Remove Sign-in Shading.cmd"
+                  },
+                  {
+                      "sha256":  "4108383E7475ECCD8A18A2C2656875B7EF3C0DD35FC595F286F79B084256723D",
+                      "path":  "Remove Startup.cmd"
+                  },
+                  {
+                      "sha256":  "29E25BCD90A48ED52AE6546C0876856C8E042C7E5179CA78F57AE874A80B0743",
+                      "path":  "Restore Previous Settings.cmd"
+                  },
+                  {
+                      "sha256":  "0494E20AA70EEF1263CBAFC0B0CD3F25F5F516E081E989BD9BB0FD1C6A27F746",
+                      "path":  "Restore Profile Picture.cmd"
+                  },
+                  {
+                      "sha256":  "4D91B4243B2DFE74B6E9CB28F94236A89889EF712A388647F3DD27BF7B7DBAF4",
+                      "path":  "Restore Sign-in Shading.cmd"
+                  },
+                  {
+                      "sha256":  "CDEB1F69E9463098D5EE922A95F80F11BFF089E46BF2390E3ABB3E092A7D1816",
+                      "path":  "Restore Windows Defaults.cmd"
+                  },
+                  {
+                      "sha256":  "EE4F1456F5CE7D4318E6E87D13D000F40B44DDF3DA80C5A63DF08AD94CB42E80",
+                      "path":  "Set Color.cmd"
+                  },
+                  {
+                      "sha256":  "955D8C92D5505393A83AA4F404090790DE80547F4A66FF7A492021E5EF184B04",
+                      "path":  "Setup Core.cmd"
+                  },
+                  {
+                      "sha256":  "94E986CA1E227AA3039AF88FA989B39B295FF9A873BC26148F648546315D9E2B",
+                      "path":  "Setup.cmd"
+                  },
+                  {
+                      "sha256":  "4AD01EFB47085474B074C4CCF7ABC9D3792DF88B40750EF9350D38A689F2B14B",
+                      "path":  "Sign-in Background.md"
+                  },
+                  {
+                      "sha256":  "8E0CA18B9AF87307D6C8FF8C9A886086755C1F259F2814A09FD41B8E36CEBD64",
+                      "path":  "Start.cmd"
+                  },
+                  {
+                      "sha256":  "F86136C1917C79810BAC9B61A68AD8A735162327133BDC800DC9216C334A5A08",
+                      "path":  "Stop.cmd"
+                  },
+                  {
+                      "sha256":  "CA06C754DFE6D17438607C4414F2E76F972A8E8B8FD60D786A6FE8FD19F4A61D",
+                      "path":  "Undo A-Shell.cmd"
+                  },
+                  {
+                      "sha256":  "2E932D2F02A09BB7E43C7C595D069802A73487BEEA6BE638520D27A56F8AF954",
+                      "path":  "Use Original Profile PNG.cmd"
+                  },
+                  {
+                      "sha256":  "693D6584395334E02DB5E332433A696C0FF5AF4B89C46CD06A9D4AADEAC365B4",
+                      "path":  ".github/ISSUE_TEMPLATE/icon-contribution.yml"
+                  },
+                  {
+                      "sha256":  "E684A420CE3F93E7DA798D97549D8DFDF0F3DBD139B5447F3F671FAB16900B0B",
+                      "path":  "assets/dependencies.json"
+                  },
+                  {
+                      "sha256":  "317BC50A357D4146981E1BDFAEB866B3E224AFB7ED81B1B52EACBE71E4721008",
+                      "path":  "assets/icon-map.json"
+                  },
+                  {
+                      "sha256":  "58CD24A449F42798525C1F211120E8B9E0D1265DAF550EF770F41A946B367BDC",
+                      "path":  "assets/LockScreenPicture.png"
+                  },
+                  {
+                      "sha256":  "4C43B6DF89E9084BD7A7912487A1A0E9350AACA42C89C37E8841B64BA7F2F9B5",
+                      "path":  "assets/taskbar-base.json"
+                  },
+                  {
+                      "sha256":  "B105CC35D81D18C88CE585C93E9CE1DD834E93A76CF8D04328EFFD008B894BDE",
+                      "path":  "assets/taskbar-settings.json"
+                  },
+                  {
+                      "sha256":  "4F325EA0FFE84D0CE24AFA23C8D1BE9B2468EEEE59150EEA137D4B0BA268D5CA",
+                      "path":  "assets/THIRD-PARTY.md"
+                  },
+                  {
+                      "sha256":  "2F5E0B8F0E6155E0D46E2C608F2D046772E0E153D8AB98E160F7303E185EFC32",
+                      "path":  "assets/cursors/alternate.cur"
+                  },
+                  {
+                      "sha256":  "A5A17953848FDFAA2003A26F3121F4E56346FCD9C2FE25013CD1BEEC6DFDFFC9",
+                      "path":  "assets/cursors/beam.cur"
+                  },
+                  {
+                      "sha256":  "47B52C32A95546DC6935BBDAD0ADA66EE791C20A76C995E15EF7562F19BB2861",
+                      "path":  "assets/cursors/busy.ani"
+                  },
+                  {
+                      "sha256":  "B2C875024AD24A7B0B7B2AA1327BDBD41135A2F2EAA3EE82B608A6F31FABDAB5",
+                      "path":  "assets/cursors/dgn1.cur"
+                  },
+                  {
+                      "sha256":  "56BF4A022E4ED7635DC3EE6CB45DCFC33FB5EF1C1AAD58A1D38D8AE3959CB44E",
+                      "path":  "assets/cursors/dgn2.cur"
+                  },
+                  {
+                      "sha256":  "6B674795804966E3388D95C4380DA693C2D8267B66A9B0D5CDCF1646BCE9A919",
+                      "path":  "assets/cursors/handwriting.cur"
+                  },
+                  {
+                      "sha256":  "F0540F8EF22F1D5DAB1BA23BDD68269CE873E7AA1A0241EF2E7F47A76A6E402B",
+                      "path":  "assets/cursors/help.cur"
+                  },
+                  {
+                      "sha256":  "0ABA2CAF8461E25EDB857FC23D048528850E4E1C4E360F480D11B5C6C58C9F3C",
+                      "path":  "assets/cursors/horz.cur"
+                  },
+                  {
+                      "sha256":  "3253958A4B16FF679EAD34B897BC885B93CE5C3A63FAD2A75C11B0194B3CE395",
+                      "path":  "assets/cursors/Install.inf"
+                  },
+                  {
+                      "sha256":  "7AD2C3194C00501A0E2646BD90E08AD9851088B7559896DE5F97FFA4C3951B02",
+                      "path":  "assets/cursors/link.cur"
+                  },
+                  {
+                      "sha256":  "BBCBD3011612C5EA0C80E8AC63E43AE32042CE69D5E25FB1E1959383036696A2",
+                      "path":  "assets/cursors/move.cur"
+                  },
+                  {
+                      "sha256":  "CA26851CACD67F9C140CFEB290B38A4797E7A0AF329E52913AF7B8FF52501391",
+                      "path":  "assets/cursors/Original-Agreement.txt"
+                  },
+                  {
+                      "sha256":  "3AB3F261FBDD4F03DAD7EC505CCA7D0EDB2B94C9DA3E89846B662A8C6E769BCA",
+                      "path":  "assets/cursors/person.cur"
+                  },
+                  {
+                      "sha256":  "6E36EA198F734AE8691103A82DC839E800F72CB1777A1EF6861BD75D3295C75F",
+                      "path":  "assets/cursors/pin.cur"
+                  },
+                  {
+                      "sha256":  "469AF8046CD6A2BD27260AB3A0815A371A4DC30CACD79D2D5F8D82B23E076C27",
+                      "path":  "assets/cursors/pointer.cur"
+                  },
+                  {
+                      "sha256":  "53E555BB639467A99BCA9F6D5F22CF27BDDAFC34CA46FBAFCD71466B8D6F53BC",
+                      "path":  "assets/cursors/precision.cur"
+                  },
+                  {
+                      "sha256":  "672D8676BBDB5D87EFBD8CF48BF47344A0CBE32FC3DCB24342B7D6C1C311B961",
+                      "path":  "assets/cursors/unavailable.cur"
+                  },
+                  {
+                      "sha256":  "FCA7F4F80736FCDEEE5033866BCBEE7E3D8696F2FF3DB9D1A21D7D072BC4BF31",
+                      "path":  "assets/cursors/vert.cur"
+                  },
+                  {
+                      "sha256":  "3E6D65B925262DDBDF85995B5CD61185A5CA63771B05448AF90CED32185F9691",
+                      "path":  "assets/cursors/working.ani"
+                  },
+                  {
+                      "sha256":  "1DBB54B65E779D5DB5F4238A428AD10D47E05A6341D8AC8B9487FE3E0F9BB35B",
+                      "path":  "assets/icons/A-Shell_Logo_Size.png"
+                  },
+                  {
+                      "sha256":  "BF3045FFB66B8A644B72A0A99787CB43BE0AF62A0448DEB65CB2349599156FBC",
+                      "path":  "assets/icons/icons8-360-view-96.png"
+                  },
+                  {
+                      "sha256":  "A7AFBCDF5CD52FB828D98DB6878A7D096267E3814005FD06822D8463033F91F0",
+                      "path":  "assets/icons/icons8-3d-builder-96.png"
+                  },
+                  {
+                      "sha256":  "22B8A7EE50F234F78A5919043AEBBEB4991ECE189432AF26B483D22BF035822B",
+                      "path":  "assets/icons/icons8-adobe-acrobat-reader-96.png"
+                  },
+                  {
+                      "sha256":  "AD0C8CEE54A38E0F2E818DDEC802E33CD3E76DF780A917A781102A7C498CC729",
+                      "path":  "assets/icons/icons8-adobe-after-effects-96.png"
+                  },
+                  {
+                      "sha256":  "80044AD49D050A2DFD9DC15988EEEFA8962717A5A29FD127C8438EC4B06852A5",
+                      "path":  "assets/icons/icons8-adobe-digital-editions-96.png"
+                  },
+                  {
+                      "sha256":  "90FC5A077B278D55EC5ABA4056D5A29257F56B41DCC7DA1B7135F471D7C649C6",
+                      "path":  "assets/icons/icons8-adobe-illustrator-96.png"
+                  },
+                  {
+                      "sha256":  "67CAF583286CF2E601FCB5EBB303E652928092207D9E378945904BCFF27D862B",
+                      "path":  "assets/icons/icons8-adobe-indesign-96.png"
+                  },
+                  {
+                      "sha256":  "27A5CD91ECEAED1DD9DB9361FFE1C290FBF9204A8B59D022BAB86794EF4E2053",
+                      "path":  "assets/icons/icons8-adobe-lightroom-96.png"
+                  },
+                  {
+                      "sha256":  "E57CFC1B5C17443628154CE7E1B5FE290D5AFF81F3823CBB2FE22A20A43A8574",
+                      "path":  "assets/icons/icons8-adobe-photoshop-96.png"
+                  },
+                  {
+                      "sha256":  "B5300F1BDAE524F0530DA36834DFDB9F0AECD65AA7B0F2C4CF0E04F4EBCC468B",
+                      "path":  "assets/icons/icons8-adr-96.png"
+                  },
+                  {
+                      "sha256":  "874DA92B7F9D5F84DF0090445C1E315ECC09B0DE17FD69F001A53AC6CC39CD43",
+                      "path":  "assets/icons/icons8-aesthetic-96.png"
+                  },
+                  {
+                      "sha256":  "CDE66292EBD3A4FC2305A4442C0B827342921DC682E339B3ED44D625CCD7FBB7",
+                      "path":  "assets/icons/icons8-ai-96.png"
+                  },
+                  {
+                      "sha256":  "1234A82749F80FECEDDBE15B3F5704BC3A9A841865A3AF4002275C9F513150AE",
+                      "path":  "assets/icons/icons8-amazon-96.png"
+                  },
+                  {
+                      "sha256":  "73E81F60D830F662EC8F6357AC49B5494E4B775F0615B375C0AA4A419E796B7C",
+                      "path":  "assets/icons/icons8-amazon-prime-video-96.png"
+                  },
+                  {
+                      "sha256":  "3D3ABC458A7234C8CB61484791F03C2BA27EA3FB972A23B278EC3F2393FE4E03",
+                      "path":  "assets/icons/icons8-amd-ryzen-96.png"
+                  },
+                  {
+                      "sha256":  "AC5E83E3B317550EAB926202062717323AB010A1FA1F80FE4FACD89292259E25",
+                      "path":  "assets/icons/icons8-american-express-96.png"
+                  },
+                  {
+                      "sha256":  "134ACE2BFED2A28A1E65DB74CE0D2BC3D036A73A9FF21E7DA9CBF580CAA1DFAC",
+                      "path":  "assets/icons/icons8-android-os-96.png"
+                  },
+                  {
+                      "sha256":  "3A0D754EF88C5C486C494669DD48180D5F20254995C2C227F97322EA20EF15F2",
+                      "path":  "assets/icons/icons8-anki-96.png"
+                  },
+                  {
+                      "sha256":  "0498EFAAA07D589EB131576B6FF628103404AE77A824D26DE9360E10F89EFA1E",
+                      "path":  "assets/icons/icons8-aparat-96.png"
+                  },
+                  {
+                      "sha256":  "96346F676A2B8165A6508C6DE97EB2C91D0100C8B7397769FD32F63AC5908A0B",
+                      "path":  "assets/icons/icons8-asper-school-of-business-96.png"
+                  },
+                  {
+                      "sha256":  "8C1F36B97DFD2C6CED59B68B9E9A3E61E7F50785D87116F73CE1CC82D1AD613D",
+                      "path":  "assets/icons/icons8-attract-customers-96.png"
+                  },
+                  {
+                      "sha256":  "5CA8E869B56A977FC1C73FC670E40228C0F7170F3CB3E3F9195233E628DE1DC2",
+                      "path":  "assets/icons/icons8-audacity-96.png"
+                  },
+                  {
+                      "sha256":  "E94383EBE0EFD80E6A91EE0B91FD14A694B212AAD89A24A66632DB7FE86076C0",
+                      "path":  "assets/icons/icons8-audiolab-96.png"
+                  },
+                  {
+                      "sha256":  "698926B16C69D49D7DBE48FB79F829C0C3F4394C3DBFB371CA147CCC83EE4AA6",
+                      "path":  "assets/icons/icons8-autohotkey-96.png"
+                  },
+                  {
+                      "sha256":  "774688EDB02F5FF0468C83814D8CDEFDE385D8B2312C522EFA4B7020FFEF5E96",
+                      "path":  "assets/icons/icons8-bar-chart-96.png"
+                  },
+                  {
+                      "sha256":  "C092A5612C962D71E36879C212342CB297C88490F6CE3A394C6FEA37D279C01F",
+                      "path":  "assets/icons/icons8-beamng-96.png"
+                  },
+                  {
+                      "sha256":  "055657F007A4C98D00E7786917D7EBB13FF72E842A7CA42EB369BACAE40B8453",
+                      "path":  "assets/icons/icons8-bebo-96.png"
+                  },
+                  {
+                      "sha256":  "1528F4F92B8DE1B105F739F746202941C37179EDD7CFC11A7405A4F07F735D11",
+                      "path":  "assets/icons/icons8-behance-96.png"
+                  },
+                  {
+                      "sha256":  "BC29EFE3A4C0C13821E4A0E93582190D6E2F70598D787157998A4DDC38F9FEEF",
+                      "path":  "assets/icons/icons8-bilibili-96.png"
+                  },
+                  {
+                      "sha256":  "7B7661DBF0B730B835EC77D93BA0437989E56BC43DC9581751DD0A344F787EAA",
+                      "path":  "assets/icons/icons8-bin-windows-96.png"
+                  },
+                  {
+                      "sha256":  "13736AF89EA1752E3C41231C11947C700304AE2BBA809C6D472C45C3AFFAD0BF",
+                      "path":  "assets/icons/icons8-bird-script-96.png"
+                  },
+                  {
+                      "sha256":  "50B2D9373E9B3E200DBFA6E611F6709F2F478FFFB20DADFD2D75EB1B766716AF",
+                      "path":  "assets/icons/icons8-bitcoin-96.png"
+                  },
+                  {
+                      "sha256":  "3DE41BAFB25D2F516368148BDFBE46481861B6016875333959649532903DFDDC",
+                      "path":  "assets/icons/icons8-blockchain-new-logo-96.png"
+                  },
+                  {
+                      "sha256":  "E101BFA19B7FD1A6FF8339A44848B6294832D6971D292CD6D71A6304E36915C7",
+                      "path":  "assets/icons/icons8-blu-ray-96.png"
+                  },
+                  {
+                      "sha256":  "9C6B5A87A9A21BDE6DAF3A0F1653957CF3DD893E60BA4A688DEA29EE9C1649A9",
+                      "path":  "assets/icons/icons8-brave-ai-96.png"
+                  },
+                  {
+                      "sha256":  "07F45E878828ACDF9525275AA1D4BF2D41B17887D043549456B747596C62363B",
+                      "path":  "assets/icons/icons8-bulma-io-96.png"
+                  },
+                  {
+                      "sha256":  "59C5BBEC03019A36EA35F1014E2C10BA2C9D9B10D0C021E18DA51B976665E34B",
+                      "path":  "assets/icons/icons8-calculator-96.png"
+                  },
+                  {
+                      "sha256":  "3273EDCCB946B4CCC269F2CD39C3BF9A8701798F5E733FC3821D2F74E12071E8",
+                      "path":  "assets/icons/icons8-camera-96.png"
+                  },
+                  {
+                      "sha256":  "32E27C5B464CDB476918BEB28DDAD7D41A162D3AE0780C2A3EE11EB3FFDC2442",
+                      "path":  "assets/icons/icons8-canva-96.png"
+                  },
+                  {
+                      "sha256":  "17C9804E6AF0F629E36B47F70F025DFC0F7D5209BB8007D70A063E3C749AD1E9",
+                      "path":  "assets/icons/icons8-canvas-student-96.png"
+                  },
+                  {
+                      "sha256":  "704B89798BDEE785EAC0F8F5BD80242DA3C99DB2B9765319655697ACC00B9707",
+                      "path":  "assets/icons/icons8-cemu-wii-u-emulator-96.png"
+                  },
+                  {
+                      "sha256":  "AC0DE11C9E8D83777C6BC98E5CEA7B3CB70A5882D62D03D2A1E3E8B45A9ADCC3",
+                      "path":  "assets/icons/icons8-chakra-ui-96.png"
+                  },
+                  {
+                      "sha256":  "B57DE1CC27551AD1F8B1EEA32325C53E62CB6059A677F360DA89FC143D4BB662",
+                      "path":  "assets/icons/icons8-character-map-96.png"
+                  },
+                  {
+                      "sha256":  "645492B2F7E71E3357ED739A8BDE7024FE6103E2A1C4D35A218F35ED175D9291",
+                      "path":  "assets/icons/icons8-chat-space-96.png"
+                  },
+                  {
+                      "sha256":  "606B840F0DB3E65217FAC82ECC72D1FEA7CFBC735C6C9FB828633F42139AA714",
+                      "path":  "assets/icons/icons8-chatgpt-96.png"
+                  },
+                  {
+                      "sha256":  "D8222E9A575FA586B94B75E59CFA326F06C1BAF4E37DAA81EE6EB7670538B8C7",
+                      "path":  "assets/icons/icons8-chillhop-music-96.png"
+                  },
+                  {
+                      "sha256":  "DB3D6CB5038C00008740ACB13544625747DC047B511C3E011813EE9C39F49A0C",
+                      "path":  "assets/icons/icons8-chrome-96.png"
+                  },
+                  {
+                      "sha256":  "97BFF75B0A7CAF423412A7ECC8AE8E15127E285665AD1458FD194C69F65652C1",
+                      "path":  "assets/icons/icons8-clock-96.png"
+                  },
+                  {
+                      "sha256":  "3162821EE0E28DD1A8EA1C3DED4FE3C2B6D8CDDB23D27F42BF470915C424CA0C",
+                      "path":  "assets/icons/icons8-cloudify-96.png"
+                  },
+                  {
+                      "sha256":  "B9FAF2E9EE29667A4965D75E3F9DBF89C4B4A06F841F1A196755AEE314B018DD",
+                      "path":  "assets/icons/icons8-code-blocks-96.png"
+                  },
+                  {
+                      "sha256":  "A1DF8E4D36AE69CCFF51D6AC06762BFB46047721E07FF171F084786E0310AEFF",
+                      "path":  "assets/icons/icons8-codechef-96.png"
+                  },
+                  {
+                      "sha256":  "7A0C129F4FF4BD6175C86A5FDE4D36551FE5DED76D5EBDA75A80684BC45D2FB2",
+                      "path":  "assets/icons/icons8-codewars-96.png"
+                  },
+                  {
+                      "sha256":  "9F6F2E80DB2E9E289CBB85199D298C95CBEA38086055F33AA12221FFF8DD2A68",
+                      "path":  "assets/icons/icons8-collanote-96.png"
+                  },
+                  {
+                      "sha256":  "FFB29EC0F7BB112AAE9EDA2BE569BE2DA379B649848FA4C76D181B95B8239339",
+                      "path":  "assets/icons/icons8-component-services-96.png"
+                  },
+                  {
+                      "sha256":  "F5E7FB1744F4FB6967A4C17457F8586796B97B9B812E172BAFDB6842B89EFA34",
+                      "path":  "assets/icons/icons8-computer-management-96.png"
+                  },
+                  {
+                      "sha256":  "31E53E7FACA90874B66FB27FE1D424AEA1F24BC6547B0D7A330F24DA1DFCAAB7",
+                      "path":  "assets/icons/icons8-counter-strike-96.png"
+                  },
+                  {
+                      "sha256":  "FFC20BD144DE5FBC7EDBE6DC6BF54B4A421E6C99D4EFBD497AD610E326991C71",
+                      "path":  "assets/icons/icons8-css3-96.png"
+                  },
+                  {
+                      "sha256":  "C85416B3FD84DD9AF9AFC57611F2CBEF55C94C96F9275E9B97FE55D8D78C9DE6",
+                      "path":  "assets/icons/icons8-cursor-ai-96.png"
+                  },
+                  {
+                      "sha256":  "7BD1AA40C29FC746108DFB7127968D92D11153697825E1D6F9C881898EFFDBAC",
+                      "path":  "assets/icons/icons8-dailyart-96.png"
+                  },
+                  {
+                      "sha256":  "778EFA48CDFE543A54BD4C3AD2BCFD9551C9D1797AB48D40729BD12A757E44C0",
+                      "path":  "assets/icons/icons8-datev-96.png"
+                  },
+                  {
+                      "sha256":  "3DC70BD914413B24069D17C262BA6464ED9078D17E23D10F9A30754FF792CDB1",
+                      "path":  "assets/icons/icons8-deepseek-96.png"
+                  },
+                  {
+                      "sha256":  "09A3F7F158C5D456B453B189E5332AF2835C735C5CE3B0B225C9AAF8C8B24C27",
+                      "path":  "assets/icons/icons8-defragment-and-optimize-drives-96.png"
+                  },
+                  {
+                      "sha256":  "B71A3798791B0151F4881729EAC3764F833393E19B1403420387B89865FAD14C",
+                      "path":  "assets/icons/icons8-desjardins-96.png"
+                  },
+                  {
+                      "sha256":  "2C2A93BDD2C023C8DC69CCE544E03FF756A3054B876CAAA04784506D0DF511F7",
+                      "path":  "assets/icons/icons8-deviantart-96.png"
+                  },
+                  {
+                      "sha256":  "31D2C87EA87305D1FAA74B82749660B233B7B82C36B098DA72FBEEBBB92A24AC",
+                      "path":  "assets/icons/icons8-device-manager-96.png"
+                  },
+                  {
+                      "sha256":  "AA5EEAEECDB1D9DC4F8136C0E205F49DF77473B6F194336CD9CEB9AC9CFADBB2",
+                      "path":  "assets/icons/icons8-digg-96.png"
+                  },
+                  {
+                      "sha256":  "07D5CF58F581AE3B32F232A2B77DB5BE627504EC14F0112587FB15C5F99FB571",
+                      "path":  "assets/icons/icons8-diners-club-96.png"
+                  },
+                  {
+                      "sha256":  "36C5343D9F6F1C074E84C3D9CC37B57CBCB68A425591AE8B6E2CDFCD5DD93B8E",
+                      "path":  "assets/icons/icons8-discord-new-96.png"
+                  },
+                  {
+                      "sha256":  "0249444F6D7892C8A0DC6627C3289089A190735FCE26566AC1644E73895CF4B7",
+                      "path":  "assets/icons/icons8-discover-card-96.png"
+                  },
+                  {
+                      "sha256":  "DAA1B0C34B13FC9286E9FC441DC55F8605847A100383DE24FCC27D4377A339E5",
+                      "path":  "assets/icons/icons8-disk-cleanup-96.png"
+                  },
+                  {
+                      "sha256":  "4A6082EAF75FB4FC205A6FE871E533F3BED1C85DE532D8C69BC3DF6736C8D6D6",
+                      "path":  "assets/icons/icons8-disk-management-96.png"
+                  },
+                  {
+                      "sha256":  "4EC1C4AA4744A5A06538171225A9DDDD33C03BF7AB632ECD0882F58E127A5624",
+                      "path":  "assets/icons/icons8-disney-96.png"
+                  },
+                  {
+                      "sha256":  "894D0BC8E3A4F1F37413242FD92D7332ED7F45CF509180F2D101AAAAF56A9BFB",
+                      "path":  "assets/icons/icons8-disney-plus-96.png"
+                  },
+                  {
+                      "sha256":  "6E08530B32201EBCEA3931CC56C33A5025138DBD69D5BD92758078DBB36267F9",
+                      "path":  "assets/icons/icons8-docker-96.png"
+                  },
+                  {
+                      "sha256":  "947DBD08C009FA558E51965E73A4F4CE7BD0137770E5428611A866DAA91C7727",
+                      "path":  "assets/icons/icons8-dota-2-96.png"
+                  },
+                  {
+                      "sha256":  "8909908FF6DF846CA785AECD28D0F2B8637E1375BB55F477511F8D4812E2FB73",
+                      "path":  "assets/icons/icons8-dribbble-96.png"
+                  },
+                  {
+                      "sha256":  "1DC53EA9CF2882174F12C8C88F3711F160496CDE71F2048AA3B1548C9E6B4AB1",
+                      "path":  "assets/icons/icons8-dropbox-96.png"
+                  },
+                  {
+                      "sha256":  "DE981369752E2BE09DF995ED40361847842F6FBBD61F815F1CAD497A9ADF6388",
+                      "path":  "assets/icons/icons8-emby-96.png"
+                  },
+                  {
+                      "sha256":  "38A4561CF4D62B52FBD666026A147283A69BADCA7A58B1ECFABCDD9D4A9ABE79",
+                      "path":  "assets/icons/icons8-ethereum-96.png"
+                  },
+                  {
+                      "sha256":  "4C40B22E42C6D5020ACC4334A6541BFF0D398981BF2E0A2F56F94C1A972030B5",
+                      "path":  "assets/icons/icons8-event-viewer-96.png"
+                  },
+                  {
+                      "sha256":  "9ED1614A6D31F907217854756222F1B5E7E77418A46175EAC822D5C99FE8F6C8",
+                      "path":  "assets/icons/icons8-facebook-96.png"
+                  },
+                  {
+                      "sha256":  "A7DB8392ADBEAE89EF829B0FB5D5E16B63D67113D22D8FCA9E5DD6D2CAE4F0B0",
+                      "path":  "assets/icons/icons8-facebook-messenger-96.png"
+                  },
+                  {
+                      "sha256":  "7B017E6FF3996660B983DD6898DC4E94DA9F972E6A4CDCBC8929970A019B5ACA",
+                      "path":  "assets/icons/icons8-fallout-vault-boy-96.png"
+                  },
+                  {
+                      "sha256":  "6C921437159DC9D4C897278D5C2D1C4AD197BB0A8972C55CFD2233CEE01F95C7",
+                      "path":  "assets/icons/icons8-feedback-hub-96.png"
+                  },
+                  {
+                      "sha256":  "C0D16BBBAC4A7572A803623B5D9E28B9CFA9E03E23915B4AC319D5E3B75E3746",
+                      "path":  "assets/icons/icons8-feedly-96.png"
+                  },
+                  {
+                      "sha256":  "EFFCD57561D193A01B6303723A7B03CB075BCC2DDFF3834B53D25F95691800F3",
+                      "path":  "assets/icons/icons8-figma-96.png"
+                  },
+                  {
+                      "sha256":  "9383D36B887D6AD95D89CC98C8ADA5FB6E9E1F24C0564E72C4CBDECA77363092",
+                      "path":  "assets/icons/icons8-file-explorer-96.png"
+                  },
+                  {
+                      "sha256":  "25B0B50F514BBD9E0914BE1F15A785C6EDDEEB837EDA981BDEA518FD454D3B9B",
+                      "path":  "assets/icons/icons8-flickr-96.png"
+                  },
+                  {
+                      "sha256":  "95F20C7D58411C8C869E20B1A3383A85A5F9D721B31750F6DB9A3BDBDF83DA7F",
+                      "path":  "assets/icons/icons8-focus-assistant-96.png"
+                  },
+                  {
+                      "sha256":  "A63C55142B2458F3473E1AB41115B37DC5DB385BF48FFBA3B2F5AF14A1F692C2",
+                      "path":  "assets/icons/icons8-fortnite-96.png"
+                  },
+                  {
+                      "sha256":  "21DF98DE5A1C2BC2BE140314EE499487D387F497FD18E623D2B7C5EDE95FC98E",
+                      "path":  "assets/icons/icons8-foursquare-96.png"
+                  },
+                  {
+                      "sha256":  "A1697319FB67A5F85F84CADD3AEDF3F70559BC637E105B5589E6C2FFB25EF195",
+                      "path":  "assets/icons/icons8-foxit-reader-96.png"
+                  },
+                  {
+                      "sha256":  "F2D1AFF11B4997EDBA114A5CEEF28CC5ADA0FDFB7A755B1DBE6B85EBF4DEA91B",
+                      "path":  "assets/icons/icons8-free-code-camp-96.png"
+                  },
+                  {
+                      "sha256":  "D3AA8D392D10CA9C89FFD1057688D3A1F9962C34EE7947674E42466200FC173D",
+                      "path":  "assets/icons/icons8-gamejolt-96.png"
+                  },
+                  {
+                      "sha256":  "1582B8C318D41E2A8D7C1AD57A5BE1824D3E371DCBB70591EC6976DABD9CE147",
+                      "path":  "assets/icons/icons8-garrys-mod-96.png"
+                  },
+                  {
+                      "sha256":  "CE026022C18BC057DC0E3F33F52752D60622779631F9585FB2BDC3B8E128D386",
+                      "path":  "assets/icons/icons8-gemini-ai-96.png"
+                  },
+                  {
+                      "sha256":  "D48B2B0F5A9265DFEFD91EA5532206E2B4ABA5105B704D23985180143D38EFFE",
+                      "path":  "assets/icons/icons8-get-help-96.png"
+                  },
+                  {
+                      "sha256":  "90D221A4A5D9371B7ED9560B8AF494A7834F8B984DC1E05A30BC7252E3A0D5BB",
+                      "path":  "assets/icons/icons8-giphy-96.png"
+                  },
+                  {
+                      "sha256":  "CD135698497A9E4CF0D829D2BB2CBD8311F518608FD56E5DE037F41F350666FF",
+                      "path":  "assets/icons/icons8-git-96.png"
+                  },
+                  {
+                      "sha256":  "76D5E7369988BC6A16706C149F6D9ECB13C08D0692BB76915D3E438D17FBEB3E",
+                      "path":  "assets/icons/icons8-github-96.png"
+                  },
+                  {
+                      "sha256":  "77427ACBF00CFDF10A34357C7922BCE41CC86DAB118A783B08BC67B0A622E4E6",
+                      "path":  "assets/icons/icons8-gmail-logo-96.png"
+                  },
+                  {
+                      "sha256":  "C615172C24C609D7055BDF6C1920FB65FBE73034D36E781F43E0EDF1388F9F61",
+                      "path":  "assets/icons/icons8-godaddy-96.png"
+                  },
+                  {
+                      "sha256":  "780A5E899274D40A592A8724AD877EE485CEF7B32F5898A691F40CD94C02C3CE",
+                      "path":  "assets/icons/icons8-godot-96.png"
+                  },
+                  {
+                      "sha256":  "C9DE85D3A2892A342B619D0F07CC8926A9A0B28C61C3D04F8567565E72596DCA",
+                      "path":  "assets/icons/icons8-google-assistant-96.png"
+                  },
+                  {
+                      "sha256":  "3A89D3748344C5A44AA306C9FCE2D6A2612A93C7E04DBB4F8A367B2B8B0B5A1D",
+                      "path":  "assets/icons/icons8-google-authenticator-96.png"
+                  },
+                  {
+                      "sha256":  "EC8F04BB85B91CBA303D6B0C58A62BD25B10DF8107364398EBF72BE7456BA462",
+                      "path":  "assets/icons/icons8-google-classroom-96.png"
+                  },
+                  {
+                      "sha256":  "46BB85EB4CA0EDCE428DE88CC99118CD050134E439B1BDC2C881E1EF2C48D405",
+                      "path":  "assets/icons/icons8-google-docs-96.png"
+                  },
+                  {
+                      "sha256":  "2B8F25609157F185BA19E7C4270D564416B906D49FA587163CCA9ED8ACD1B49C",
+                      "path":  "assets/icons/icons8-google-drive-96.png"
+                  },
+                  {
+                      "sha256":  "CC28D3F8265238B670F8F23BD43F1DCE66590EAADE311680E6DFDC84617A076F",
+                      "path":  "assets/icons/icons8-google-mobile-96.png"
+                  },
+                  {
+                      "sha256":  "B3453496D7758EDAF723B4BFD83E5E01AADFB0BA1598BD18A63C7639994D978E",
+                      "path":  "assets/icons/icons8-google-news-96.png"
+                  },
+                  {
+                      "sha256":  "96423F911B563127CB9A45E5E2C19E63A06D1FD6965E3DFA994FCD43EC23CD56",
+                      "path":  "assets/icons/icons8-google-pay-new-96.png"
+                  },
+                  {
+                      "sha256":  "2F66F58AD337F584A41B88F4DFE176C32F1391B87033FA79409E70AE1A3B06C1",
+                      "path":  "assets/icons/icons8-google-photos-96.png"
+                  },
+                  {
+                      "sha256":  "D56825ADEF17E90D55847910A635DD8816DD4CECE0265A12847119FAC9FE622A",
+                      "path":  "assets/icons/icons8-google-play-96.png"
+                  },
+                  {
+                      "sha256":  "5830BA7E83C53A86FAF9B297B35AEC0EF39D7BCD9F91964EA6458DE6A2C2D6E4",
+                      "path":  "assets/icons/icons8-google-plus-96.png"
+                  },
+                  {
+                      "sha256":  "96DBE02A4D25F378ECE6E481BDFCC778614327C650B3F1767B99D3BAB67895D8",
+                      "path":  "assets/icons/icons8-google-web-search-96.png"
+                  },
+                  {
+                      "sha256":  "B61FDAB7E5AB3116101AC270B2AE8AE36E6E98117C545700899FAFFBD8ABF49A",
+                      "path":  "assets/icons/icons8-grammarly-96.png"
+                  },
+                  {
+                      "sha256":  "3A8A3AD557A0C9BA5973230EF39A3E3618A443AB78E50E63C3FD708F59DDB8B5",
+                      "path":  "assets/icons/icons8-grand-theft-auto-vi-96.png"
+                  },
+                  {
+                      "sha256":  "491CBEB3E51DD9EEEDAF80E9A629FE43DCF6B5B3CD7FE33196FC2C277DC4A0FC",
+                      "path":  "assets/icons/icons8-grok-96.png"
+                  },
+                  {
+                      "sha256":  "7FEC2D903DA766D85DD5AF795790DE9A19D6287137137FFC8AFA97783ABB7788",
+                      "path":  "assets/icons/icons8-halo-office-of-naval-intelligence-96.png"
+                  },
+                  {
+                      "sha256":  "067F978B2436A6EE3E3FB3B11A16F8093018EBE50F73EDF1FC33E66CEE4BD9E4",
+                      "path":  "assets/icons/icons8-hatena-bookmark-96.png"
+                  },
+                  {
+                      "sha256":  "88603D988820402DB78D59805588C0793883809A52A7F7D2CA45D90591C6847F",
+                      "path":  "assets/icons/icons8-homebrew-96.png"
+                  },
+                  {
+                      "sha256":  "F6E7DF4D014F8BF164AF34AA837C9D2E912FA004CAE6655ABE0CF27ECB4AB9DA",
+                      "path":  "assets/icons/icons8-houzz-new-96.png"
+                  },
+                  {
+                      "sha256":  "540F47E8D42F019837054A984EFACEBD20DCEBA4025D062A542642AFB757836A",
+                      "path":  "assets/icons/icons8-html-5-96.png"
+                  },
+                  {
+                      "sha256":  "39F5093326344063FD69D353F0A0C272468ED9E1C0F6148475B53BA81AB32E92",
+                      "path":  "assets/icons/icons8-hype-app-96.png"
+                  },
+                  {
+                      "sha256":  "FCE1E8B0B9B679B9857E26850A39D7CE8F2D8336F1FB37F39CF50F97CC77BA62",
+                      "path":  "assets/icons/icons8-ifad-96.png"
+                  },
+                  {
+                      "sha256":  "E06DB16E6C88E2B024D82A142C7E1DCF54952D9F2CC8576E30AE43E979AE653B",
+                      "path":  "assets/icons/icons8-ingress-96.png"
+                  },
+                  {
+                      "sha256":  "9B0EB98B030D2A0FB16AB1517B147D9323D40ECDCAD5C013797424BE3C695E93",
+                      "path":  "assets/icons/icons8-inshot-96.png"
+                  },
+                  {
+                      "sha256":  "4BED2D01622BEC28B1422CD5C5FB2DBDB9EFBDABC8E0125E779A25BC28FA52CA",
+                      "path":  "assets/icons/icons8-instagram-96.png"
+                  },
+                  {
+                      "sha256":  "1D430440AED22B4178630DCF62AF7B607CEA7B0F2077BFFD162EF1125C37218E",
+                      "path":  "assets/icons/icons8-instructure-96.png"
+                  },
+                  {
+                      "sha256":  "FD62800D954AD3F5BD2B07E032F390B4B565A804BF8D31D98E017A3DBDEF0D05",
+                      "path":  "assets/icons/icons8-intellij-96.png"
+                  },
+                  {
+                      "sha256":  "9453B5EAB41F87F316307401ADCCD7A49D6F746D1087991ACC7D7F477B94B6A8",
+                      "path":  "assets/icons/icons8-iobit-uninstaller-96.png"
+                  },
+                  {
+                      "sha256":  "305BA8E2D7676E4C295250C003E21C452A1AEBE5AFB42366114D3B3710F6BA70",
+                      "path":  "assets/icons/icons8-iscsi-initiator-96.png"
+                  },
+                  {
+                      "sha256":  "DD214C0B78AC959CCA90489EA7DFC1F1CE4698272A037467FDB3720D05E6AB9F",
+                      "path":  "assets/icons/icons8-iserv-96.png"
+                  },
+                  {
+                      "sha256":  "D18649DDA908923C6497737AC68E7E014FB5767663E8356B05A7E207D3E66064",
+                      "path":  "assets/icons/icons8-james-bond-96.png"
+                  },
+                  {
+                      "sha256":  "7914C8C4B69FAD8CE659922CBADBC85D7AA621E6BF53B885BC42BF0F4BC3D4B4",
+                      "path":  "assets/icons/icons8-java-96.png"
+                  },
+                  {
+                      "sha256":  "C7004CB0590E39633ACBBEE2F2930E672968A8AD26BC0BFCCF133E57D722B07E",
+                      "path":  "assets/icons/icons8-jetpack-joyride-96.png"
+                  },
+                  {
+                      "sha256":  "9E2FEA213D8D3A8CB3AA58E4CFEDBF78077AB00A739261434503F5C1ED946CDC",
+                      "path":  "assets/icons/icons8-jour-96.png"
+                  },
+                  {
+                      "sha256":  "01AFF5379CF27FA5A140DF74DB94E4169DA04D6E9334F5C23299DE0E846EC4E0",
+                      "path":  "assets/icons/icons8-just-cause-96.png"
+                  },
+                  {
+                      "sha256":  "754D3E54F20E1F81D8763ACAF1403B22156F67D9E8341AFD5B056B105CA67FAB",
+                      "path":  "assets/icons/icons8-line-96.png"
+                  },
+                  {
+                      "sha256":  "1368F181FE6B1481A6AB54030BFB57B84061D47120A02F016DFCEE8AD70C22CE",
+                      "path":  "assets/icons/icons8-linkedin-96.png"
+                  },
+                  {
+                      "sha256":  "366C2FCD92E7EF00E6DE6E306752A334B6F99CAB5613A1490CFC17BAF21CEECF",
+                      "path":  "assets/icons/icons8-litecoin-96.png"
+                  },
+                  {
+                      "sha256":  "1EB5920740EDC1D5D4E4324DB4701DF8630B655624386FA28EF27C3DA728AE3F",
+                      "path":  "assets/icons/icons8-live-captions-96.png"
+                  },
+                  {
+                      "sha256":  "6FA0278EC1620F5589C713FE5A292D5036DADF4F4B332521774A74D6130A2DC0",
+                      "path":  "assets/icons/icons8-lively-wallpaper-96.png"
+                  },
+                  {
+                      "sha256":  "72251E8A37C6DF4A8524F8A21AC608542802A7D6705C0C2228DA08E1A7D9D6A7",
+                      "path":  "assets/icons/icons8-local-group-policy-editor-96.png"
+                  },
+                  {
+                      "sha256":  "A866E057D6AD27BCB98DC8D2342B726579CFF9344A03613837B97075B4137A5D",
+                      "path":  "assets/icons/icons8-lumion-96.png"
+                  },
+                  {
+                      "sha256":  "C85FBA9E2F70891326907098038B9A6E5491FE5D151956275F85EDA834D1488C",
+                      "path":  "assets/icons/icons8-lunacy-96.png"
+                  },
+                  {
+                      "sha256":  "92C172736988163495632284B07BC79A58C79655487A2F11B1B76D1DC8446F7B",
+                      "path":  "assets/icons/icons8-lunar-client-96.png"
+                  },
+                  {
+                      "sha256":  "C915BA4055013B8B6E534087C3407DE50D570F6FA92FA717805B70B6F4274AEE",
+                      "path":  "assets/icons/icons8-lyft-96.png"
+                  },
+                  {
+                      "sha256":  "7355008B7E93FD5C88B3CD4FE8A32128FDF3648665F2C6BE83F1EC7BC609C9E6",
+                      "path":  "assets/icons/icons8-magnifier-96.png"
+                  },
+                  {
+                      "sha256":  "702FEB9082C6E99A1E1EB538E1F8C172AEAFB56BAB6EDCAC9FF223B1768B6FA0",
+                      "path":  "assets/icons/icons8-manage-user-certificates-96.png"
+                  },
+                  {
+                      "sha256":  "6165D95BE60842FE8C58B2256BBEC69E0B4AD41B8DFBD4A2091901C987FA2780",
+                      "path":  "assets/icons/icons8-medium-96.png"
+                  },
+                  {
+                      "sha256":  "5E714FBF8CE70CB1B9244C036539FAE5004E19CFEC06BC3A07D9CE8E160530FF",
+                      "path":  "assets/icons/icons8-medium-old-96.png"
+                  },
+                  {
+                      "sha256":  "4766285101699060EF6CD31869C75D8287D0829A3EB61B06EB856A79799DD1A8",
+                      "path":  "assets/icons/icons8-mega-creator-96.png"
+                  },
+                  {
+                      "sha256":  "E4F744DE8E0B3C45E4C82CA20553247E8F1F9E7D44E318FE7A3AC25E0FC31319",
+                      "path":  "assets/icons/icons8-microsoft-copilot-96.png"
+                  },
+                  {
+                      "sha256":  "5E0DA9FCC3462D21460FD3221ADAAC619E8F865E981F4C1189B2BC1F577983F6",
+                      "path":  "assets/icons/icons8-microsoft-defender-2025-96.png"
+                  },
+                  {
+                      "sha256":  "AC5A1B2E7019015A6323CE68C459DAB4078AAB72CB75AC3691CDE3393D0FABFD",
+                      "path":  "assets/icons/icons8-microsoft-edge-96.png"
+                  },
+                  {
+                      "sha256":  "A9101381E643218257A0185A73A77622D84E71C95B9DAAA208ED073527BAAD91",
+                      "path":  "assets/icons/icons8-microsoft-excel-96.png"
+                  },
+                  {
+                      "sha256":  "CE6193C22D043A711DFC016FA7CD8D2F5ABD8EAC7582D1A98BC0F19F19B2623B",
+                      "path":  "assets/icons/icons8-microsoft-onenote-2019-96.png"
+                  },
+                  {
+                      "sha256":  "0B810811F0D7A75F3FE220B1A6D0A877C773C580F3B9C5B5C07C3D71741CF6CF",
+                      "path":  "assets/icons/icons8-microsoft-outlook-96.png"
+                  },
+                  {
+                      "sha256":  "3B52D30ACCBD9F67F1F42DFEBB884D4088B0B4BE9F8F7A91E1303FFCF90BF395",
+                      "path":  "assets/icons/icons8-microsoft-powerpoint-96.png"
+                  },
+                  {
+                      "sha256":  "47F229F3ECBFE059FFFD79383BEE8F749B3A1E1096109838822A9F39C345C1E1",
+                      "path":  "assets/icons/icons8-microsoft-powertoys-96.png"
+                  },
+                  {
+                      "sha256":  "1ED9483299C982D1947D9CB824A5AFEE1743BC9465F2DF001E11DF4E196D5A83",
+                      "path":  "assets/icons/icons8-microsoft-sharepoint-96.png"
+                  },
+                  {
+                      "sha256":  "FDA2D5CB55BAA36ACEA850C112235E9420BE28A661A9D8E9E16CAE0848F01986",
+                      "path":  "assets/icons/icons8-microsoft-store-96.png"
+                  },
+                  {
+                      "sha256":  "8A90B8766640D3356E7F0DAECB27C96ADCC6237AAD7FA63B2D265ADF39CE4CA2",
+                      "path":  "assets/icons/icons8-microsoft-teams-2025-96.png"
+                  },
+                  {
+                      "sha256":  "41B24DDF69B62F38C5CF2211BDC69597E7A29453F3D896FEDEDF23A3C5FA9BFB",
+                      "path":  "assets/icons/icons8-microsoft-word-96.png"
+                  },
+                  {
+                      "sha256":  "49C5DCFD289E09DB3500925AE81855147D5C873FEB74812B26F1552840CEDADC",
+                      "path":  "assets/icons/icons8-minecraft-grass-cube-96.png"
+                  },
+                  {
+                      "sha256":  "E9FDF5750782DC2D3C3A8DE233A143FC79391DDB5311DC4397BD4F0E0FF030B9",
+                      "path":  "assets/icons/icons8-model-context-protocol-96.png"
+                  },
+                  {
+                      "sha256":  "2AE0BAAFAF1574A6195BCE48D7CCB904AD30E5E4F2F56B457F01605CD267BE94",
+                      "path":  "assets/icons/icons8-multibanco-96.png"
+                  },
+                  {
+                      "sha256":  "4C4A2ADBA41D6DFDE7E70CC5DA5C74C0D0A599F61BBDF0C738E726C773B50CF8",
+                      "path":  "assets/icons/icons8-myspace-3-96.png"
+                  },
+                  {
+                      "sha256":  "2E68A3AB332DD1ED72F6E031B8F11FA1231340E7C841CDDB0CE26052253D53B3",
+                      "path":  "assets/icons/icons8-netflix-desktop-app-96.png"
+                  },
+                  {
+                      "sha256":  "1C9B8249188BC9D6C2E3A6E2B056006469B1DE03A1C81D011ADAC635AE89772A",
+                      "path":  "assets/icons/icons8-next.js-96.png"
+                  },
+                  {
+                      "sha256":  "9BE7B2155ECC55B421A7B39EAE528C2D2FAB8964D87E81087850B7525CD46103",
+                      "path":  "assets/icons/icons8-nintendo-wii-u-96.png"
+                  },
+                  {
+                      "sha256":  "6DBD9AB6EA17D4FA716F82F1723A67E818B926B584B5C2F00630B666E997DB9C",
+                      "path":  "assets/icons/icons8-notability-96.png"
+                  },
+                  {
+                      "sha256":  "7E24F83B4DF9FFABE1D2DF759A4BEDCBB687583CF3AA61AADD5D134250C3C562",
+                      "path":  "assets/icons/icons8-notepad-plus-plus-96.png"
+                  },
+                  {
+                      "sha256":  "86E2F1FE750E4427309EC95786CFE598F4A2F3368FD51E80A249A3B9231C2422",
+                      "path":  "assets/icons/icons8-notification-96.png"
+                  },
+                  {
+                      "sha256":  "8F7266CEB6E2D621ACD1BF8B2242993489BA97A3109E72D2271CA08584DE6270",
+                      "path":  "assets/icons/icons8-notion-96.png"
+                  },
+                  {
+                      "sha256":  "1BE5E8F7A9A5BE575398B86A15C5675AE49E46ABC5C6D951ECE0DCF26161FCA1",
+                      "path":  "assets/icons/icons8-nvidia-96.png"
+                  },
+                  {
+                      "sha256":  "079476CB48E6A1B1F9972C4B40F0AE40D3FAFEEE11F9EC0545BB1C6780FEF254",
+                      "path":  "assets/icons/icons8-octocat-96.png"
+                  },
+                  {
+                      "sha256":  "1860799356E3E7C199A08C3479FE085AEAC82D401FE712CD0128CE0B07DE5D07",
+                      "path":  "assets/icons/icons8-odbc-data-sources-96.png"
+                  },
+                  {
+                      "sha256":  "CAB55E8F72B3179D15511E56FFFE54A2A80DFE399AB9E74061B546CF9CD81917",
+                      "path":  "assets/icons/icons8-odnoklassniki-96.png"
+                  },
+                  {
+                      "sha256":  "A56C129A5E51CA8F90CEA155665BFB5E2C881CF685F9A1DBF5CBFC18A97DF3BB",
+                      "path":  "assets/icons/icons8-office-365-96.png"
+                  },
+                  {
+                      "sha256":  "E24518716A6AD41F4B06803D46FD6347C6193994CA9581816BDC0A0CE153CF64",
+                      "path":  "assets/icons/icons8-on-screen-keyboard-96.png"
+                  },
+                  {
+                      "sha256":  "E7C289AB8D879C48A7D307400234714A2EFBF4C4663164B4444EE1001AA8D848",
+                      "path":  "assets/icons/icons8-onlyfans-96.png"
+                  },
+                  {
+                      "sha256":  "4437369FC3726DF467CED2EB689E042D0B63FD9AB0659B2F633FBCD12705B942",
+                      "path":  "assets/icons/icons8-opera-96.png"
+                  },
+                  {
+                      "sha256":  "31A9E08CC8DE743DFCCFF17A2D6FEC36251A122CD2F0B5361D7A2627B40A6BBC",
+                      "path":  "assets/icons/icons8-ouch-96.png"
+                  },
+                  {
+                      "sha256":  "B8B3CE26AB9AF78087FF78EA9C491F29F7A60B33639CC9D197CDB68EBB4652D9",
+                      "path":  "assets/icons/icons8-packer-96.png"
+                  },
+                  {
+                      "sha256":  "C33DAD5AB4F60E5A2A3E1500DE3032127076C9621626E93500B4556BB289E120",
+                      "path":  "assets/icons/icons8-paint-96.png"
+                  },
+                  {
+                      "sha256":  "E8EFA5EBAA7C49AAA1FD2B9F95B48592014A41D008CAD2EF10C96088000F009E",
+                      "path":  "assets/icons/icons8-patreon-96.png"
+                  },
+                  {
+                      "sha256":  "34F1712E86A011D3D379177D780B578121EB46A3A6F28016AF64A0BCECC102B6",
+                      "path":  "assets/icons/icons8-paypal-96.png"
+                  },
+                  {
+                      "sha256":  "DB54E1482C69CF001295F0D238D0DB3EC6C9540FF4E149E08DCC8E192C686F65",
+                      "path":  "assets/icons/icons8-performance-monitor-96.png"
+                  },
+                  {
+                      "sha256":  "70897C5625D5A63E97895EDEA47CCB0B9188C75DA674BDE4AD247AA2045DAA56",
+                      "path":  "assets/icons/icons8-phone-link-96.png"
+                  },
+                  {
+                      "sha256":  "219915E53023BFAC6C148B3409AC4EA9A3E8382B3DA32A9F57468C09FE5F1B72",
+                      "path":  "assets/icons/icons8-photos-96.png"
+                  },
+                  {
+                      "sha256":  "C21DAEEDC8B9E10E6779F162C7BA73A58A33D73F3797CC0FA267ED4E95B6DCFE",
+                      "path":  "assets/icons/icons8-pinterest-96.png"
+                  },
+                  {
+                      "sha256":  "90D4256793C1809A014F6ABE9B6146B2C656275BACF86C838E36C727C5E4CDF2",
+                      "path":  "assets/icons/icons8-pixel-gun-3d-96.png"
+                  },
+                  {
+                      "sha256":  "8187896A502F8972E8879EC7516C7C17D8C87E800B68502D11E6F70432166143",
+                      "path":  "assets/icons/icons8-pleex-96.png"
+                  },
+                  {
+                      "sha256":  "FB81D959187D5ECC36361E13478C8D10A5A5EA03D8CCCCE12757C935E3A7B9B1",
+                      "path":  "assets/icons/icons8-plex-96.png"
+                  },
+                  {
+                      "sha256":  "73977FBAD47FF9681FE518C88CDE8249DA2D675CAFDA4F01E8A0B6950D96066E",
+                      "path":  "assets/icons/icons8-powershell-96.png"
+                  },
+                  {
+                      "sha256":  "E013471165992E58C659C53A3E9D3C14A3E26459414AD861A8DD95D0EBB5EF4D",
+                      "path":  "assets/icons/icons8-primeng-96.png"
+                  },
+                  {
+                      "sha256":  "08834C876066EBCAAA58F5A4145E914B552C03D053D0875556BB8A1BE7E248B6",
+                      "path":  "assets/icons/icons8-primevue-96.png"
+                  },
+                  {
+                      "sha256":  "05EC627A378ED93D80FDF7028597FFA975C043C512F9A59B73FF4831A18F86FB",
+                      "path":  "assets/icons/icons8-prodigy-96.png"
+                  },
+                  {
+                      "sha256":  "63249F090D4EB7BF7579202ED449FCE74AB769BA260AF3D25F8F61184B9582AC",
+                      "path":  "assets/icons/icons8-progressbar95-96.png"
+                  },
+                  {
+                      "sha256":  "C593821C9D399422014058610238196BE8E1AB05990D244C8CA8B0EA2643413E",
+                      "path":  "assets/icons/icons8-protonmail-96.png"
+                  },
+                  {
+                      "sha256":  "64582FE09C3BE58D38C428084893FEAF637B0AC9CF97CCEA7FD7E1A7D85E8897",
+                      "path":  "assets/icons/icons8-ps-5-96.png"
+                  },
+                  {
+                      "sha256":  "A9489EE3153374E6BAB8F481E3149EB11C07B8CD07AEBA7DB3CF12E3BA012030",
+                      "path":  "assets/icons/icons8-python-96.png"
+                  },
+                  {
+                      "sha256":  "966C0ECDFD8BB76D2EE18A00A0489D015999BCBCF2033CBC210D0E586EECB408",
+                      "path":  "assets/icons/icons8-quick-assist-96.png"
+                  },
+                  {
+                      "sha256":  "B1FA9999CD6AD4B447E868EE5744D1D41C31EF9975F8C0CD2E0D82966BC08195",
+                      "path":  "assets/icons/icons8-recovery-drive-96.png"
+                  },
+                  {
+                      "sha256":  "EC4839CCC683EF56FA5590C27A9D16B9B925FD0727E1412D20DD164820C9B85C",
+                      "path":  "assets/icons/icons8-recycle-96.png"
+                  },
+                  {
+                      "sha256":  "8ABE56B299E25E6729DE94CEF1C6F51E89712DEC42986CC3872F9CEE51F7645C",
+                      "path":  "assets/icons/icons8-reddit-96.png"
+                  },
+                  {
+                      "sha256":  "21DE8BFA7BCAA095CAB8ADDD2AAABF91AA09AD6012B2C55C9CAFB9E3A2316157",
+                      "path":  "assets/icons/icons8-registry-editor-96.png"
+                  },
+                  {
+                      "sha256":  "75412ED8610F6C564F012B9F0937D2CEB95E41B91A6653F5209C4EEC77489FB7",
+                      "path":  "assets/icons/icons8-remote-desktop-connection-96.png"
+                  },
+                  {
+                      "sha256":  "E269A363EF0915577B1F43B213ED726B9160CDD6167026F230CD987C9F4AD887",
+                      "path":  "assets/icons/icons8-renren-96.png"
+                  },
+                  {
+                      "sha256":  "DB54E1482C69CF001295F0D238D0DB3EC6C9540FF4E149E08DCC8E192C686F65",
+                      "path":  "assets/icons/icons8-resource-monitor-96.png"
+                  },
+                  {
+                      "sha256":  "07987975A1907A234DEE061780D453579876A1C40DEE8ED8B9658B6DAD2D0419",
+                      "path":  "assets/icons/icons8-riverdale-96.png"
+                  },
+                  {
+                      "sha256":  "44FA01E4C639FD6CB8FB10B79EE0FF811B39207C0DBD0D01A0696F1C3F77A2BB",
+                      "path":  "assets/icons/icons8-roku-96.png"
+                  },
+                  {
+                      "sha256":  "CC0B866D0A3262974FC53E0C9068F673352447D8DA8963622B411C38FA81AED5",
+                      "path":  "assets/icons/icons8-roll-no-21-96.png"
+                  },
+                  {
+                      "sha256":  "2DB6AA2FF247E25EF9099A2823C157A04A4F1CAD546800EA1668A9AFB2D88DB2",
+                      "path":  "assets/icons/icons8-roon-96.png"
+                  },
+                  {
+                      "sha256":  "71F355545F48C9AF738F03D183736046BF66F7723E8EAD417E9B3AB691B125FD",
+                      "path":  "assets/icons/icons8-ruby-programming-language-96.png"
+                  },
+                  {
+                      "sha256":  "51B33913342E30F92E725D4E62CB2A1F5761634FA204D1FDF06F299B36DB627B",
+                      "path":  "assets/icons/icons8-ryzen-controller-96.png"
+                  },
+                  {
+                      "sha256":  "F228310017258944666825C6439D4E611C0F819F9C9D2F19A794C432ECD4B40D",
+                      "path":  "assets/icons/icons8-samsung-flow-96.png"
+                  },
+                  {
+                      "sha256":  "7E4AC2CDC3BAFB9F15CC850A84BC0A4FB0AB67B55A868CEAD447D6508589DE6D",
+                      "path":  "assets/icons/icons8-scp-foundation-96.png"
+                  },
+                  {
+                      "sha256":  "CADAD511A26062F3173BC2AC6083001C717EC4A66F2B24E0FB22519C2A453362",
+                      "path":  "assets/icons/icons8-search-96.png"
+                  },
+                  {
+                      "sha256":  "5CC612EC1571CC45B37DD30DFBFA06FDFEEB01D381363901FAC38167F11C764F",
+                      "path":  "assets/icons/icons8-services-96.png"
+                  },
+                  {
+                      "sha256":  "3DE28BDF93AE09AADA39DA73205596ADF7FF533646E57B6434E3D42D28F50072",
+                      "path":  "assets/icons/icons8-settings-96.png"
+                  },
+                  {
+                      "sha256":  "ABB970DD240E35FFBE405724226D6BBC768408ADF601F0479C3A88E2966A5E76",
+                      "path":  "assets/icons/icons8-shazam-96.png"
+                  },
+                  {
+                      "sha256":  "B13F72585CCA821FF8EA41E6732CE187E6DFD1BB5C0E333B4F5425A2B65E6C55",
+                      "path":  "assets/icons/icons8-shopee-96.png"
+                  },
+                  {
+                      "sha256":  "8BFF56E91B57162E091CB730AC35DA5E422D01A5CE8A14C28A0DEF03162DF551",
+                      "path":  "assets/icons/icons8-skype-96.png"
+                  },
+                  {
+                      "sha256":  "A298C34EBFE5865D1DB945BF3C88F5622FAC9015E1EA7AEAEFB7AF501FAAA6E8",
+                      "path":  "assets/icons/icons8-slingtv-96.png"
+                  },
+                  {
+                      "sha256":  "FC526B14D7BD245A006F62971D53C2562519EF7590ADAF99386237A919ADC531",
+                      "path":  "assets/icons/icons8-smart-upscaler-96.png"
+                  },
+                  {
+                      "sha256":  "8946BEBCCA2CA5FD64BB56B7863347317A7F1638C61B47A8849AA4FBEB6E2945",
+                      "path":  "assets/icons/icons8-smite-96.png"
+                  },
+                  {
+                      "sha256":  "856D0CEB044498027DD7194DF8CACD6A97AD661AA492AD676414298BBD1934FC",
+                      "path":  "assets/icons/icons8-snapchat-96.png"
+                  },
+                  {
+                      "sha256":  "CE818F1E87485090BC97BE616165659E6893CE6BC512B50E3326D007105C736D",
+                      "path":  "assets/icons/icons8-snipping-tool-96.png"
+                  },
+                  {
+                      "sha256":  "4F0BC36B9F396C600E86FE37789CEF41BFC4D4492542344A0BD306D9551C98AA",
+                      "path":  "assets/icons/icons8-solidworks-flow-simulation-96.png"
+                  },
+                  {
+                      "sha256":  "18EA165AB5D211B73F1BEF749E5CDF7547BA6266D89E6E37841D6258E9E8B76B",
+                      "path":  "assets/icons/icons8-sound-recorder-96.png"
+                  },
+                  {
+                      "sha256":  "0A9D41A701E1374DF89841BCA0555DEDE8680A3EF758E5A141C0E3186E125BCE",
+                      "path":  "assets/icons/icons8-spc-gear-96.png"
+                  },
+                  {
+                      "sha256":  "118709C70FB0FB23080108E0358AA1C469836D7AFA20F1AEA9B30DEDB614296E",
+                      "path":  "assets/icons/icons8-spoon-logo-96.png"
+                  },
+                  {
+                      "sha256":  "8571A1DDF9B744B44FE6CF9CCD372A36A96750EB55F3E7EAD7FC3D15739202D0",
+                      "path":  "assets/icons/icons8-spotify-96.png"
+                  },
+                  {
+                      "sha256":  "5849949538003FD11B35C6378850BB3C8D7FD10B94358176F54DF9ABAA7956E6",
+                      "path":  "assets/icons/icons8-squarespace-96.png"
+                  },
+                  {
+                      "sha256":  "A98FE6AF794F7F248A939D0D7368BDF7981D3DFD60171BCA22A4CDD4664C897A",
+                      "path":  "assets/icons/icons8-stack-exchange-96.png"
+                  },
+                  {
+                      "sha256":  "1B467844B52B2561C4F4D312D8A6D017DB1440A61637C73616BA0E138DE2D053",
+                      "path":  "assets/icons/icons8-stack-overflow-96.png"
+                  },
+                  {
+                      "sha256":  "6A2E8FF1E9F1E948F7D3D145D85DB67CAEF9A199369C0DCBAFB7831CC89C0E66",
+                      "path":  "assets/icons/icons8-steam-circled-96.png"
+                  },
+                  {
+                      "sha256":  "5272C518926286BEFEFC8B8949BE8BF844BD5F054A0248228859FC4883A0914B",
+                      "path":  "assets/icons/icons8-steps-recorder-96.png"
+                  },
+                  {
+                      "sha256":  "5E7E273D2594680AD8A6F54057B35FA144A1165BB6778B2F9295C643267E6147",
+                      "path":  "assets/icons/icons8-sticky-notes-96.png"
+                  },
+                  {
+                      "sha256":  "A765287B6FF293B17B68F35322D5308EF0EF2764E822C58A4B3D682008DF67BE",
+                      "path":  "assets/icons/icons8-storybook-96.png"
+                  },
+                  {
+                      "sha256":  "68E1F96D918F23B92B5F38C0B414B6893322DF4A67DC197F5510F5184F59B9E1",
+                      "path":  "assets/icons/icons8-stripe-96.png"
+                  },
+                  {
+                      "sha256":  "1A84355CF92511E9B732D7DFD42D1C377A7AEFA0290B766FA0E285CBDB6B0994",
+                      "path":  "assets/icons/icons8-studentvue-96.png"
+                  },
+                  {
+                      "sha256":  "4E5F4A2FBFDF6E16FB400ECC0F4510E5EB7B79436237F9EB028EC676D490B61C",
+                      "path":  "assets/icons/icons8-stumbleupon-96.png"
+                  },
+                  {
+                      "sha256":  "BBCDCBC1CBF3B3AD83D79069E744939376062D4748930F0B8B6BB1A89AB05BE0",
+                      "path":  "assets/icons/icons8-supabase-96.png"
+                  },
+                  {
+                      "sha256":  "29E6AD1E47555CD0426FC3DDD2D6BB0D75F147B610EB8461F1C47089F780D251",
+                      "path":  "assets/icons/icons8-swift-96.png"
+                  },
+                  {
+                      "sha256":  "8A4E57C398CF8BF4706051D21DD87A613884B4F7DF034831706D3B65949C1BC4",
+                      "path":  "assets/icons/icons8-synapse-analytics-96.png"
+                  },
+                  {
+                      "sha256":  "189165D1F1773633805D089933C2EC6D2C00AFAD218A34FD3B326FB92F49849F",
+                      "path":  "assets/icons/icons8-system-configuration-96.png"
+                  },
+                  {
+                      "sha256":  "6E022AF52D8BE36B8E123430EA4C38480AC1DCEAD2663F368DC9EA6B1D364959",
+                      "path":  "assets/icons/icons8-system-information-96.png"
+                  },
+                  {
+                      "sha256":  "EE725F192D24A464B65E94CE767B4A31C6EA7F045047C0277A4C602F87481D00",
+                      "path":  "assets/icons/icons8-system-restore-96.png"
+                  },
+                  {
+                      "sha256":  "A19AD76E0B19D1E734E052462A970562ADA6E784C2D67F0CDAB31C79D691834E",
+                      "path":  "assets/icons/icons8-task-scheduler-96.png"
+                  },
+                  {
+                      "sha256":  "3B8EA77C72F1EE6292D9DD9DD8F97780FF802725E9CF9F0D4BDDD0DA13E56A40",
+                      "path":  "assets/icons/icons8-telegram-app-96.png"
+                  },
+                  {
+                      "sha256":  "E200DB8436593F9B2E3528509DEBCA0B5B5777D69EF16E7DB842817341106292",
+                      "path":  "assets/icons/icons8-tencel-96.png"
+                  },
+                  {
+                      "sha256":  "0551903F8BAE325BF2973DCCFC9D652F9F65FDA97E295026D45186287AB44AC1",
+                      "path":  "assets/icons/icons8-tencent-weibo-96.png"
+                  },
+                  {
+                      "sha256":  "2445E6EAA0C121EE6F149E6CDD1336D9A4F68715927480CC155B9FC012D4F4E6",
+                      "path":  "assets/icons/icons8-terminal-96.png"
+                  },
+                  {
+                      "sha256":  "B10ACF869D85A1031EDC6DBB187F6AFFA2F3D0DA72A2FF844F67BBC3237155F4",
+                      "path":  "assets/icons/icons8-terraria-96.png"
+                  },
+                  {
+                      "sha256":  "EBC88B9F216987A505EE71570BA7E15166798A2DC7A5778B3C26F6BDCE74A523",
+                      "path":  "assets/icons/icons8-testrail-96.png"
+                  },
+                  {
+                      "sha256":  "E1720B1CC1C99399FC0B4DA03ACA1BB3819411AFBBEBD8F1C6E8C110F036E678",
+                      "path":  "assets/icons/icons8-text-file-96.png"
+                  },
+                  {
+                      "sha256":  "E608AFD7B2870EC5C103F565294CF9B4EB0F318DECB143698F42A26C9007AC6C",
+                      "path":  "assets/icons/icons8-the-washington-post-pinocchio-96.png"
+                  },
+                  {
+                      "sha256":  "639A747EF14C7501AC2999FE6B4E4A2E8BACE36CB7B2A25E4966ACE96B4C5EF5",
+                      "path":  "assets/icons/icons8-tidal-96.png"
+                  },
+                  {
+                      "sha256":  "D460DCDE5CC0D9902D25DC00FD4F88425054E802248F64910E4619644C5D7D08",
+                      "path":  "assets/icons/icons8-tiktok-96.png"
+                  },
+                  {
+                      "sha256":  "4FA896CF4E441A51DAD23049CE03E7ED5979CDB01C2EFCEE22A221A36CC00C89",
+                      "path":  "assets/icons/icons8-tinder-96.png"
+                  },
+                  {
+                      "sha256":  "56979013A8302E664486D60E12D40FFDC42529C02546EF10E676C5DFC48EEFC7",
+                      "path":  "assets/icons/icons8-tlauncher-96.png"
+                  },
+                  {
+                      "sha256":  "3E66E029AA77A11AA1BF6AF637E4BC3CC4A8A1324CD7EFE14299CD99D51742B1",
+                      "path":  "assets/icons/icons8-tumblr-96.png"
+                  },
+                  {
+                      "sha256":  "BAFE8F37A2478698877B0A392D8DF3D68B0E88403EAA4B57C040C3EFCA880D0A",
+                      "path":  "assets/icons/icons8-twitch-96.png"
+                  },
+                  {
+                      "sha256":  "873D20A02B1672399BA6AF2F74E777746EF84FA83E35F019AA77C99167F3C253",
+                      "path":  "assets/icons/icons8-typescript-96.png"
+                  },
+                  {
+                      "sha256":  "BC530986D5E6876BD8C553D75B2E2D3936221559D2B1BCADC42A0574FDD5ED8A",
+                      "path":  "assets/icons/icons8-ubiquiti-96.png"
+                  },
+                  {
+                      "sha256":  "F1DCD75C18791418F7699D29CE45C67DF4CA5F9791D32962065ECD8C2B0C99D1",
+                      "path":  "assets/icons/icons8-ultra-hd-blu-ray-96.png"
+                  },
+                  {
+                      "sha256":  "F1DCD75C18791418F7699D29CE45C67DF4CA5F9791D32962065ECD8C2B0C99D1",
+                      "path":  "assets/icons/icons8-ultra-hd-blu-ray-alternate-96.png"
+                  },
+                  {
+                      "sha256":  "0606A4819615B3BEC1E1AD20C93A321EBC99B750A7B3A8193E4E7259B6B2D228",
+                      "path":  "assets/icons/icons8-un-women-96.png"
+                  },
+                  {
+                      "sha256":  "72A89C3BFCB9D4EC2DAAC47BD93FB0E319FF08222ED9D703EA00767433BC1AA1",
+                      "path":  "assets/icons/icons8-undp-96.png"
+                  },
+                  {
+                      "sha256":  "6CB661356660CCA3E6B0D6A9E9308FB922546F83DC84436567C0F44D959E9ADC",
+                      "path":  "assets/icons/icons8-unesco-96.png"
+                  },
+                  {
+                      "sha256":  "89A31F796096B09772C76BE7517E7D0E716978EEA3B00B69B83D1D3E2E0194E0",
+                      "path":  "assets/icons/icons8-unfpa-96.png"
+                  },
+                  {
+                      "sha256":  "D075B265B5421FAF4DB273A4634DD5CD8A033588F7AB8E5D43D90473BABF95A2",
+                      "path":  "assets/icons/icons8-unsplash-96.png"
+                  },
+                  {
+                      "sha256":  "0D5D3D4BD7485970DB90D0651E53704452DB9EEEEE6C5EDA035D2FA21426F354",
+                      "path":  "assets/icons/icons8-ups-96.png"
+                  },
+                  {
+                      "sha256":  "BF3E219F5B86A9BD6420E2D34D7F09A1728E667393F4B7A7D2EB84E0A26FAC18",
+                      "path":  "assets/icons/icons8-v-live-100.png"
+                  },
+                  {
+                      "sha256":  "F826106F72E0FDDEDA315E181A371465D1F3002D291F0C18B008E74031E5E273",
+                      "path":  "assets/icons/icons8-valorant-96.png"
+                  },
+                  {
+                      "sha256":  "1E5B925DE2D040A6B7C69CA6E4BDEB452B04D8632C36F2505389B49386C6FA4F",
+                      "path":  "assets/icons/icons8-video-file-96.png"
+                  },
+                  {
+                      "sha256":  "6C7F0B51AFF8A4871E1893B30C686B75E02981ECE81288F71E042C33ECAFF674",
+                      "path":  "assets/icons/icons8-visa-96.png"
+                  },
+                  {
+                      "sha256":  "0741F5CFC5C5C2D985A7A214D9B4B14100CAF6B548E4ED7DF94DBF348A8B6A2B",
+                      "path":  "assets/icons/icons8-visual-studio-code-96.png"
+                  },
+                  {
+                      "sha256":  "C566685E76BB4D99B87FFA80803E5062B7649772783731D8E140094BDA378B99",
+                      "path":  "assets/icons/icons8-vivlio-96.png"
+                  },
+                  {
+                      "sha256":  "78F8D088B0A7B6DA4A85FCE5B6DE3F734CE908BB8FE561C9CB9D5C6A8F0433FA",
+                      "path":  "assets/icons/icons8-vk-com-96.png"
+                  },
+                  {
+                      "sha256":  "E715DB299E1C3B0758322998B4F2DCE8364E811B9176DB465CA6E02A9929ABEB",
+                      "path":  "assets/icons/icons8-vkontakte-96.png"
+                  },
+                  {
+                      "sha256":  "5F3EF2FCB415F16F6FBD97CEE209AECDBB212DA539B70D3A9E11566A48A5441F",
+                      "path":  "assets/icons/icons8-voice-access-96.png"
+                  },
+                  {
+                      "sha256":  "C2744A18C5BC8199CA5D26842E04E1BB963621B7FBEBF1704D9DE45ACD1C413A",
+                      "path":  "assets/icons/icons8-voice-recorder-96.png"
+                  },
+                  {
+                      "sha256":  "3000396A466B0D527D4FF8117E06900D5E28EF22894DFAC2AF2335276A8654F3",
+                      "path":  "assets/icons/icons8-ware-center-96.png"
+                  },
+                  {
+                      "sha256":  "0F17E8504DBAF8916EB1CA9251620D6EEC7D91667BCF2753C7CDD5DFA159018A",
+                      "path":  "assets/icons/icons8-wargaming-96.png"
+                  },
+                  {
+                      "sha256":  "64CAF2C729299580B14EA0BD33CDD086283D00FF7DF138ABE9025150C8F75037",
+                      "path":  "assets/icons/icons8-wattpad-96.png"
+                  },
+                  {
+                      "sha256":  "F80A6C5DBB813A46A2CC146379CA674E20732DBBEB6FCDA2B8CD90E51E0D6C0F",
+                      "path":  "assets/icons/icons8-weather-96.png"
+                  },
+                  {
+                      "sha256":  "ECFC4716F1EEB94680BE4E7257DC060D1D3F78466F309698CEFEFB389DA3B4F8",
+                      "path":  "assets/icons/icons8-wechat-96.png"
+                  },
+                  {
+                      "sha256":  "74EAEFF5CBA02069400AF7A00158712D4CA3DF6A36E5B3DF47936487DF1CB0D0",
+                      "path":  "assets/icons/icons8-weibo-96.png"
+                  },
+                  {
+                      "sha256":  "EBEFA1E0F8887C7D5992769A8AB1DBE0B4C4D1DAE5E41FF3C90D5448AE9033E8",
+                      "path":  "assets/icons/icons8-wfp-96.png"
+                  },
+                  {
+                      "sha256":  "1C0B276ACE92C47CB71E5E70B675A1C425B5234E91CC1C653370DB94FB067470",
+                      "path":  "assets/icons/icons8-whatsapp-96.png"
+                  },
+                  {
+                      "sha256":  "CE0EA2D89D196FA0DFB9C51E913D46CB55922EE126A4A7EAF4A3675492620E4D",
+                      "path":  "assets/icons/icons8-whiteboard-96.png"
+                  },
+                  {
+                      "sha256":  "254BE658FAF3C86BD48E004993D7E687A113054A44159A40472A298101387696",
+                      "path":  "assets/icons/icons8-wikimapia-96.png"
+                  },
+                  {
+                      "sha256":  "0B32BF7BCD2FF49F27B0D8B3D833958B13F1B583C9CF278F49487A45CBCAC36B",
+                      "path":  "assets/icons/icons8-wikipedia-96.png"
+                  },
+                  {
+                      "sha256":  "CAFBDF33809226F254DBDAB81D6B75B2CB96E610226EFF45B5D057B80A0E24F6",
+                      "path":  "assets/icons/icons8-windows-11-96.png"
+                  },
+                  {
+                      "sha256":  "BE13976AFAD701F0BC12CA07088CD330555181D73FFA2AE0A158B714A114D3DE",
+                      "path":  "assets/icons/icons8-windows-backup-96.png"
+                  },
+                  {
+                      "sha256":  "768CCF8A7F757B96AEB7970B5C642646BBF1CFE15787133D71B9E6CFA5F65479",
+                      "path":  "assets/icons/icons8-windows-memory-diagnostic-96.png"
+                  },
+                  {
+                      "sha256":  "B50DECD4D0126B185033B814C3D351ED3CBC1969871DA6C15277F8B352C4156C",
+                      "path":  "assets/icons/icons8-windows-security-96.png"
+                  },
+                  {
+                      "sha256":  "C52770AE55BFE890957442ED8CAF0C308C231B16DCC0B9F2EC66D9222AA2E6D7",
+                      "path":  "assets/icons/icons8-wordpress-96.png"
+                  },
+                  {
+                      "sha256":  "010940A27843C1D5FDFBC3328B9E4D6D3F81336579C9139693ACA6DA5AE02244",
+                      "path":  "assets/icons/icons8-workday-96.png"
+                  },
+                  {
+                      "sha256":  "474AC25A090A5EAC75FDFB04B277B3E0FD89F16F9234F741AFBAA72AB2379049",
+                      "path":  "assets/icons/icons8-x-96.png"
+                  },
+                  {
+                      "sha256":  "0C1E1F250CE357D17E5A3FFE974C227D8A37EBD1DB9E2CE0BF9FA32437074384",
+                      "path":  "assets/icons/icons8-xampp-96.png"
+                  },
+                  {
+                      "sha256":  "FE87289AFB384CE835F873600A0593ECAA348A316BEB311754A2B7883D736AB5",
+                      "path":  "assets/icons/icons8-xing-96.png"
+                  },
+                  {
+                      "sha256":  "AAE310D0638475888B931C3DBFB3479E40BBC5E6D097E6FF08CC7B6F11B52974",
+                      "path":  "assets/icons/icons8-yandex-browser-96.png"
+                  },
+                  {
+                      "sha256":  "859AF16705749293B830A67305AC412B796935E4935E394CDA7B7F58C1ECEA8F",
+                      "path":  "assets/icons/icons8-yandex-zen-96.png"
+                  },
+                  {
+                      "sha256":  "3E794E6EB3E8DE51FDF26408D4671D741E2CE91D97CCBC0103D1BC08CE87AD8C",
+                      "path":  "assets/icons/icons8-yelp-96.png"
+                  },
+                  {
+                      "sha256":  "FDEA169A4DC4BEC8AEA26AE178A4D93BC8C27D972C9E3CC35B3AC4261399728E",
+                      "path":  "assets/icons/icons8-youtube-96.png"
+                  },
+                  {
+                      "sha256":  "2BA39D45606234A0A0222F7E998E4A003656CF1D9FD66396640C80493417FC16",
+                      "path":  "assets/icons/icons8-zalando-96.png"
+                  },
+                  {
+                      "sha256":  "44F92D560A983D46BBFDA1481E7F6BC709DF2E9C0B04AA28832631192FC075D7",
+                      "path":  "assets/icons/icons8-zapier-96.png"
+                  },
+                  {
+                      "sha256":  "389910859EF5F309755DF1BB322D91D46D19F1E7D200767C0EB7D3D6BA2DCC76",
+                      "path":  "assets/icons/icons8-zedge-96.png"
+                  },
+                  {
+                      "sha256":  "9A8495F753BE832BCB56024DFFAC74C5CBB4A07AE0894301E3B9AA7C32A7EDED",
+                      "path":  "assets/icons/icons8-zendesk-96.png"
+                  },
+                  {
+                      "sha256":  "39C5A70A438EE2F02F09EC20607C480014F8CF70C7532D17A55B4B4F86670B4C",
+                      "path":  "assets/icons/icons8-zoom-96.png"
+                  },
+                  {
+                      "sha256":  "F86D5AD1F9948CA957D76140C2C3D0DE1C37C7F9E767987FF859088B9957B1F1",
+                      "path":  "assets/icons/icons8-zoomerang-96.png"
+                  },
+                  {
+                      "sha256":  "2D001C530A105AB0C979885250757E5C41E6C09B73C32E096B6537E3ABD87336",
+                      "path":  "assets/icons/icons8-zorin-96.png"
+                  },
+                  {
+                      "sha256":  "94C2BD001DF1F5D0F0338BCD8994CA912D207703330080CF8696BFF4BCB28E38",
+                      "path":  "assets/logo/A-Shell.ico"
+                  },
+                  {
+                      "sha256":  "E4D6C31835F652C495B17DC15A1FDE5ECEF1108FF54185396F778A6B57272CAA",
+                      "path":  "assets/logo/A-Shell_Logo_Original.png"
+                  },
+                  {
+                      "sha256":  "8DC9DF1766229BB616E7C07CFC31A9A0D798158ECBDE0FD863832D37331DD0C4",
+                      "path":  "assets/logo/A-Shell_Logo_Original_HQ.png"
+                  },
+                  {
+                      "sha256":  "323A2BCF0B46FC9ED5CD12B118D4A286C08333EEE4B08AFC9788419F406377F8",
+                      "path":  "assets/profile/personal-icon.png"
+                  },
+                  {
+                      "sha256":  "3E0100254AF59343110DD8B95714B56F0573DF1D26B2034ADB3CBF65C9FFBDE6",
+                      "path":  "assets/windhawk/ashell-lockscreen-clear-background.wh.cpp"
+                  },
+                  {
+                      "sha256":  "7EE604361A678CFC654915A0ABE3BC42421AF689E07B68F3E263BF2A60AA5B0D",
+                      "path":  "assets/windhawk/ashell-lockscreen-clear-background_1.7.dll"
+                  },
+                  {
+                      "sha256":  "C9F8A963D08ECB902F3DACA85C6A07CD0CBF5416523ACE3505AB3C20A009F822",
+                      "path":  "assets/windhawk/ashell-signin-clear-background_1.0.dll"
+                  },
+                  {
+                      "sha256":  "8CEB4B9EE5ADEDDE47B31E975C1D90C73AD27B6B165A1DCD80C7C545EB65B903",
+                      "path":  "assets/windhawk/LICENSE.txt"
+                  },
+                  {
+                      "sha256":  "7EEDD7AE6F70BA54C8945B600117C4DECCC2E3326CC882077792B81D53C09D46",
+                      "path":  "assets/windhawk/mod.json"
+                  },
+                  {
+                      "sha256":  "21846F8DFC95FAE765DB8EB5B2187F3D3B2008247C4040EDC894788A1B33E91C",
+                      "path":  "assets/windhawk/windows-11-taskbar-styler.wh.cpp"
+                  },
+                  {
+                      "sha256":  "3782FCD46E372EEAC0C0576AA7BA915032611A05DD3ED72D1BCFAE0042199978",
+                      "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_764291.dll"
+                  },
+                  {
+                      "sha256":  "958675B98A7D6DC82C93D280F178663AE8A1A10A019018A1C1B6ECBFFEE594A7",
+                      "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_ashell_identity1.dll"
+                  },
+                  {
+                      "sha256":  "75F277C5D21E312B1A7766F915DAD3725DD019DCF52A97F0216B7163FDAD2C96",
+                      "path":  "bin/DesktopLayout.exe"
+                  },
+                  {
+                      "sha256":  "627584D3AB9CD0B72DDEB1BA6C3D1AE5299986D955C07DAD75FAA24D742ED643",
+                      "path":  "bin/MatrixDesktop.exe"
+                  },
+                  {
+                      "sha256":  "062820EBCF12D261EFD04915BEF3DC2BC32C08FA71C6AFD2E14DDD0126FF7AF2",
+                      "path":  "docs/About.html"
+                  },
+                  {
+                      "sha256":  "FBC04CC10AA41815A7674349695E5E786A52AD7FD9C09735CD20036FA9ECE91A",
+                      "path":  "docs/Development.md"
+                  },
+                  {
+                      "sha256":  "99A69660981156C21336FDB5661F89341B013C94E4BF9E1C7467B4745718397F",
+                      "path":  "licenses/COPYING"
+                  },
+                  {
+                      "sha256":  "E9B2DC02451EA29092A1F25FA0F3C07207ED421F1807DFFB0C4E6DCE69DEE7BD",
+                      "path":  "licenses/COPYING.MinGW-w64-runtime.txt"
+                  },
+                  {
+                      "sha256":  "F38E6194BD3BFA1B654F118E5ACEFE0AEAD437BBE669EEE43957CCC65A7127F1",
+                      "path":  "licenses/COPYING.MinGW-w64.txt"
+                  },
+                  {
+                      "sha256":  "63263614CDD29F2F93CBA85E992F041B31F9FC7B4033692F31269489A8A1B177",
+                      "path":  "licenses/COPYING.winpthreads.txt"
+                  },
+                  {
+                      "sha256":  "FA7368D1F93D890C173177475D8EC7AFF265A7D08F1F364D66F74D138978CE36",
+                      "path":  "licenses/COPYING.winstorecompat.txt"
+                  },
+                  {
+                      "sha256":  "8D85C1057D742E597985C7D4E6320B015A9139385CFF4CBAE06FFC0EBE89AFEE",
+                      "path":  "licenses/LLVM-MinGW-LICENSE.txt"
+                  },
+                  {
+                      "sha256":  "7E80D8C41B2A8891D1207211FD687A9169081366208F48649B1AF6E7994AC010",
+                      "path":  "scripts/AdminSession.cmd"
+                  },
+                  {
+                      "sha256":  "96E304E6BB50BF67C84125FB48636DAD122981CF7B1DEFB4110C15ED5808090E",
+                      "path":  "scripts/Appearance.Helpers.ps1"
+                  },
+                  {
+                      "sha256":  "B26AA0D455ED9327C2840165331CE08B2365B228BA54BC5FD9C3847F3F1363C9",
+                      "path":  "scripts/Background.ps1"
+                  },
+                  {
+                      "sha256":  "ED17CF25AA2D05228B7B926761AD59AD385AFC715E6AD1A00EFF5F86517AD857",
+                      "path":  "scripts/Background.Support.ps1"
+                  },
+                  {
+                      "sha256":  "C607B3D0B7134CF1BF26ED5BB9423930E414CBDA851F317DCA5F5E727072A5A6",
+                      "path":  "scripts/Branding.Helpers.cs"
+                  },
+                  {
+                      "sha256":  "26DFF7C565AD768DD6F9006EC79F687A005FD6495DF9420338BF22DCD2D64765",
+                      "path":  "scripts/Build-Branding.ps1"
+                  },
+                  {
+                      "sha256":  "12F5F1A997FC55AF62ABDED37FA238205531DFC7ED8477A4344ADD8BDBAB0229",
+                      "path":  "scripts/Build-Installer.ps1"
+                  },
+                  {
+                      "sha256":  "3EE4F50D7C5FE7228C3501FA521B58CAC7493A51029DEF7CF4244F48434DE8F7",
+                      "path":  "scripts/Build-Package.ps1"
+                  },
+                  {
+                      "sha256":  "FF8404E8F77200CBD015ED549D5C1E3060E028B827EDC226EB8FC91E3D88AA05",
+                      "path":  "scripts/Build-SignIn-Backdrop.ps1"
+                  },
+                  {
+                      "sha256":  "413D8511BE74ADE170CE1775ACB20771F10606944A08A7E92482B5936049BE4B",
+                      "path":  "scripts/Build-Taskbar-Styler.ps1"
+                  },
+                  {
+                      "sha256":  "8414C3BB705983B364DE8C5575FE08EB5E7A21786FB921028671D4D5FBCC6B0A",
+                      "path":  "scripts/Build.ps1"
+                  },
+                  {
+                      "sha256":  "47B9403B48FD0DB98A33A38C520A6A6FDBE4CD31A419FD0440AAF65CB924C97B",
+                      "path":  "scripts/CLI.ps1"
+                  },
+                  {
+                      "sha256":  "81DFD9B4E98540FE18842AE132EC95047D9381AF888AF1EFC87524B56B96C80A",
+                      "path":  "scripts/Color.ps1"
+                  },
+                  {
+                      "sha256":  "1ECEADB904A526CE30454793E24766BC45A1735D1422F8C14DECDE053F8DF900",
+                      "path":  "scripts/Color.Support.ps1"
+                  },
+                  {
+                      "sha256":  "9DC63DF8841B0C6A5698C9C84C90468686E7EA298B98F4849E953477D8A0299D",
+                      "path":  "scripts/Console.Helpers.ps1"
+                  },
+                  {
+                      "sha256":  "184FCF2A5B06EAD3993F5C9AC4B4C12BA6F47BEE94767D3A31E3766742E16937",
+                      "path":  "scripts/Cursors.ps1"
+                  },
+                  {
+                      "sha256":  "0F2BACA343A4FEB5985A5F5DB862E1C70A05431EE7A9BB81B2ABE3D1D4AAC309",
+                      "path":  "scripts/Desktop.Support.ps1"
+                  },
+                  {
+                      "sha256":  "29D6A8FE15C552DE2E999D9D2DA000211D7F98198C9796E1693F9E8C8264B06E",
+                      "path":  "scripts/Embed-Manifest.ps1"
+                  },
+                  {
+                      "sha256":  "A1A58F269D5C455C9376B17476E003DE90F9A18E798B945D2655D55230CC42E6",
+                      "path":  "scripts/Export-GitHub.ps1"
+                  },
+                  {
+                      "sha256":  "764FBFE25B03780AE665528465504C650C25AF6DE516234118F76AF4AED4D3B0",
+                      "path":  "scripts/Icon.Selection.ps1"
+                  },
+                  {
+                      "sha256":  "3FDA15FF70385269C0586CE2A19B3D6CCC2B27F29BC9B417698EE0DF5CEB439E",
+                      "path":  "scripts/Icons.ps1"
+                  },
+                  {
+                      "sha256":  "61DDB09FC1E74AC3DB3940100F5231A2E0C1DCDCEE87BD934B50D6208263DB45",
+                      "path":  "scripts/Icons.Support.ps1"
+                  },
+                  {
+                      "sha256":  "C4665C6E02FA57F52EC62824AB7535AD6571E05428588B1E1951C94FD262ECEE",
+                      "path":  "scripts/Manage.ps1"
+                  },
+                  {
+                      "sha256":  "87EAE777F69E8659B87EF646260853820852FD125B2EE5ED92988E2E5715102A",
+                      "path":  "scripts/Profile-Picture.ps1"
+                  },
+                  {
+                      "sha256":  "5573D0C263C30B150B795FDB32EE69D9BAD7F2A28223AFC815B7B889DF18E8F1",
+                      "path":  "scripts/Repair-TaskbarEngine.ps1"
+                  },
+                  {
+                      "sha256":  "CC4429E570C5D2C06237A7D8456243A010F65D28969EB0CDABC0CD0C5F52EA63",
+                      "path":  "scripts/Setup.ps1"
+                  },
+                  {
+                      "sha256":  "B4123E384990A1DE7963B6DDB8B30FC9C0C6C016402A4738F3A39004DE5AA1A8",
+                      "path":  "scripts/Setup.Support.ps1"
+                  },
+                  {
+                      "sha256":  "2567C1418B1A04CE6418419B957680F6B5B381E89E8D6B485CDBE2385CC049DE",
+                      "path":  "scripts/SignIn-Backdrop.ps1"
+                  },
+                  {
+                      "sha256":  "59872B98DFEB692F8D5007C6915B4C6E1F2EE1D15395355C070E2D93E473E7FC",
+                      "path":  "scripts/State.Helpers.ps1"
+                  },
+                  {
+                      "sha256":  "E916CAE4D523706C375C47171D6F903DFBDB6D40704BDD2C9DF93DDF608E0313",
+                      "path":  "scripts/Terminal.ps1"
+                  },
+                  {
+                      "sha256":  "9BE327D76358F1BFB78BADDF852EA3CCAB1502F461045F1466C4885FDA5DB7A6",
+                      "path":  "src/DesktopLayout.cpp"
+                  },
+                  {
+                      "sha256":  "21D8C38BC9C0BF1E29AC1F50E97F59DEEDB7DFC27D9801A996AEEB12B606DED8",
+                      "path":  "src/Installer.cs"
+                  },
+                  {
+                      "sha256":  "790AADEEDD9CA9CEFCE3F195B8EE4F041B340AD601B6D283A9B893715F75585C",
+                      "path":  "src/MatrixDesktop.cpp"
+                  },
+                  {
+                      "sha256":  "67222FF1ACD95358E00E84F19C7DD44C5984E005DB6264E9D48F1B6CDE964C21",
+                      "path":  "src/signin-clear-background.wh.cpp"
+                  },
+                  {
+                      "sha256":  "59F9802759D9372021EC4DC798373302978960DF36F6A46591A4C6F70A9D9050",
+                      "path":  "src/taskbar-build.h"
+                  },
+                  {
+                      "sha256":  "CF1112036B31A432559EBFC7FA185A2C61C44A2F1FF20196C85AB701CA6EF51F",
+                      "path":  "src/Wallpaper.h"
+                  },
+                  {
+                      "sha256":  "AA09894562A8DAAFC5FA9614C1648AE331238AFD3A590DFC3020AF4229CD8FC8",
+                      "path":  "tests/MatrixBenchmark.cpp"
+                  },
+                  {
+                      "sha256":  "8E3A9B53C43B30B40030CF0F4987076655D7CA1B7D98BA5BE1BF08F937708240",
+                      "path":  "tests/MatrixTests.cpp"
+                  },
+                  {
+                      "sha256":  "AB3410764867CFD7D08CE20DE051FBB34A20427534976A8013377CD37A2EAEF4",
+                      "path":  "tests/Read-Accent.ps1"
+                  },
+                  {
+                      "sha256":  "E31613BFC2BECE1A9BAC669E6B5FF2395D695270CDFD7B2B47180101C8D88661",
+                      "path":  "tests/Test-Background.ps1"
+                  },
+                  {
+                      "sha256":  "270AA1209943CA24D43C9497BC6185E341B3C0D3F4DDF3C14573F75CA76979AB",
+                      "path":  "tests/Test-Colors.ps1"
+                  },
+                  {
+                      "sha256":  "3B80AD05A2BF2AAB5B747B51E49B2A1425D5508A65545A3F2A4C44792BE39749",
+                      "path":  "tests/Test-DesktopLive.ps1"
+                  },
+                  {
+                      "sha256":  "73732AB733B91E2D26C79599F14554EEA4928512E8C59D01353F6D02863D541A",
+                      "path":  "tests/Test-Enhancements.ps1"
+                  },
+                  {
+                      "sha256":  "A07D39DE73E959D998B3A190E97B95DB867F8C12E42161FE9482AEFF885B4F66",
+                      "path":  "tests/Test-FirstSetup.ps1"
+                  },
+                  {
+                      "sha256":  "038498A6861F2773ED7C56C8B775900B64C08D78878920977F131E59ED794875",
+                      "path":  "tests/Test-IconRefresh.ps1"
+                  },
+                  {
+                      "sha256":  "958C3AB28AF1DA7F461A65E2A3695E84F6181C91C391C3141C1F057EB729FA21",
+                      "path":  "tests/Test-IconSelection.ps1"
+                  },
+                  {
+                      "sha256":  "D21071A13851131817AA4D0AEA25CF566D7A54558D5FA035A09025F199C26143",
+                      "path":  "tests/Test-LiveCommands.ps1"
+                  },
+                  {
+                      "sha256":  "98E6F5154CCE6ECCE9803A7F1080EFE61F393DDC72E3E13F32CB4DF8D9D28378",
+                      "path":  "tests/Test-Matrix.ps1"
+                  },
+                  {
+                      "sha256":  "E424BF333B599D2D66B48E6A92C4279765C205BAF3E14C29546D75B3690AA661",
+                      "path":  "tests/Test-MatrixPerformance.ps1"
+                  },
+                  {
+                      "sha256":  "57953A04BA9337F49EE71F646F9DC7C15A568C41811A9193FBF13AEB9B2C2716",
+                      "path":  "tests/Test-MatrixRuntime.ps1"
+                  },
+                  {
+                      "sha256":  "1F572273D69BFBA05803B51633F54C9A04EA32C20BE42FF1B680B0F271D2F864",
+                      "path":  "tests/Test-OptionalControls.ps1"
+                  },
+                  {
+                      "sha256":  "535A35248A2E15F94F9D0537C32C8D158E0E003EDF9F550F0B2DA2C06FD31189",
+                      "path":  "tests/Test-OptionalWidget.ps1"
+                  },
+                  {
+                      "sha256":  "B7C3DB8E30D078917C831F7B0C92B6A770D822556DFC67BD9E1D4E599318B2A3",
+                      "path":  "tests/Test-SetupLifecycle.ps1"
+                  },
+                  {
+                      "sha256":  "86E9515B808D62C4E2588D9369823BA626F3BB205B5DF1AC430BCFA4484746BA",
+                      "path":  "tests/Test-TerminalCLI.ps1"
+                  }
+              ]
+}

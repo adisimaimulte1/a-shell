@@ -1,0 +1,25 @@
+name: Icon contribution
+description: Suggest a monochrome icon for a future A-Shell release.
+title: "Icon: "
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App name
+      description: Include its name from ashell icons list and version if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: icon
+    attributes:
+      label: Icon and preview
+      description: Attach the monochrome PNG or link to the original. A taskbar screenshot helps.
+    validations:
+      required: true
+  - type: textarea
+    id: credit
+    attributes:
+      label: Source, author and license
+      description: Tell us who made it and whether it can be included in future releases. If you made it, say how you would like to be credited.
+    validations:
+      required: true

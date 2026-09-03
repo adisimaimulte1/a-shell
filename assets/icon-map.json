@@ -1,0 +1,464 @@
+﻿{
+    "version":  1,
+    "controls":  [
+                     {
+                         "style":  "Child:=\u003cImage Source=\"{{ICONS}}\\icons8-windows-11-96.png\" Width=\"24\" Height=\"24\" Stretch=\"Uniform\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" IsHitTestVisible=\"False\" /\u003e",
+                         "target":  "Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton] \u003e Taskbar.TaskListButtonPanel \u003e Grid \u003e Border#BackgroundElement, Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton] \u003e Taskbar.TaskListButtonPanel \u003e Border#BackgroundElement"
+                     },
+                     {
+                         "style":  "Opacity=0",
+                         "target":  "Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton] \u003e Taskbar.TaskListButtonPanel \u003e Grid \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon, Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton] \u003e Taskbar.TaskListButtonPanel \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon"
+                     },
+                     {
+                         "style":  "Child:=\u003cImage Source=\"{{ICONS}}\\icons8-search-96.png\" Width=\"24\" Height=\"24\" Stretch=\"Uniform\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" IsHitTestVisible=\"False\" /\u003e",
+                         "target":  "SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel \u003e Grid \u003e Border#BackgroundElement, SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel \u003e Border#BackgroundElement, Taskbar.SearchBoxButton \u003e Taskbar.TaskListButtonPanel \u003e Grid \u003e Border#BackgroundElement, Taskbar.SearchBoxButton \u003e Taskbar.TaskListButtonPanel \u003e Border#BackgroundElement"
+                     },
+                     {
+                         "style":  "Opacity=0",
+                         "target":  "SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel \u003e Grid \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon, SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon, Taskbar.SearchBoxButton \u003e Taskbar.TaskListButtonPanel \u003e Grid \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon, Taskbar.SearchBoxButton \u003e Taskbar.TaskListButtonPanel \u003e Microsoft.UI.Xaml.Controls.AnimatedVisualPlayer#Icon"
+                     }
+                 ],
+    "apps":  [
+                 {
+                     "icon":  "icons8-file-explorer-96.png",
+                     "appIds":  [
+                                    "Microsoft.Windows.Explorer"
+                                ],
+                     "name":  "file-explorer"
+                 },
+                 {
+                     "icon":  "icons8-discord-new-96.png",
+                     "appIds":  [
+                                    "com.squirrel.Discord.Discord"
+                                ],
+                     "name":  "discord-new"
+                 },
+                 {
+                     "icon":  "icons8-visual-studio-code-96.png",
+                     "appIds":  [
+                                    "Microsoft.VisualStudioCode"
+                                ],
+                     "name":  "visual-studio-code"
+                 },
+                 {
+                     "icon":  "icons8-android-os-96.png",
+                     "appIds":  [
+                                    "{6D809377-6AF0-444B-8957-A3773F02200E}\\Android\\Android Studio\\bin\\studio64.exe"
+                                ],
+                     "name":  "android-os"
+                 },
+                 {
+                     "icon":  "icons8-360-view-96.png",
+                     "appIds":  [
+                                    "AutodeskInc.Fusion360"
+                                ],
+                     "name":  "360-view"
+                 },
+                 {
+                     "icon":  "icons8-spotify-96.png",
+                     "appIds":  [
+                                    "SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify"
+                                ],
+                     "name":  "spotify"
+                 },
+                 {
+                     "icon":  "icons8-whatsapp-96.png",
+                     "appIds":  [
+                                    "5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App"
+                                ],
+                     "name":  "whatsapp"
+                 },
+                 {
+                     "icon":  "icons8-chatgpt-96.png",
+                     "appIds":  [
+                                    "OpenAI.Codex_2p2nqsd0c76g0!App"
+                                ],
+                     "name":  "chatgpt"
+                 },
+                 {
+                     "icon":  "icons8-text-file-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App"
+                                ],
+                     "name":  "text-file"
+                 },
+                 {
+                     "icon":  "icons8-video-file-96.png",
+                     "appIds":  [
+                                    "Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic"
+                                ],
+                     "name":  "video-file"
+                 },
+                 {
+                     "icon":  "icons8-godot-96.png",
+                     "appIds":  [
+                                    "Godot.GodotEditor.4.6.2.stable"
+                                ],
+                     "name":  "godot"
+                 },
+                 {
+                     "icon":  "icons8-settings-96.png",
+                     "appIds":  [
+                                    "windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel"
+                                ],
+                     "name":  "settings"
+                 },
+                 {
+                     "name":  "Weather",
+                     "icon":  "icons8-weather-96.png",
+                     "appIds":  [
+                                    "Microsoft.BingWeather_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Google Chrome",
+                     "icon":  "icons8-chrome-96.png",
+                     "appIds":  [
+                                    "Chrome"
+                                ]
+                 },
+                 {
+                     "name":  "Adobe Illustrator 2024",
+                     "icon":  "icons8-adobe-illustrator-96.png",
+                     "appIds":  [
+                                    "{6D809377-6AF0-444B-8957-A3773F02200E}\\Adobe\\Adobe Illustrator 2024\\Support Files\\Contents\\Windows\\Illustrator.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Terminal",
+                     "icon":  "icons8-terminal-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsTerminal_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Snipping Tool",
+                     "icon":  "icons8-snipping-tool-96.png",
+                     "appIds":  [
+                                    "Microsoft.ScreenSketch_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Copilot",
+                     "icon":  "icons8-microsoft-copilot-96.png",
+                     "appIds":  [
+                                    "Microsoft.Copilot_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Excel",
+                     "icon":  "icons8-microsoft-excel-96.png",
+                     "appIds":  [
+                                    "Microsoft.Office.EXCEL.EXE.15"
+                                ]
+                 },
+                 {
+                     "name":  "Microsoft Teams",
+                     "icon":  "icons8-microsoft-teams-2025-96.png",
+                     "appIds":  [
+                                    "MSTeams_8wekyb3d8bbwe!MSTeams"
+                                ]
+                 },
+                 {
+                     "name":  "Microsoft Whiteboard",
+                     "icon":  "icons8-whiteboard-96.png",
+                     "appIds":  [
+                                    "Microsoft.Whiteboard_8wekyb3d8bbwe!Whiteboard"
+                                ]
+                 },
+                 {
+                     "name":  "OneNote",
+                     "icon":  "icons8-microsoft-onenote-2019-96.png",
+                     "appIds":  [
+                                    "Microsoft.Office.ONENOTE.EXE.15"
+                                ]
+                 },
+                 {
+                     "name":  "PowerPoint",
+                     "icon":  "icons8-microsoft-powerpoint-96.png",
+                     "appIds":  [
+                                    "Microsoft.Office.POWERPNT.EXE.15"
+                                ]
+                 },
+                 {
+                     "name":  "Word",
+                     "icon":  "icons8-microsoft-word-96.png",
+                     "appIds":  [
+                                    "Microsoft.Office.WINWORD.EXE.15"
+                                ]
+                 },
+                 {
+                     "name":  "Calculator",
+                     "icon":  "icons8-calculator-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Clock",
+                     "icon":  "icons8-clock-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsAlarms_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Paint",
+                     "icon":  "icons8-paint-96.png",
+                     "appIds":  [
+                                    "Microsoft.Paint_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Sound Recorder",
+                     "icon":  "icons8-sound-recorder-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Camera",
+                     "icon":  "icons8-camera-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsCamera_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Feedback Hub",
+                     "icon":  "icons8-feedback-hub-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsFeedbackHub_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Get Help",
+                     "icon":  "icons8-get-help-96.png",
+                     "appIds":  [
+                                    "Microsoft.GetHelp_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Microsoft Store",
+                     "icon":  "icons8-microsoft-store-96.png",
+                     "appIds":  [
+                                    "Microsoft.WindowsStore_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Photos",
+                     "icon":  "icons8-photos-96.png",
+                     "appIds":  [
+                                    "Microsoft.Windows.Photos_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Windows Security",
+                     "icon":  "icons8-windows-security-96.png",
+                     "appIds":  [
+                                    "Microsoft.SecHealthUI_8wekyb3d8bbwe!SecHealthUI"
+                                ]
+                 },
+                 {
+                     "name":  "Phone Link",
+                     "icon":  "icons8-phone-link-96.png",
+                     "appIds":  [
+                                    "Microsoft.YourPhone_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Quick Assist",
+                     "icon":  "icons8-quick-assist-96.png",
+                     "appIds":  [
+                                    "MicrosoftCorporationII.QuickAssist_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "Registry Editor",
+                     "icon":  "icons8-registry-editor-96.png",
+                     "appIds":  [
+                                    "{F38BF404-1D43-42F2-9305-67DE0B28FC23}\\regedit.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Services",
+                     "icon":  "icons8-services-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\services.msc"
+                                ]
+                 },
+                 {
+                     "name":  "Sticky Notes",
+                     "icon":  "icons8-sticky-notes-96.png",
+                     "appIds":  [
+                                    "Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe!App"
+                                ]
+                 },
+                 {
+                     "name":  "System Configuration",
+                     "icon":  "icons8-system-configuration-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\msconfig.exe"
+                                ]
+                 },
+                 {
+                     "name":  "System Information",
+                     "icon":  "icons8-system-information-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\msinfo32.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Windows Backup",
+                     "icon":  "icons8-windows-backup-96.png",
+                     "appIds":  [
+                                    "MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup"
+                                ]
+                 },
+                 {
+                     "name":  "Character Map",
+                     "icon":  "icons8-character-map-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\charmap.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Component Services",
+                     "icon":  "icons8-component-services-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\comexp.msc"
+                                ]
+                 },
+                 {
+                     "name":  "Disk Cleanup",
+                     "icon":  "icons8-disk-cleanup-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\cleanmgr.exe"
+                                ]
+                 },
+                 {
+                     "name":  "iSCSI Initiator",
+                     "icon":  "icons8-iscsi-initiator-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\iscsicpl.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Live captions",
+                     "icon":  "icons8-live-captions-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\LiveCaptions.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Magnifier",
+                     "icon":  "icons8-magnifier-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\magnify.exe"
+                                ]
+                 },
+                 {
+                     "name":  "On-Screen Keyboard",
+                     "icon":  "icons8-on-screen-keyboard-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\osk.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Recovery Drive",
+                     "icon":  "icons8-recovery-drive-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\RecoveryDrive.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Remote Desktop Connection",
+                     "icon":  "icons8-remote-desktop-connection-96.png",
+                     "appIds":  [
+                                    "Microsoft.Windows.RemoteDesktop"
+                                ]
+                 },
+                 {
+                     "name":  "Steps Recorder",
+                     "icon":  "icons8-steps-recorder-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\psr.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Voice access",
+                     "icon":  "icons8-voice-access-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\voiceaccess.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Windows Memory Diagnostic",
+                     "icon":  "icons8-windows-memory-diagnostic-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\MdSched.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Command Prompt",
+                     "icon":  "icons8-terminal-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\cmd.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Defragment and Optimize Drives",
+                     "icon":  "icons8-defragment-and-optimize-drives-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\dfrgui.exe"
+                                ]
+                 },
+                 {
+                     "name":  "ODBC Data Sources (32-bit)",
+                     "icon":  "icons8-odbc-data-sources-96.png",
+                     "appIds":  [
+                                    "{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\\odbcad32.exe"
+                                ]
+                 },
+                 {
+                     "name":  "ODBC Data Sources (64-bit)",
+                     "icon":  "icons8-odbc-data-sources-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\odbcad32.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Sticky Notes (new)",
+                     "icon":  "icons8-sticky-notes-96.png",
+                     "appIds":  [
+                                    "Microsoft.Office.OneNote.MemoryPreview"
+                                ]
+                 },
+                 {
+                     "name":  "Windows PowerShell",
+                     "icon":  "icons8-powershell-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Windows PowerShell (x86)",
+                     "icon":  "icons8-powershell-96.png",
+                     "appIds":  [
+                                    "{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\\WindowsPowerShell\\v1.0\\powershell.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Windows PowerShell ISE",
+                     "icon":  "icons8-powershell-96.png",
+                     "appIds":  [
+                                    "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\PowerShell_ISE.exe"
+                                ]
+                 },
+                 {
+                     "name":  "Windows PowerShell ISE (x86)",
+                     "icon":  "icons8-powershell-96.png",
+                     "appIds":  [
+                                    "{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\\WindowsPowerShell\\v1.0\\PowerShell_ISE.exe"
+                                ]
+                 }
+             ]
+}

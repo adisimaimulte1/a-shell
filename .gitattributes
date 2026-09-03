@@ -1,0 +1,2 @@
+# Preserve the bytes verified by assets/package-manifest.json.
+* -text
