@@ -105,7 +105,7 @@ Matrix rain, shared backgrounds/accent, dark cursors and desktop archiving. Full
 
 Tested on Windows 11 Home 25H2, build `26200.9168 x64`. Full screen fixes require verified `Windows.UI.Logon.dll 10.0.26100.8972`. Setup downloads and verifies Windhawk `1.7.3` when missing.
 
-Core mode targets Windows 10 22H2 and unverified Windows 11 builds, x64. Real Windows 10, ARM64, multiple/mixed-DPI monitors and clean-machine installation remain unverified. [Tests and measurements](docs/Verification.md).
+Core mode targets Windows 10 22H2 and unverified Windows 11 builds, x64. Real Windows 10, ARM64, multiple/mixed-DPI monitors and clean-machine installation remain unverified.
 
 ## Help improve the icon pack
 
