@@ -25,7 +25,7 @@ try {
  if((Get-FileHash -LiteralPath $desktop).Hash -ne (Get-FileHash -LiteralPath $image).Hash){throw 'Desktop image mismatch'}
  $lock=Get-AShellLockSource
  if(!$lock -or (Get-FileHash -LiteralPath $lock).Hash -ne (Get-FileHash -LiteralPath $image).Hash){throw 'Lock image source mismatch'}
- if((Read-RegistryValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableLogonBackgroundImage').Value -ne 0){throw 'Sign-in background disabled'}
+ if((Read-RegistryValue 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'DisableLogonBackgroundImage').Value -ne 0){throw 'Sign-in background disabled'}
  Run @('background','original')
  $desktop=(Get-ItemProperty 'HKCU:\Control Panel\Desktop').Wallpaper
  $expected=Join-Path $root 'state\desktop-before.img'

@@ -1,13 +1,13 @@
-param([switch]$Restore,[switch]$Worker,[string]$TargetSid,[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
+﻿param([switch]$Restore,[switch]$Worker,[string]$TargetSid,[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
+. (Join-Path $PSScriptRoot 'Elevation.Helpers.ps1')
 if(!$Worker) {
- if(-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-  Write-Output '[WORKING] Updating the local account-picture paths. Approve the administrator prompt.'
-  $args='-NoProfile -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -ExpectedSid '+$ExpectedSid
-  if($Restore){$args+=' -Restore'}
-  $p=Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList $args -Wait -PassThru
-  if($p.ExitCode){throw 'Account-picture update failed. Existing backups are preserved.'}
+ if(!(Test-AShellAdministrator)) {
+  Write-Output '[WORKING] Opening an Administrator Command Prompt to update the account picture...'
+  $parameters=@{ExpectedSid=$ExpectedSid};if($Restore){$parameters.Restore=$true}
+  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters $parameters -Title 'A-Shell Profile Picture - Administrator'
+  if($exitCode){throw 'Account-picture update failed. Existing backups are preserved.'}
   Write-Output '[OK] Account-picture update completed. Lock/sign in again to refresh the image.'
   exit 0
  }

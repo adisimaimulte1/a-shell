@@ -1,5 +1,144 @@
-. (Join-Path $PSScriptRoot 'State.Helpers.ps1')
-function Save-AShellBackground([string]$Folder) {
+﻿. (Join-Path $PSScriptRoot 'State.Helpers.ps1')
+function Get-AShellExternalManagementState {
+ $reasons=@()
+ try {
+  $computer=Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
+  if($computer.PartOfDomain){$reasons+='Active Directory domain join'}
+ } catch {}
+ try {
+  $dsreg=& (Join-Path $env:SystemRoot 'System32\dsregcmd.exe') /status 2>$null
+  $text=($dsreg -join "`n")
+  if($text -match '(?im)^\s*AzureAdJoined\s*:\s*YES\s*$'){$reasons+='Microsoft Entra device join'}
+  if($text -match '(?im)^\s*EnterpriseJoined\s*:\s*YES\s*$'){$reasons+='enterprise device join'}
+ } catch {}
+ try {
+  # Intune/other Windows MDM enrollment creates EnterpriseMgmt scheduled tasks.
+  # A registered work account alone is not enough to classify the PC as managed.
+  $mdm=@(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object {$_.TaskPath -like '\Microsoft\Windows\EnterpriseMgmt\*'})
+  if($mdm.Count){$reasons+='MDM enrollment'}
+ } catch {}
+ return [pscustomobject]@{Managed=($reasons.Count -gt 0);Reasons=@($reasons)}
+}
+function Get-AShellLockScreenPolicyHandoff {
+ $management=Get-AShellExternalManagementState
+ $policyPath='HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization'
+ $entries=@()
+
+ # Only values which can prevent A-Shell from owning the current lock-screen
+ # surface are handed off. Removing them is equivalent to "Not configured";
+ # the checkpoint/baseline records the exact previous value and recreates it on
+ # rollback/Undo. Unrelated Personalization policy values are never touched.
+ foreach($item in @(
+  @{Path=$policyPath;Name='NoChangingLockScreen';Mode='disable';Block={param($v) $v.Exists -and [string]$v.Value -notin @('','0')};Meaning='Prevent changing lock screen and logon image'},
+  @{Path=$policyPath;Name='NoLockScreen';Mode='disable';Block={param($v) $v.Exists -and [string]$v.Value -notin @('','0')};Meaning='Do not display the lock screen'},
+  @{Path=$policyPath;Name='NoLockScreenSlideshow';Mode='disable';Block={param($v) $v.Exists -and [string]$v.Value -notin @('','0')};Meaning='Prevent enabling lock-screen slideshow'},
+  @{Path=$policyPath;Name='LockScreenImage';Mode='force-image';Block={param($v) $v.Exists -and -not [string]::IsNullOrWhiteSpace([string]$v.Value)};Meaning='Force a specific lock-screen/logon image'}
+ )) {
+  $current=Read-RegistryValue $item.Path $item.Name
+  if(& $item.Block $current) {
+   $operation=if($item.Mode -eq 'force-image'){'temporarily point at the active A-Shell image'}else{'temporarily disable'}
+   $entries += [pscustomobject]@{Path=$item.Path;Name=$item.Name;Kind=$current.Kind;Value=$null;Exists=$false;OverrideMode=$item.Mode;Operation=$operation;Meaning=$item.Meaning;Original=$current.Value}
+  }
+ }
+
+ # Some locally provisioned/customized PCs use the Personalization CSP backing
+ # values directly. They are not a public registry API, so A-Shell never creates
+ # them. If they already exist and actively pin a lock image, temporarily remove only
+ # those existing values after explicit override consent and restore them exactly later.
+ $cspPath='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP'
+ # LockScreenImageStatus is a CSP status/output value (Get-only in the public
+ # CSP contract), not an image-selection input. Leave it alone. Only existing
+ # Path/Url values can pin the image through legacy/provisioning-backed setups.
+ $cspImage=Read-RegistryValue $cspPath 'LockScreenImagePath'
+ $cspUrl=Read-RegistryValue $cspPath 'LockScreenImageUrl'
+ $cspInputs=@(@($cspImage,$cspUrl) | Where-Object {$_.Exists -and -not [string]::IsNullOrWhiteSpace([string]$_.Value)})
+ foreach($current in $cspInputs) {
+  $entries += [pscustomobject]@{Path=$cspPath;Name=$current.Name;Kind=$current.Kind;Value=$null;Exists=$false;Operation='temporarily remove';Meaning='Existing lock-screen Personalization CSP image input';Original=$current.Value}
+ }
+
+ # Do not create this legacy policy on clean PCs: value 0 is Windows' normal
+ # image-enabled behavior. If an existing value explicitly disables the sign-in
+ # background, temporarily flip only that existing value and restore it on Undo.
+ $systemPath='HKLM:\SOFTWARE\Policies\Microsoft\Windows\System'
+ $disableLogon=Read-RegistryValue $systemPath 'DisableLogonBackgroundImage'
+ if($disableLogon.Exists -and [string]$disableLogon.Value -notin @('','0')) {
+  $entries += [pscustomobject]@{Path=$systemPath;Name='DisableLogonBackgroundImage';Kind=$disableLogon.Kind;Value=0;Exists=$true;Operation='temporarily set to 0';Meaning='Allow the lock-screen picture on the sign-in screen';Original=$disableLogon.Value}
+ }
+ return [pscustomobject]@{ExternallyManaged=[bool]$management.Managed;ManagementReasons=@($management.Reasons);Entries=@($entries)}
+}
+function Get-AShellLockScreenOverrideValues($Handoff,[string]$Image) {
+ $result=@()
+ foreach($entry in @($Handoff.Entries)) {
+  if($entry.OverrideMode -eq 'disable') {
+   $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=0;Exists=$true}
+  } elseif($entry.OverrideMode -eq 'force-image') {
+   $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind='String';Value=$Image;Exists=$true}
+  } else {
+   $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=$entry.Value;Exists=$entry.Exists}
+  }
+ }
+ return @($result)
+}
+function Release-AShellLockScreenPolicyBlockers {
+ $handoff=Get-AShellLockScreenPolicyHandoff
+ foreach($entry in @($handoff.Entries)) {
+  Write-RegistryValue @{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=$entry.Value;Exists=$entry.Exists}
+ }
+ if(@($handoff.Entries).Count -and (Get-Command Send-AShellPolicyChange -ErrorAction SilentlyContinue)){Send-AShellPolicyChange;Start-Sleep -Milliseconds 200}
+ return $handoff
+}
+function Get-AShellLockScreenOverrideConsentPath([string]$Root) { Join-Path $Root 'state\lockscreen-policy-override-consent.txt' }
+function Test-AShellLockScreenOverrideConsent([string]$Root) { Test-Path -LiteralPath (Get-AShellLockScreenOverrideConsentPath $Root) }
+function Write-AShellLockScreenPolicyHandoffStatus($Handoff,[switch]$DiagnosticOnly,[switch]$OverridePolicy) {
+ if(!$Handoff -or !$Handoff.Entries -or @($Handoff.Entries).Count -eq 0){
+  Write-Output '[OK] No local lock-screen policy is blocking A-Shell image control.'
+  return
+ }
+ $managedText=''
+ if($Handoff.ExternallyManaged){$managedText=' This device also reports: '+(@($Handoff.ManagementReasons) -join ', ')+'.'}
+ if($DiagnosticOnly) {
+  Write-Output "[CHECK] Found $(@($Handoff.Entries).Count) lock/sign-in blocker(s).$managedText"
+  foreach($entry in @($Handoff.Entries)){Write-Output "[CHECK]   $($entry.Name) -- can $($entry.Operation): $($entry.Meaning)"}
+  Write-Output '[CHECK] A-Shell changes these values only after explicit lock-screen override consent and restores the exact originals on Undo.'
+  return
+ }
+ if(!$OverridePolicy) {
+  Write-Warning "Lock-screen policy is active.$managedText A-Shell was not given policy-override consent, so these values are left unchanged."
+  foreach($entry in @($Handoff.Entries)){Write-Output "[SKIP] $($entry.Name): $($entry.Meaning)"}
+  return
+ }
+ if($Handoff.ExternallyManaged){
+  $why=if(@($Handoff.ManagementReasons).Count){@($Handoff.ManagementReasons) -join ', '}else{'device management'}
+  Write-Warning "Explicit consent granted: A-Shell will temporarily override only the lock-screen personalization values it needs even though Windows reports management ($why). Enrollment, MDM services and unrelated policy are not modified."
+ } else {
+  Write-Output '[INFO] Explicit consent granted for temporary lock-screen personalization policy override.'
+ }
+ Write-Output "[INFO] Handing off $(@($Handoff.Entries).Count) lock/sign-in policy value(s) while A-Shell is active."
+ foreach($entry in @($Handoff.Entries)){Write-Output "[INFO]   $($entry.Name) -- $($entry.Operation): $($entry.Meaning); exact original value saved for Undo."}
+ Write-Output '[OK] Lock-screen picture control released for A-Shell. If Windows Settings was already open, reopen the Lock screen page to refresh its controls.'
+}
+function Get-AShellSignInPreferenceKey {
+ $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+ 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData\'+$sid+'\AnyoneRead\LockScreen'
+}
+function Get-AShellSignInBackgroundPreference {
+ try {
+  $value=Read-RegistryValue (Get-AShellSignInPreferenceKey) 'HideLogonBackgroundImage'
+  if($value.Exists){return ([int]$value.Value -eq 0)}
+ } catch {}
+ return $null
+}
+function Show-AShellSignInBackgroundStatus {
+ $enabled=Get-AShellSignInBackgroundPreference
+ if($enabled -eq $false){
+  Write-Warning 'Windows has "Show the lock screen background picture on the sign-in screen" turned off for this account. That preference lives in SystemProtectedUserData and this Windows build blocks administrator writes to it. A-Shell does not take ownership or run as SYSTEM to bypass that protection. Turn it on once in Settings > Personalization > Lock screen if you want the same picture on sign-in.'
+ } elseif($enabled -eq $true){
+  Write-Output '[OK] Windows is configured to reuse the lock-screen picture on the sign-in screen.'
+ } else {
+  Write-Output '[INFO] Windows did not expose the per-user sign-in background preference. The lock image was set successfully; Windows will use its current sign-in-screen preference.'
+ }
+}
+function Save-AShellBackground([string]$Folder,[switch]$OverrideManaged) {
  New-Item -ItemType Directory -Path $Folder -Force | Out-Null
  $wallpaper=(Read-RegistryValue 'HKCU:\Control Panel\Desktop' 'Wallpaper').Value
  $source=$wallpaper
@@ -15,14 +154,23 @@ function Save-AShellBackground([string]$Folder) {
   @('HKCU:\Control Panel\Desktop','WallpaperStyle'),@('HKCU:\Control Panel\Desktop','TileWallpaper'),
   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenEnabled'),
   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenOverlayEnabled'),
+  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','SubscribedContent-338387Enabled'),
+  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','DetailedStatusApp'),
   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','SlideshowEnabled'),
-  @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System','DisableLogonBackgroundImage')
+  @('HKLM:\SOFTWARE\Policies\Microsoft\Dsh','DisableWidgetsOnLockScreen'),
+  @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\System','DisableLogonBackgroundImage')
  )){$values+=Read-RegistryValue $entry[0] $entry[1]}
+ $handoff=Get-AShellLockScreenPolicyHandoff
+ if($OverrideManaged -or !$handoff.ExternallyManaged){foreach($entry in @($handoff.Entries)){$values+=Read-RegistryValue $entry.Path $entry.Name}}
  Save-AShellState @{Sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value;Wallpaper=$wallpaper;LockSource=$lockSource;LockFile=$lockFile;Values=$values} (Join-Path $Folder 'background.clixml')
 }
 function Restore-AShellBackground([string]$Folder) {
  if(!(Test-Path -LiteralPath (Join-Path $Folder 'background.clixml'))){return}
  $saved=Import-Clixml -LiteralPath (Join-Path $Folder 'background.clixml');Assert-AShellAccount $saved
+ # A-Shell may currently own the forced LockScreenImage policy. Release active
+ # blockers first so the supported LockScreen API can put the saved image back,
+ # then restore the exact policy values that were present at this checkpoint.
+ [void](Release-AShellLockScreenPolicyBlockers)
  $desktop=Join-Path $Folder 'desktop.img'
  if(Test-Path -LiteralPath $desktop) {
   if($saved.Wallpaper -and (Test-Path -LiteralPath $saved.Wallpaper) -and (Get-FileHash -LiteralPath $saved.Wallpaper).Hash -eq (Get-FileHash -LiteralPath $desktop).Hash){Set-DesktopImage $saved.Wallpaper}
@@ -32,9 +180,10 @@ function Restore-AShellBackground([string]$Folder) {
  if($saved.LockSource -and (Test-Path -LiteralPath $saved.LockSource) -and (Get-FileHash -LiteralPath $saved.LockSource).Hash -eq (Get-FileHash -LiteralPath $lock).Hash){Set-LockImage $saved.LockSource}
  else {Set-LockImage $lock}
  foreach($value in $saved.Values){Write-RegistryValue $value}
+ if(Get-Command Send-AShellPolicyChange -ErrorAction SilentlyContinue){Send-AShellPolicyChange}
  Send-AShellColorChange
 }
-function Set-AShellBackground([string]$Root,[string]$Image) {
+function Set-AShellBackground([string]$Root,[string]$Image,[switch]$DesktopOnly) {
  if(!(Test-Path -LiteralPath $Image -PathType Leaf)){throw 'Choose an existing local image file.'}
  Add-Type -AssemblyName System.Drawing
  # Validate decode before taking backups or changing any setting.
@@ -45,7 +194,8 @@ function Set-AShellBackground([string]$Root,[string]$Image) {
   $ext=if($decoded.RawFormat.Guid -eq [Drawing.Imaging.ImageFormat]::Png.Guid){'.png'}elseif($decoded.RawFormat.Guid -eq [Drawing.Imaging.ImageFormat]::Jpeg.Guid){'.jpg'}else{'.bmp'}
  } finally {$decoded.Dispose()}
  $checkpoint=Join-Path $Root ('state\background-runs\'+[guid]::NewGuid().ToString('N'))
- Save-AShellBackground $checkpoint
+ $allowPolicyOverride=$(if($DesktopOnly){$false}else{Test-AShellLockScreenOverrideConsent $Root})
+ Save-AShellBackground $checkpoint -OverrideManaged:$allowPolicyOverride
  $baseline=Join-Path $Root 'state\background-before'
  if(!(Test-Path -LiteralPath (Join-Path $baseline 'background.clixml'))){
   New-Item -ItemType Directory -Path $baseline -Force | Out-Null
@@ -56,24 +206,41 @@ function Set-AShellBackground([string]$Root,[string]$Image) {
  $target=Join-Path $folder ($hash+$ext)
  if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $target).Hash -ne $hash){Copy-Item -LiteralPath $Image -Destination $target -Force}
  $colors=@(Get-AShellColorValues)
+ $handoff=$(if($DesktopOnly){[pscustomobject]@{Entries=@();ExternallyManaged=$false;ManagementReasons=@()}}else{Get-AShellLockScreenPolicyHandoff})
  try {
-  foreach($entry in @(
-   @('HKCU:\Control Panel\Desktop','WallpaperStyle','String','10'),@('HKCU:\Control Panel\Desktop','TileWallpaper','String','0'),
-   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenEnabled','DWord',0),
-   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenOverlayEnabled','DWord',0),
-   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','SlideshowEnabled','DWord',0),
-   @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System','DisableLogonBackgroundImage','DWord',0)
-  )){Write-RegistryValue @{Path=$entry[0];Name=$entry[1];Kind=$entry[2];Value=$entry[3];Exists=$true}}
-  Set-DesktopImage $target;Set-LockImage $target
+  if(@($handoff.Entries).Count -and !$allowPolicyOverride){
+   $why=if($handoff.ExternallyManaged -and @($handoff.ManagementReasons).Count){' Windows reports: '+(@($handoff.ManagementReasons) -join ', ')+'.'}else{''}
+   throw "Lock-screen personalization policy is blocking this background change.$why Run the A-Shell Setup EXE again and approve the temporary lock-screen policy override first."
+  }
+  if($allowPolicyOverride){
+   foreach($entry in @(Get-AShellLockScreenOverrideValues $handoff $target)){Write-RegistryValue $entry}
+   if(@($handoff.Entries).Count -and (Get-Command Send-AShellPolicyChange -ErrorAction SilentlyContinue)){Send-AShellPolicyChange}
+  }
+  foreach($entry in @(@('HKCU:\Control Panel\Desktop','WallpaperStyle','String','10'),@('HKCU:\Control Panel\Desktop','TileWallpaper','String','0'))){Write-RegistryValue @{Path=$entry[0];Name=$entry[1];Kind=$entry[2];Value=$entry[3];Exists=$true}}
+  if(!$DesktopOnly){
+   foreach($entry in @(
+    @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenEnabled','DWord',0),
+    @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenOverlayEnabled','DWord',0),
+    @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','SlideshowEnabled','DWord',0),
+    @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','SubscribedContent-338387Enabled','DWord',0),
+    @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','DetailedStatusApp','String',''),
+    @('HKLM:\SOFTWARE\Policies\Microsoft\Dsh','DisableWidgetsOnLockScreen','DWord',1)
+   )){Write-RegistryValue @{Path=$entry[0];Name=$entry[1];Kind=$entry[2];Value=$entry[3];Exists=$true}}
+   $disableLogon=Read-RegistryValue 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'DisableLogonBackgroundImage'
+   if($disableLogon.Exists -and [string]$disableLogon.Value -notin @('','0')){Write-RegistryValue @{Path=$disableLogon.Path;Name=$disableLogon.Name;Kind=$disableLogon.Kind;Value=0;Exists=$true}}
+  }
+  Set-DesktopImage $target
+  if(!$DesktopOnly){Set-LockImage $target;Show-AShellSignInBackgroundStatus}
   foreach($value in $colors){Write-RegistryValue $value};Send-AShellColorChange
+  Set-Content -LiteralPath (Join-Path $Root 'state\desired-background.txt') -Value $target -Encoding UTF8
  } catch {Restore-AShellBackground $checkpoint;throw}
- Write-Output 'Image set for desktop, lock and sign-in; accent preserved. Windows may crop it to fit. Clear shading still requires the supported screen mods.'
+ Write-Output $(if($DesktopOnly){'Image saved for A-Shell and applied to the desktop. Screen customization is off, so the original Windows lock/login image and effects were left untouched.'}else{'Image set for desktop and lock/login screens. A-Shell screen filtering removes the targeted acrylic/dim/scrim/tint layers while screen customization is on.'})
 }
 function Restore-AShellOriginalWallpaper([string]$Root) {
  $baseline=Join-Path $Root 'state\baseline'
  $legacy=Join-Path $Root 'state\before-setup.clixml'
  $checkpoint=Join-Path $Root ('state\background-runs\'+[guid]::NewGuid().ToString('N'))
- Save-AShellBackground $checkpoint
+ Save-AShellBackground $checkpoint -OverrideManaged:(Test-AShellLockScreenOverrideConsent $Root)
  $colors=@(Get-AShellColorValues)
  try {
   if(Test-Path -LiteralPath (Join-Path $baseline 'checkpoint.clixml')){
@@ -96,6 +263,6 @@ function Restore-AShellOriginalWallpaper([string]$Root) {
   Set-LockImage $lock
   foreach($value in $saved.Values){if($value.Name -in @('WallpaperStyle','TileWallpaper','SlideshowEnabled','RotatingLockScreenEnabled','RotatingLockScreenOverlayEnabled','DisableLogonBackgroundImage')){Write-RegistryValue $value}}
   foreach($value in $colors){Write-RegistryValue $value};Send-AShellColorChange
-  Write-Output '[OK] Pre-setup desktop, lock and sign-in backgrounds restored. Accent, icons and rain remain enabled.'
+  Write-Output '[OK] Pre-setup desktop and lock backgrounds restored; sign-in follows the restored Windows preference. Accent, icons and rain remain enabled.'
  } catch {Restore-AShellBackground $checkpoint;throw}
 }

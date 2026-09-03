@@ -1,4 +1,4 @@
-function Test-AShellPinnedShortcuts {
+﻿function Test-AShellPinnedShortcuts {
  $folder=Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'
  $shell=New-Object -ComObject WScript.Shell
  $broken=0
@@ -15,12 +15,12 @@ function Test-AShellPinnedShortcuts {
  } finally {[void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)}
  if(!$broken){Write-Output '[OK] Pinned executable shortcuts point to existing files.'}
 }
-function Get-AShellIconPlan([string]$Root) {
+function Get-AShellIconPlan([string]$Root,[switch]$SkipTaskbarBase) {
  $base=Get-Content -LiteralPath (Join-Path $Root 'assets\taskbar-base.json') -Raw | ConvertFrom-Json
  $mapping=Get-Content -LiteralPath (Join-Path $Root 'assets\icon-map.json') -Raw | ConvertFrom-Json
  if($mapping.version -ne 1){throw 'Unsupported icon-map version.'}
  $desired=@{};$seen=@{};$assets=@{};$index=0
- foreach($p in $base.PSObject.Properties){$desired[$p.Name]=[string]$p.Value}
+ if(!$SkipTaskbarBase){foreach($p in $base.PSObject.Properties){$desired[$p.Name]=[string]$p.Value}}
  foreach($app in $mapping.apps) {
   if(!$app.name -or !$app.icon -or !@($app.appIds).Count){throw 'Every icon mapping needs name, icon and appIds.'}
   if($app.icon -notmatch '^[a-zA-Z0-9_. -]+\.png$'){throw "Invalid icon filename: $($app.icon)"}
@@ -85,26 +85,26 @@ function Align-AShellIconSlots($Desired,$Current) {
  }}
  return $result
 }
-function Get-AShellIconDelta($Current,$Desired) {
+function Get-AShellIconDelta($Current,$Desired,[switch]$PreserveUnlisted) {
  $set=@{};$remove=@()
  foreach($name in $Desired.Keys){if(!$Current.ContainsKey($name) -or [string]$Current[$name] -cne [string]$Desired[$name]){$set[$name]=$Desired[$name]}}
  # This mod configuration is owned by A-Shell after setup. Remove obsolete
  # generated rules only; leave unrelated mod options alone.
- foreach($name in $Current.Keys){if($name -match '^controlStyles\[\d+\]\.' -and !$Desired.ContainsKey($name)){$remove+=$name}}
+ if(!$PreserveUnlisted){foreach($name in $Current.Keys){if($name -match '^controlStyles\[\d+\]\.' -and !$Desired.ContainsKey($name)){$remove+=$name}}}
  return @{Set=$set;Remove=$remove;Count=($set.Count+$remove.Count)}
 }
-function Update-AShellIcons([string]$Root) {
+function Update-AShellIcons([string]$Root,[switch]$SkipTaskbarBase,[switch]$PreserveUnlisted) {
  $baseline=Join-Path $Root 'state\before-setup.clixml'
  if(!(Test-Path -LiteralPath $baseline)){throw 'Run Setup first so the original taskbar configuration is backed up.'}
  $before=Import-Clixml -LiteralPath $baseline
  if($before.Sid -ne [Security.Principal.WindowsIdentity]::GetCurrent().User.Value){throw 'The taskbar backup belongs to another account.'}
- $plan=Get-AShellIconPlan $Root
+ $plan=Get-AShellIconPlan $Root -SkipTaskbarBase:$SkipTaskbarBase
  $mod='HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler'
  if(!(Test-Path -LiteralPath $mod) -or (Get-ItemProperty $mod).Disabled -ne 0){throw 'Taskbar icon refresh requires the active Windows 11 Taskbar Styler installed by full Setup.'}
  $key=$mod+'\Settings';$current=@{}
  if(Test-Path -LiteralPath $key){$reg=Get-Item -LiteralPath $key;foreach($name in $reg.GetValueNames()){$current[$name]=$reg.GetValue($name)}}
  $plan.Settings=Align-AShellIconSlots $plan.Settings $current
- $delta=Get-AShellIconDelta $current $plan.Settings
+ $delta=Get-AShellIconDelta $current $plan.Settings -PreserveUnlisted:$PreserveUnlisted
  New-Item -ItemType Directory -Path (Join-Path $Root 'state\icons') -Force | Out-Null
  $copied=0
  foreach($asset in $plan.Assets.Values){

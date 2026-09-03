@@ -26,6 +26,9 @@ try {
  Set-LockImage "$env:SystemRoot\Web\Screen\img100.jpg"
  Write-RegistryValue @{Path='HKCU:\Control Panel\Desktop';Name='AutoColorization';Kind='DWord';Value=1;Exists=$true}
  Run-Setup $copy Apply -Core
+ $desktopState=Import-Clixml (Join-Path $copy 'state\desktop-before.clixml')
+ if($desktopState.Mode -ne 'HideOnly' -or ($desktopState.PSObject.Properties.Name -contains 'Archive') -or ($desktopState.PSObject.Properties.Name -contains 'Entries')){throw 'Fresh setup did not use the non-moving desktop visibility model.'}
+ if([IO.Path]::GetFullPath($desktopState.Desktop) -ne [IO.Path]::GetFullPath([Environment]::GetFolderPath('DesktopDirectory'))){throw 'Fresh setup saved the wrong Windows Desktop known folder.'}
  $baselinePath=Join-Path $copy 'state\baseline\checkpoint.clixml'
  $hash=(Get-FileHash $baselinePath).Hash
  $baseline=Import-Clixml $baselinePath
@@ -43,6 +46,6 @@ try {
  if((Get-FileHash (Join-Path $folder 'restored-lock.img')).Hash -ne (Get-FileHash (Join-Path $copy 'state\baseline\lock.img')).Hash){throw 'Previous lock image was not restored exactly.'}
  $path=Read-RegistryValue 'HKCU:\Environment' 'Path'
  if([string]$path.Value -ne [string]$baseline.TerminalPath.Value){throw 'Terminal PATH did not return to its previous value.'}
- 'PASS: fresh pre-change baseline, repeat install, exact appearance/accent/cursor/mod values, previous wallpaper/lock image and terminal PATH restored.' | Add-Content $log
+ 'PASS: fresh hide-only desktop model, pre-change baseline, repeat install, exact appearance/accent/cursor/mod values, previous wallpaper/lock image and terminal PATH restored.' | Add-Content $log
 } catch {('FAIL: '+$_) | Add-Content $log;exit 1}
 finally {Run-Setup $root Apply}

@@ -1,18 +1,19 @@
-// ==WindhawkMod==
+﻿// ==WindhawkMod==
 // @id              ashell-lockscreen-clear-background
 // @name            A-Shell clear lock-screen background
 // @description     Remove the lock-screen dimming overlays for A-Shell
-// @version         1.7
+// @version         1.9
 // @author          m417z
 // @github          https://github.com/m417z
 // @twitter         https://twitter.com/m417z
 // @homepage        https://m417z.com/
 // @include         LockApp.exe
+// @include         LogonUI.exe
 // @architecture    x86-64
 // @compilerOptions -lcomctl32 -lole32 -loleaut32 -lruntimeobject -lversion
 // ==/WindhawkMod==
-// Modified by Adrian Contras, 2026-09-02: LockApp-only targeting,
-// removed Start-menu statistics and added dimming-element status reporting.
+// Modified by Adrian Contras, 2026-09-03: LockApp + LogonUI targeting,
+// pure-background overlay cleanup and dimming-element status reporting.
 // Based on Windows 11 Start Menu Styler 1.7 by m417z; GPL-3.0.
 #ifndef WH_MOD_ID
 #define WH_MOD_ID L"ashell-lockscreen-clear-background"
@@ -7608,6 +7609,12 @@ namespace wux = winrt::Windows::UI::Xaml;
 #pragma region visualtreewatcher_hpp
 
 #include <winrt/Windows.UI.Xaml.h>
+#include <winrt/Windows.UI.h>
+#include <winrt/Windows.UI.Xaml.Controls.h>
+#include <winrt/Windows.UI.Xaml.Media.h>
+#include <winrt/Windows.UI.Xaml.Shapes.h>
+
+static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexcept;
 
 class VisualTreeWatcher : public winrt::implements<VisualTreeWatcher, IVisualTreeServiceCallback2, winrt::non_agile>
 {
@@ -7717,6 +7724,7 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation, VisualElement
         if (frameworkElement)
         {
             Wh_Log(L"FrameworkElement name: %s", frameworkElement.Name().c_str());
+            AShellClearRawBackgroundFilter(frameworkElement);
             ApplyCustomizations(element.Handle, frameworkElement, element.Type);
         }
         else
@@ -7945,6 +7953,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <charconv>
 #include <chrono>
 #include <cmath>
+#include <cwctype>
 #include <limits>
 #include <list>
 #include <memory>
@@ -7959,6 +7968,110 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <unordered_set>
 #include <variant>
 #include <vector>
+
+// A-Shell raw-background pass. Windows has used more than one XAML shape for
+// the lock/sign-in dimmer. On the legacy inspected build the unwanted layer
+// was a black SolidColorBrush at ~45% brush opacity, which is different from
+// FrameworkElement::Opacity and therefore cannot always be found by a simple
+// Rectangle[Opacity=0.45] selector. Keep this conservative: only clear a dark
+// translucent brush when the element/name/ancestor identifies a background,
+// wallpaper, overlay, scrim, dim or shade context, or when the element itself
+// is effectively full-screen. The user tile/profile image is an Image and is
+// deliberately never modified here.
+static bool AShellNameIsBackgroundContext(winrt::hstring const& value) {
+    if (value.empty()) return false;
+    std::wstring name(value.c_str());
+    std::transform(name.begin(), name.end(), name.begin(), [](wchar_t c) { return static_cast<wchar_t>(std::towlower(c)); });
+    for (auto token : {L"background", L"wallpaper", L"overlay", L"dimming",
+                       L"dimmer", L"scrim", L"shade", L"tint"}) {
+        if (name.find(token) != std::wstring::npos) return true;
+    }
+    return false;
+}
+
+static bool AShellIsBackgroundContext(wux::FrameworkElement element) {
+    using winrt::Windows::UI::Xaml::Media::VisualTreeHelper;
+    wux::FrameworkElement top = element;
+    wux::DependencyObject current = element;
+    for (int depth = 0; current && depth < 10; ++depth) {
+        if (auto fe = current.try_as<wux::FrameworkElement>()) {
+            top = fe;
+            if (AShellNameIsBackgroundContext(fe.Name())) return true;
+        }
+        current = VisualTreeHelper::GetParent(current);
+    }
+
+    // Name-less full-screen dim surfaces are common. Compare against the top
+    // XAML element instead of physical pixels so DPI scaling doesn't matter.
+    const double w = element.ActualWidth();
+    const double h = element.ActualHeight();
+    const double rw = top.ActualWidth();
+    const double rh = top.ActualHeight();
+    return w > 0 && h > 0 && rw > 0 && rh > 0 &&
+           w >= rw * 0.80 && h >= rh * 0.80;
+}
+
+static bool AShellIsDarkTranslucentBrush(
+    winrt::Windows::UI::Xaml::Media::Brush const& source) {
+    auto brush = source.try_as<winrt::Windows::UI::Xaml::Media::SolidColorBrush>();
+    if (!brush) return false;
+    auto color = brush.Color();
+    if (color.R > 12 || color.G > 12 || color.B > 12) return false;
+    const double effectiveAlpha =
+        (static_cast<double>(color.A) / 255.0) * brush.Opacity();
+    // Wide enough to catch the stock 40/45% layer and nearby Windows builds,
+    // narrow enough not to erase fully opaque black layout backgrounds.
+    return effectiveAlpha >= 0.18 && effectiveAlpha <= 0.70;
+}
+
+static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexcept {
+    try {
+        if (!AShellIsBackgroundContext(element)) return;
+        auto transparent = winrt::Windows::UI::Xaml::Media::SolidColorBrush(
+            winrt::Windows::UI::Colors::Transparent());
+        bool changed = false;
+
+        if (auto rectangle =
+                element.try_as<winrt::Windows::UI::Xaml::Shapes::Rectangle>()) {
+            auto fill = rectangle.Fill();
+            if (fill && AShellIsDarkTranslucentBrush(fill)) {
+                rectangle.Fill(transparent);
+                changed = true;
+            }
+        }
+        if (auto border =
+                element.try_as<winrt::Windows::UI::Xaml::Controls::Border>()) {
+            auto background = border.Background();
+            if (background && AShellIsDarkTranslucentBrush(background)) {
+                border.Background(transparent);
+                changed = true;
+            }
+        }
+        if (auto panel =
+                element.try_as<winrt::Windows::UI::Xaml::Controls::Panel>()) {
+            auto background = panel.Background();
+            if (background && AShellIsDarkTranslucentBrush(background)) {
+                panel.Background(transparent);
+                changed = true;
+            }
+        }
+        if (auto control =
+                element.try_as<winrt::Windows::UI::Xaml::Controls::Control>()) {
+            auto background = control.Background();
+            if (background && AShellIsDarkTranslucentBrush(background)) {
+                control.Background(transparent);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            Wh_Log(L"A-Shell cleared translucent black background filter on %s#%s",
+                   winrt::get_class_name(element).c_str(), element.Name().c_str());
+        }
+    } catch (...) {
+        // Visual-tree differences must never destabilize LockApp/LogonUI.
+    }
+}
 
 using namespace std::string_view_literals;
 
@@ -16006,7 +16119,10 @@ BOOL Wh_ModInit() {
     wchar_t ashellProcess[MAX_PATH]{};
     GetModuleFileNameW(nullptr, ashellProcess, MAX_PATH);
     auto ashellName = wcsrchr(ashellProcess, L'\\');
-    if (!ashellName || _wcsicmp(ashellName + 1, L"LockApp.exe")) return FALSE;
+    if (!ashellName) return FALSE;
+    const wchar_t* processName = ashellName + 1;
+    if (_wcsicmp(processName, L"LockApp.exe") != 0 &&
+        _wcsicmp(processName, L"LogonUI.exe") != 0) return FALSE;
 
     Wh_Log(L">");
 

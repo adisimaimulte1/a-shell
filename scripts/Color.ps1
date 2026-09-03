@@ -1,4 +1,4 @@
-param([string]$Color='default',[ValidateSet('Apply','Restore','Check')][string]$Action='Apply')
+﻿param([string]$Color='default',[ValidateSet('Apply','Restore','Check')][string]$Action='Apply')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Appearance.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'Color.Support.ps1')
@@ -19,6 +19,8 @@ try {
   }
   if((Import-Clixml $snapshot).Sid -ne $sid){throw 'Accent backup belongs to another account.'}
   Set-AShellAccent $Color
+  $desiredFile=Join-Path $root 'state\desired-accent.txt'
+  Set-Content -LiteralPath $desiredFile -Value $Color -Encoding ascii
   Write-Output "[OK] Windows accent and Matrix rain: #$Color. Existing rain keeps running."
  } elseif(Test-Path $snapshot) {
   $saved=Import-Clixml $snapshot

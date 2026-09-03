@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -18,7 +18,7 @@ public static class AShellBranding {
  }
  static byte[] Version(string file,string description){
   var names=new string[]{"CompanyName","FileDescription","FileVersion","InternalName","OriginalFilename","ProductName","ProductVersion","LegalCopyright"};
-  var values=new string[]{"Adrian Contras",description,"1.1.0.0",Path.GetFileNameWithoutExtension(file),Path.GetFileName(file),"A-Shell","1.1.0.0","GPL-3.0; artwork retains its original terms"};
+  var values=new string[]{"Adrian Contras",description,"1.9.3.0",Path.GetFileNameWithoutExtension(file),Path.GetFileName(file),"A-Shell","1.9.3.0","GPL-3.0; artwork retains its original terms"};
   var strings=new byte[names.Length][];for(int i=0;i<names.Length;i++)strings[i]=Block(names[i],Encoding.Unicode.GetBytes(values[i]+"\0"),true);
   byte[] fixedInfo;using(var m=new MemoryStream())using(var w=new BinaryWriter(m)){foreach(uint v in new uint[]{0xFEEF04BD,0x10000,0x10001,0,0x10001,0,0x3f,0,0x40004,1,0,0,0})w.Write(v);fixedInfo=m.ToArray();}
   return Block("VS_VERSION_INFO",fixedInfo,false,Block("StringFileInfo",new byte[0],true,Block("040904b0",new byte[0],true,strings)),Block("VarFileInfo",new byte[0],true,Block("Translation",new byte[]{9,4,176,4},false)));

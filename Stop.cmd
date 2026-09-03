@@ -1,2 +1,2 @@
 @echo off
-"%~dp0bin\MatrixDesktop.exe" --stop
+call "%~dp0ashell.cmd" stop

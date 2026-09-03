@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop'
+﻿$ErrorActionPreference='Stop'
 if(-not ('AShellAccentNative' -as [type])) {
  Add-Type @'
 using System;
@@ -15,6 +15,10 @@ function ConvertTo-AShellColor([string]$Color) {
  if($Color -eq 'default'){return 'D65A00'}
  if($Color -notmatch '^#?([0-9a-fA-F]{6})$'){throw 'Use six hexadecimal digits, for example 00AAFF, or default.'}
  return $Matches[1].ToUpperInvariant()
+}
+function Send-AShellPolicyChange {
+ $result=[IntPtr]::Zero
+ [void][AShellAccentNative]::Broadcast([IntPtr]0xffff,0x1a,[IntPtr]::Zero,'Policy',2,250,[ref]$result)
 }
 function Send-AShellThemeChange {
  # Theme changes need a refresh beyond the lightweight accent notification.

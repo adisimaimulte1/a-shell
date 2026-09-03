@@ -5,6 +5,30 @@ function Get-AShellAppNameKey([string]$Name) {
  $clean=$clean -replace '(?i)\s+(?:20\d{2}|v?\d+\.\d+(?:\.\d+)*)(?:\s+(?:x64|x86))?$',''
  Get-AShellNameKey $clean
 }
+function Get-AShellGenericProductKeys([string]$Name) {
+ # Product shortcuts often append generic UI words ("Opera Browser", "Foo Desktop").
+ # Only strip a trailing descriptor and still require a unique icon candidate.
+ $clean=$Name.Trim() -replace '(?i)\s*\((?:x64|x86|64[- ]bit|32[- ]bit)\)$',''
+ $clean=$clean -replace '(?i)\s+(?:20\d{2}|v?\d+\.\d+(?:\.\d+)*)(?:\s+(?:x64|x86))?$',''
+ $keys=@()
+ foreach($suffix in @('browser','desktop','application','app','launcher','client')) {
+  if($clean -match ('(?i)^(.+?)\s+'+$suffix+'$')) {
+   $key=Get-AShellAppNameKey $Matches[1]
+   if($key -and $key.Length -ge 3){$keys+=$key}
+  }
+ }
+ @($keys | Select-Object -Unique)
+}
+function Get-AShellAppIdProductKeys([string]$AppID) {
+ if(!$AppID){return @()}
+ $keys=@()
+ foreach($part in @($AppID -split '[!\\/. _-]+')) {
+  if(!$part){continue}
+  $key=Get-AShellNameKey $part
+  if($key -match '^(.*?)(?:stable|browser|desktop|application|launcher|client|exe)$' -and $Matches[1].Length -ge 3){$keys+=$Matches[1]}
+ }
+ @($keys | Select-Object -Unique)
+}
 function Import-AShellIcon([string]$Root,[string]$Source,[string]$Name) {
  if(!$Source -or !(Test-Path -LiteralPath $Source -PathType Leaf)){throw 'Use: ashell icons add "C:\Downloads\icon.png" [name.png]'}
  $sourcePath=(Get-Item -LiteralPath $Source).FullName
@@ -80,7 +104,12 @@ function Find-AShellIcon($Index,$App,$Aliases) {
   if($Aliases.ContainsKey($key)){$queries+=,@('Normalized',$Aliases[$key],'known alias')}
  }
  $queries+=,@('Product',$identity.Product,'publisher/product identity')
+ foreach($key in Get-AShellGenericProductKeys $App.Name){$queries+=,@('Normalized',$key,'generic product name')}
+ foreach($key in Get-AShellAppIdProductKeys $App.AppID){$queries+=,@('Normalized',$key,'AppID product identity')}
+ $seen=@{}
  foreach($query in $queries) {
+  $queryId=$query[0]+'|'+$query[1]
+  if($seen.ContainsKey($queryId)){continue};$seen[$queryId]=$true
   $candidates=@($Index[$query[0]][$query[1]] | Where-Object {
    $_ -and (!$identity.Publisher -or !$_.Identity.Publisher -or $identity.Publisher -eq $_.Identity.Publisher)
   })

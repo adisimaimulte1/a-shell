@@ -1,7 +1,7 @@
-param([string]$Output)
+﻿param([string]$Output)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
-if(!$Output){$Output=Join-Path (Split-Path $root) 'A-Shell-Setup.exe'}
+if(!$Output){$Output=Join-Path (Split-Path $root) 'A-Shell-Setup-1.9.3.exe'}
 $Output=[IO.Path]::GetFullPath($Output)
 if($Output.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Build the installer outside the source folder.'}
 $build=Join-Path $root ('state\installer-build\'+[guid]::NewGuid().ToString('N'))

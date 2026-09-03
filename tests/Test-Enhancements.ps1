@@ -41,6 +41,7 @@ MustThrow {Get-AShellIconPlan $mapRoot} 'Duplicate exact IDs must be rejected.'
 $mapping.apps[0].appIds=@('Fixture.App');$mapping.apps[0].icon='..\sample.png';$mapping | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $mapPath
 MustThrow {Get-AShellIconPlan $mapRoot} 'Icon paths cannot escape assets.'
 
+# Legacy v1 archive journal regression: new installs do not move Desktop files, but old installs must still undo safely.
 $desktop=Join-Path $testRoot 'Desktop';$archive=Join-Path $testRoot 'original_desktop'
 New-Item -ItemType Directory -Path $desktop,$archive -Force | Out-Null
 Set-Content -LiteralPath (Join-Path $desktop 'notes.txt') 'original'
@@ -78,5 +79,5 @@ Assert ((Test-Path -LiteralPath (Join-Path $archive 'Folder\nested.txt')) -and (
 Assert ((Import-Clixml -LiteralPath $journal).Entries.Count -eq 2) 'Partial rollback must retain the complete journal.'
 MustThrow {Get-AShellChildPath $desktop '..\outside'} 'Journal traversal must be rejected.'
 MustThrow {Assert-AShellDesktopRoots $desktop (Join-Path $desktop 'archive')} 'Nested archive must be rejected.'
-Write-Output 'PASS: unchanged/changed/deleted icon plans, asset cache invalidation, duplicate IDs, path validation, nested folders, repeated archive/undo, collisions, interrupted moves/restores.'
+Write-Output 'PASS: icon-plan regressions plus legacy v1 archive undo/collision/interruption compatibility.'
 Write-Output "Fixtures retained in $testRoot"

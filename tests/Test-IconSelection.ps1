@@ -6,11 +6,12 @@ $fixture=Join-Path $root ('state\tests\selection-'+[guid]::NewGuid().ToString('N
 New-Item -ItemType Directory "$fixture\assets\icons","$fixture\state" -Force|Out-Null
 '{}'|Set-Content "$fixture\assets\taskbar-base.json"
 '{"version":1,"controls":[],"apps":[]}'|Set-Content "$fixture\assets\icon-map.json"
-foreach($name in @('icons8-chrome-96.png','icons8-adobe-illustrator-96.png','custom.png')){Copy-Item "$root\assets\logo\A-Shell_Logo_Original.png" "$fixture\assets\icons\$name"}
-function Get-StartApps { @([pscustomobject]@{Name='Adobe Illustrator 2024';AppID='Illustrator.2024'},[pscustomobject]@{Name='Google Chrome';AppID='Chrome'},[pscustomobject]@{Name='Unmatched app';AppID='Unknown.App'}) }
+foreach($name in @('icons8-chrome-96.png','icons8-adobe-illustrator-96.png','icons8-opera-96.png','custom.png')){Copy-Item "$root\assets\logo\A-Shell_Logo_Original.png" "$fixture\assets\icons\$name"}
+function Get-StartApps { @([pscustomobject]@{Name='Adobe Illustrator 2024';AppID='Illustrator.2024'},[pscustomobject]@{Name='Google Chrome';AppID='Chrome'},[pscustomobject]@{Name='Opera Browser';AppID='OperaStable'},[pscustomobject]@{Name='Unmatched app';AppID='Unknown.App'}) }
 Add-AShellAutomaticIcons $fixture
 $m=Get-Content "$fixture\assets\icon-map.json" -Raw|ConvertFrom-Json
-if(@($m.apps).Count -ne 2 -or !(@($m.apps|Where-Object {$_.icon -eq 'icons8-adobe-illustrator-96.png'}).Count)){throw 'Automatic matching failed'}
+if(@($m.apps).Count -ne 3 -or !(@($m.apps|Where-Object {$_.icon -eq 'icons8-adobe-illustrator-96.png'}).Count)){throw 'Automatic matching failed'}
+if(($m.apps|Where-Object {$_.appIds -contains 'OperaStable'}).icon -ne 'icons8-opera-96.png'){throw 'Opera Browser generic/AppID matching failed'}
 $hash=(Get-FileHash "$fixture\assets\icon-map.json").Hash
 Add-AShellAutomaticIcons $fixture
 if((Get-FileHash "$fixture\assets\icon-map.json").Hash -ne $hash){throw 'No-op matching rewrote mapping'}
