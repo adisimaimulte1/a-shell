@@ -1566,7 +1566,7 @@
                       "path":  "scripts/AdminSession.cmd"
                   },
                   {
-                      "sha256":  "96E304E6BB50BF67C84125FB48636DAD122981CF7B1DEFB4110C15ED5808090E",
+                      "sha256":  "BCC6D9FF022876E7F628A2AC575B73A2183C98C035E0A232E93CC9D32C459B19",
                       "path":  "scripts/Appearance.Helpers.ps1"
                   },
                   {
@@ -1626,7 +1626,11 @@
                       "path":  "scripts/Cursors.ps1"
                   },
                   {
-                      "sha256":  "0F2BACA343A4FEB5985A5F5DB862E1C70A05431EE7A9BB81B2ABE3D1D4AAC309",
+                      "sha256":  "68195713FEB5CC0A6FCC88DD80EC9B32FCE7CCD29A426624E8DD95789542CFAB",
+                      "path":  "scripts/Desktop.Paths.ps1"
+                  },
+                  {
+                      "sha256":  "9117BE32189C70C1BF9D238A4BEF4F23717635A62A9FF08F95D12AA4BDBD6163",
                       "path":  "scripts/Desktop.Support.ps1"
                   },
                   {
@@ -1662,15 +1666,15 @@
                       "path":  "scripts/Repair-TaskbarEngine.ps1"
                   },
                   {
-                      "sha256":  "CC4429E570C5D2C06237A7D8456243A010F65D28969EB0CDABC0CD0C5F52EA63",
+                      "sha256":  "C951AC2AD580E63487B7D0DCEC8117CA70CE352FC1AE70D45A7517D52210C6F2",
                       "path":  "scripts/Setup.ps1"
                   },
                   {
-                      "sha256":  "B4123E384990A1DE7963B6DDB8B30FC9C0C6C016402A4738F3A39004DE5AA1A8",
+                      "sha256":  "915A2BB1441502543FB3DE2BE3675533B5F583A010C19A86C0239E54760EAEEE",
                       "path":  "scripts/Setup.Support.ps1"
                   },
                   {
-                      "sha256":  "2567C1418B1A04CE6418419B957680F6B5B381E89E8D6B485CDBE2385CC049DE",
+                      "sha256":  "8E083268F4912E15A1B660CFB7FB8D4F5C2F315F3693EF19570A2AA3CC22FD1D",
                       "path":  "scripts/SignIn-Backdrop.ps1"
                   },
                   {
@@ -1728,6 +1732,14 @@
                   {
                       "sha256":  "3B80AD05A2BF2AAB5B747B51E49B2A1425D5508A65545A3F2A4C44792BE39749",
                       "path":  "tests/Test-DesktopLive.ps1"
+                  },
+                  {
+                      "sha256":  "88C58F042CE75B17FC69BBB9E95EA58335FDE7D4765FC869BDEB46AE1CE32146",
+                      "path":  "tests/Test-DesktopPaths.ps1"
+                  },
+                  {
+                      "sha256":  "4C2DF6D993706C45C6946F6E350CE8C47FEFCC8581EDC01DBE598F8B56219F6C",
+                      "path":  "tests/Test-DesktopRedirectRoots.ps1"
                   },
                   {
                       "sha256":  "73732AB733B91E2D26C79599F14554EEA4928512E8C59D01353F6D02863D541A",
