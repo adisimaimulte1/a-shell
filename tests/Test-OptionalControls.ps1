@@ -1,4 +1,4 @@
-param([switch]$Worker)
+﻿param([switch]$Worker)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 if(!$Worker){$p=Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -Worker') -Wait -PassThru;exit $p.ExitCode}
@@ -10,7 +10,7 @@ Copy-Item -LiteralPath $icon -Destination $backup -Force
 try {
  $key='HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler\Settings'
  $before=Get-ItemProperty $key
- Copy-Item -LiteralPath (Join-Path $root 'assets\icons\A-Shell_Logo_Size.png') -Destination $icon -Force
+ Copy-Item -LiteralPath (Join-Path $root 'assets\icons\icons-a-shell-96.png') -Destination $icon -Force
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'scripts\Icons.ps1') -Action refresh
  if($LASTEXITCODE){throw 'Changed icon refresh failed'}
  $after=Get-ItemProperty $key;$changed=@()

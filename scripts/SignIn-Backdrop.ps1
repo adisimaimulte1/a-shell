@@ -28,7 +28,7 @@ if($Action -eq 'Check') {
 }
 $admin=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if(!$admin){
- Write-Output "[WORKING] Opening an Administrator Command Prompt for lock/sign-in $($Action.ToLowerInvariant())..."
+ Write-Output "[WORKING] Requesting administrator access for lock/sign-in $($Action.ToLowerInvariant()) in this terminal..."
  $parameters=@{Action=$Action;ExpectedSid=$ExpectedSid};if($RuntimeOnly){$parameters.RuntimeOnly=$true};if($NoRestart){$parameters.NoRestart=$true}
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters $parameters -Title 'A-Shell Screen Styling - Administrator'
  if($exitCode -ne 0){throw "Sign-in backdrop action failed ($exitCode). See state\signin-backdrop.log."}

@@ -4,7 +4,7 @@ $root=Split-Path $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Elevation.Helpers.ps1')
 if(!$Worker) {
  if(!(Test-AShellAdministrator)) {
-  Write-Output '[WORKING] Opening an Administrator Command Prompt to update the account picture...'
+  Write-Output '[WORKING] Requesting administrator access to update the account picture in this terminal...'
   $parameters=@{ExpectedSid=$ExpectedSid};if($Restore){$parameters.Restore=$true}
   $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters $parameters -Title 'A-Shell Profile Picture - Administrator'
   if($exitCode){throw 'Account-picture update failed. Existing backups are preserved.'}

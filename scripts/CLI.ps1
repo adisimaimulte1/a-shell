@@ -110,7 +110,7 @@ try {
    )},
    @{Title='RAIN';Rows=@(
     @('rain start | stop | status','Control Matrix rain'),
-    @('startup install|remove|status','Repair/remove sign-in startup')
+    @('startup install|remove|status','Repair/remove rain sign-in startup')
    )},
    @{Title='ICON MAPPINGS';Rows=@(
     @('icons','Auto-match + refresh icons'),

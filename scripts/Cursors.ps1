@@ -1,4 +1,4 @@
-﻿param([ValidateSet('Apply','Restore','Check','SessionApply','Capture')][string]$Action='Check',[ValidateRange(0,30000)][int]$DelayMilliseconds=0)
+﻿param([ValidateSet('Apply','Restore','Check','SessionApply','Capture','RepairTask')][string]$Action='Check',[ValidateRange(0,30000)][int]$DelayMilliseconds=0)
 $ErrorActionPreference='Stop'
 $cursorRoot=Split-Path $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Appearance.Helpers.ps1')
@@ -7,6 +7,7 @@ $cursorState=Join-Path $cursorRoot 'state\cursors-before.clixml'
 $cursorKey='HKCU:\Control Panel\Cursors'
 $schemeName='Material Design Pure Dark v2 by Jepri Creations (A-Shell)'
 $repairTaskName='A-Shell Cursor Session Repair'
+$repairLauncher=Join-Path $PSScriptRoot 'CursorSessionRepair.vbs'
 $cursorMap=[ordered]@{Arrow='pointer.cur';Help='help.cur';AppStarting='working.ani';Wait='busy.ani';Crosshair='precision.cur';IBeam='beam.cur';NWPen='handwriting.cur';No='unavailable.cur';SizeNS='vert.cur';SizeWE='horz.cur';SizeNWSE='dgn1.cur';SizeNESW='dgn2.cur';SizeAll='move.cur';UpArrow='alternate.cur';Hand='link.cur';Person='person.cur';Pin='pin.cur'}
 # SetSystemCursor officially documents the core system IDs below. The newer/legacy
 # extras are attempted too, but never make an otherwise successful install fail.
@@ -54,14 +55,19 @@ function Set-AShellCursorSession([switch]$Strict) {
  return $true
 }
 function Install-AShellCursorRepairTask {
+ if(!(Test-Path -LiteralPath $repairLauncher -PathType Leaf)){throw 'Windowless cursor-session launcher is missing. Re-extract the complete A-Shell package.'}
  $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
- $powershell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
- $arguments='-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -Action SessionApply -DelayMilliseconds 3500'
- $action=New-ScheduledTaskAction -Execute $powershell -Argument $arguments
+ $wscript=Join-Path $env:SystemRoot 'System32\wscript.exe'
+ # Task Scheduler starts InteractiveToken processes on the visible desktop. A
+ # direct powershell.exe action can therefore flash before -WindowStyle Hidden is
+ # processed. wscript.exe is a GUI host and creates the PowerShell child hidden
+ # from the beginning, while SessionApply still runs in the interactive session.
+ $arguments='//B //NoLogo "'+$repairLauncher+'" "'+$PSCommandPath+'"'
+ $action=New-ScheduledTaskAction -Execute $wscript -Argument $arguments -WorkingDirectory $PSScriptRoot
  $trigger=New-ScheduledTaskTrigger -AtLogOn -User $identity.Name
  $principal=New-ScheduledTaskPrincipal -UserId $identity.Name -LogonType Interactive -RunLevel Limited
- $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 2)
- Register-ScheduledTask -TaskName $repairTaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description 'Re-applies the selected A-Shell cursor scheme after Windows initializes the user theme.' -Force | Out-Null
+ $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 2) -MultipleInstances IgnoreNew
+ Register-ScheduledTask -TaskName $repairTaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description 'Re-applies the selected A-Shell cursor handles after Windows initializes the user theme, using a windowless launcher.' -Force | Out-Null
 }
 function Restore-AShellCursorRepairTask($Saved) {
  $taskState=$Saved.Task
@@ -83,6 +89,7 @@ function Save-AShellCursorBaseline {
  @{Sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value;Values=$values;Task=$taskState} | Export-Clixml $cursorState
 }
 if($Action -eq 'Capture'){Save-AShellCursorBaseline;Write-Output 'Cursors: Capture complete.';exit 0}
+if($Action -eq 'RepairTask'){Install-AShellCursorRepairTask;Write-Output '[OK] Cursor session repair now uses the windowless launcher.';exit 0}
 if($Action -in @('Apply','Check')) {
  foreach($file in $cursorMap.Values) {
   $path=Join-Path $cursorSource $file

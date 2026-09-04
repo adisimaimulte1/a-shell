@@ -1,4 +1,4 @@
-# Development
+﻿# Development
 
 ## Build and package
 
@@ -12,7 +12,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Build-Package.ps1 -Output C:\
 powershell -ExecutionPolicy Bypass -File .\scripts\Build-Installer.ps1 -Output C:\Releases\A-Shell-Setup.exe
 ```
 
-Stop this copy of Matrix before rebuilding it. Build.ps1 compiles MatrixDesktop and DesktopLayout, embeds the Windows compatibility manifest, adds icon/version resources, and rebuilds all bundled Windhawk DLLs from source. Branding uses assets/logo/A-Shell_Logo_Original.png and produces a seven-size A-Shell.ico. System hosts such as PowerShell retain their own Windows icons; A-Shell's own executables carry the project branding.
+Stop this copy of Matrix before rebuilding it. Build.ps1 compiles MatrixDesktop and DesktopLayout, embeds the Windows compatibility manifest, adds icon/version resources, and rebuilds all bundled Windhawk DLLs from source. Branding uses assets/logo/A-Shell_Logo_Original.png and produces a seven-size A-Shell.ico. The Setup EXE keeps that orange file icon, but also embeds assets/icons/icons-a-shell-96.png and switches its live titlebar/taskbar window icon to monochrome whenever the installed A-Shell runtime has monochrome icons enabled. System hosts such as PowerShell retain their own Windows icons; A-Shell's own executables carry the project branding.
 
 ## Icon mapping
 

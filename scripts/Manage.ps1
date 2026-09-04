@@ -1,9 +1,10 @@
-﻿param([ValidateSet('Install','Remove','Start','Stop','Status')][string]$Action='Status',[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
+﻿param([ValidateSet('Install','Remove','Start','Stop','Status','Migrate')][string]$Action='Status',[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 $exe=Join-Path $root 'bin\MatrixDesktop.exe'
 $taskName='Matrix Desktop - Instant Rain'
-$repairTaskName='A-Shell Session Repair'
+$legacyRepairTaskName='A-Shell Session Repair'
+$cursorRepairTaskName='A-Shell Cursor Session Repair'
 . (Join-Path $PSScriptRoot 'Features.Support.ps1')
 . (Join-Path $PSScriptRoot 'Elevation.Helpers.ps1')
 function Get-AShellRainProcesses {
@@ -11,8 +12,8 @@ function Get-AShellRainProcesses {
   try {[IO.Path]::GetFullPath($_.Path) -eq [IO.Path]::GetFullPath($exe)} catch {$false}
  })
 }
-if($Action -in @('Install','Remove') -and !(Test-AShellAdministrator)) {
- Write-Output "[WORKING] Opening an Administrator Command Prompt for startup $($Action.ToLowerInvariant())..."
+if($Action -in @('Install','Remove','Migrate') -and !(Test-AShellAdministrator)) {
+ Write-Output "[WORKING] Requesting administrator access for startup $($Action.ToLowerInvariant()) in this terminal..."
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters @{Action=$Action;ExpectedSid=$ExpectedSid} -Title 'A-Shell Startup - Administrator'
  if($exitCode){throw "Startup $Action failed (exit $exitCode)."}
  Write-Output "[OK] Startup $Action completed."
@@ -57,8 +58,8 @@ switch($Action) {
   $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue;$running=Get-Process MatrixDesktop -ErrorAction SilentlyContinue
   if($running){Write-Output "[STATUS] Rain: running, PID $($running.Id). Executable: $($running.Path)"}else{Write-Output '[STATUS] Rain: stopped.'}
   if($task){$enabled=if($task.State -eq 'Disabled'){'disabled'}else{'enabled'};Write-Output "[STATUS] Rain sign-in startup: $enabled (task $($task.State)). Target: $($task.Actions.Execute)"}else{Write-Output '[STATUS] Rain sign-in startup: not installed.'}
-  $repair=Get-ScheduledTask -TaskName $repairTaskName -ErrorAction SilentlyContinue
-  if($repair){Write-Output "[STATUS] A-Shell settings repair at sign-in: $($repair.State)."}else{Write-Output '[STATUS] A-Shell settings repair at sign-in: not installed.'}
+  $legacyRepair=Get-ScheduledTask -TaskName $legacyRepairTaskName -ErrorAction SilentlyContinue
+  if($legacyRepair){Write-Output '[STATUS] Legacy A-Shell sign-in repair task detected. Run Setup/update once to remove this obsolete visual replay task.'}
   $color=Join-Path $root 'state\accent-color.txt';if(Test-Path $color){Write-Output ('[STATUS] Accent: #'+(Get-Content $color -Raw))}
  }
  'Install' {
@@ -78,12 +79,13 @@ switch($Action) {
   $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew -StartWhenAvailable -RestartCount 3 -RestartInterval ([TimeSpan]::FromMinutes(1))
   $settings.Priority=4
   Register-ScheduledTask -TaskName $taskName -Action (New-ScheduledTaskAction -Execute $exe -WorkingDirectory (Split-Path $exe)) -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $user) -Principal (New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited) -Settings $settings -Description 'A-Shell: standalone Matrix Desktop, no Lively required.' -Force | Out-Null
-  $powershell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-  $runtime=Join-Path $root 'scripts\Runtime.ps1'
-  $repairArgs='-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$runtime+'" -Action SessionRepair'
-  $repairAction=New-ScheduledTaskAction -Execute $powershell -Argument $repairArgs -WorkingDirectory $root
-  $repairPrincipal=New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Highest
-  Register-ScheduledTask -TaskName $repairTaskName -Action $repairAction -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $user) -Principal $repairPrincipal -Settings $settings -Description 'A-Shell: re-apply saved images, hidden desktop, screen/taskbar/icon settings and cursor scheme after Windows initializes the shell.' -Force | Out-Null
+  # v1.9.3 briefly installed a delayed full appearance replay at logon. Persistent
+  # Windows/Windhawk state already survives reboot, so replaying it only caused a
+  # PowerShell flash and made the taskbar jump through baseline -> A-Shell twice.
+  $legacyRepair=Get-ScheduledTask -TaskName $legacyRepairTaskName -ErrorAction SilentlyContinue
+  if($legacyRepair){Unregister-ScheduledTask -TaskName $legacyRepairTaskName -Confirm:$false;Write-Output '[OK] Removed obsolete sign-in appearance replay task.'}
+  $cursorTask=Get-ScheduledTask -TaskName $cursorRepairTaskName -ErrorAction SilentlyContinue
+  if($cursorTask){& (Join-Path $PSScriptRoot 'Cursors.ps1') -Action RepairTask}
   if($wasRunning){
    Write-Output '[OK] Automatic rain startup repaired. Matrix was already running, so its live rain was not restarted.'
   } else {
@@ -91,9 +93,20 @@ switch($Action) {
    Write-Output '[OK] Automatic rain startup installed and started. No startup delay is configured.'
   }
  }
+ 'Migrate' {
+  # Code-only installer upgrades must fix startup tasks without replaying the
+  # current started/stopped state, rain process, wallpaper, taskbar or colors.
+  $legacyRepair=Get-ScheduledTask -TaskName $legacyRepairTaskName -ErrorAction SilentlyContinue
+  if($legacyRepair){Unregister-ScheduledTask -TaskName $legacyRepairTaskName -Confirm:$false;Write-Output '[OK] Removed obsolete sign-in appearance replay task.'}
+  $cursorTask=Get-ScheduledTask -TaskName $cursorRepairTaskName -ErrorAction SilentlyContinue
+  if($cursorTask){& (Join-Path $PSScriptRoot 'Cursors.ps1') -Action RepairTask}
+  # Setup now owns its live console/taskbar icon directly. Migration therefore
+  # stays completely appearance-neutral and never touches Windhawk/taskbar settings.
+  Write-Output '[OK] Startup-task migration complete. Rain and saved component state were not changed.'
+ }
  'Remove' {
   $wasActive=Test-AShellRuntimeActive $root
-  foreach($name in @($taskName,$repairTaskName)){$task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue;if($task){Unregister-ScheduledTask -TaskName $name -Confirm:$false}}
+  foreach($name in @($taskName,$legacyRepairTaskName)){$task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue;if($task){Unregister-ScheduledTask -TaskName $name -Confirm:$false}}
   $running=@(Get-AShellRainProcesses)
   if($wasActive -and $running.Count){
    Start-Process -FilePath $exe -ArgumentList '--stop' -WindowStyle Hidden -Wait

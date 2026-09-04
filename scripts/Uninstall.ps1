@@ -31,7 +31,7 @@ if(!$Confirmed){
 }
 $admin=Test-AShellAdministrator
 if(!$admin){
- Write-Host '  WORKING  Opening an Administrator Command Prompt to restore Windows...' -ForegroundColor Yellow
+ Write-Host '  WORKING  Requesting administrator access to restore Windows in this terminal...' -ForegroundColor Yellow
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters @{Confirmed=$true;ElevatedWorker=$true;ExpectedSid=$ExpectedSid} -Title 'A-Shell Uninstall - Administrator'
  if($exitCode){throw "Uninstall restore failed (exit $exitCode). A-Shell files were kept so recovery remains possible. See state\setup.log."}
  Write-AShellFarewell

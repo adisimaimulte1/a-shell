@@ -6,7 +6,7 @@ if($Image -eq 'default'){$Image=Join-Path $root 'assets\LockScreenPicture.png'}
 if($Image -ne 'original'){$Image=(Resolve-Path -LiteralPath $Image).ProviderPath}
 if($Image.Contains('"')){throw 'Invalid image path.'}
 if(!(Test-AShellAdministrator)) {
- Write-Output '[WORKING] Opening an Administrator Command Prompt to update A-Shell backgrounds...'
+ Write-Output '[WORKING] Requesting administrator access to update A-Shell backgrounds in this terminal...'
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters @{Image=$Image;ExpectedSid=$ExpectedSid} -Title 'A-Shell Background - Administrator'
  if($exitCode){throw "Background change failed (exit $exitCode). Your previous image was retained or rolled back."}
  Write-Output "[OK] Background command completed: $Image. Saved A-Shell background updated. The lock/login screen changes only when ashell screen on is enabled."

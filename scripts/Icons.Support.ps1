@@ -93,7 +93,7 @@ function Get-AShellIconDelta($Current,$Desired,[switch]$PreserveUnlisted) {
  if(!$PreserveUnlisted){foreach($name in $Current.Keys){if($name -match '^controlStyles\[\d+\]\.' -and !$Desired.ContainsKey($name)){$remove+=$name}}}
  return @{Set=$set;Remove=$remove;Count=($set.Count+$remove.Count)}
 }
-function Update-AShellIcons([string]$Root,[switch]$SkipTaskbarBase,[switch]$PreserveUnlisted) {
+function Update-AShellIcons([string]$Root,[switch]$SkipTaskbarBase,[switch]$PreserveUnlisted,[switch]$DeferApply) {
  $baseline=Join-Path $Root 'state\before-setup.clixml'
  if(!(Test-Path -LiteralPath $baseline)){throw 'Run Setup first so the original taskbar configuration is backed up.'}
  $before=Import-Clixml -LiteralPath $baseline
@@ -123,7 +123,7 @@ function Update-AShellIcons([string]$Root,[switch]$SkipTaskbarBase,[switch]$Pres
    throw
   }
  }
- if(Test-Path -LiteralPath $pending){
+ if((Test-Path -LiteralPath $pending) -and !$DeferApply){
   $stamp=Read-RegistryValue $mod 'SettingsChangeTime'
   $next=[uint32]([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
   if($stamp.Exists -and [uint32]$stamp.Value -ge $next){$next=[uint32]$stamp.Value+1}

@@ -36,7 +36,7 @@ $cfg=Get-AShellFeatureConfig $root
 if(!$cfg.icons){Write-Output '[STATUS] Icon replacement component is off. Mapping changes are saved; use "ashell component icons on" to display them.';return}
 
 if(!(Test-AShellAdministrator)) {
- Write-Output '[WORKING] Opening an Administrator Command Prompt to refresh A-Shell icons...'
+ Write-Output '[WORKING] Requesting administrator access to refresh A-Shell icons in this terminal...'
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters @{ExpectedSid=$ExpectedSid} -Title 'A-Shell Icons - Administrator'
  if($exitCode){throw "Icon refresh failed (exit $exitCode). Run ashell icons check for mapping errors."}
  Write-Output '[OK] Taskbar icon component refreshed.'

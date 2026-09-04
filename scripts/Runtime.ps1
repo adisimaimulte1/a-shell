@@ -1,5 +1,5 @@
 ﻿param(
- [ValidateSet('Start','Stop','Status','Component','SessionRepair')][string]$Action='Status',
+ [ValidateSet('Start','Stop','Status','Component')][string]$Action='Status',
  [ValidateSet('','screens','taskbar-transparency','icons')][string]$Component='',
  [string]$Value='',
  [string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value)
@@ -49,7 +49,7 @@ if($Action -eq 'Component') {
 $needsAdmin=$Action -in @('Start','Stop') -or ($Action -eq 'Component' -and (Test-AShellRuntimeActive $root))
 $admin=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if($needsAdmin -and !$admin) {
- Write-Output "[WORKING] Opening an Administrator Command Prompt for A-Shell $($Action.ToLowerInvariant())..."
+ Write-Output "[WORKING] Requesting administrator access for A-Shell $($Action.ToLowerInvariant()) in this terminal..."
  $parameters=@{Action=$Action;ExpectedSid=$ExpectedSid}
  if($Component){$parameters.Component=$Component;$parameters.Value=$Value}
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters $parameters -Title ('A-Shell '+$Action+' - Administrator')
@@ -90,27 +90,6 @@ try {
   exit 0
  }
 
- if($Action -eq 'SessionRepair') {
-  if(!(Test-AShellRuntimeActive $root)){Write-Output '[STATUS] Session repair skipped because A-Shell is stopped.';exit 0}
-  $admin=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-  if(!$admin){Write-Warning 'Session repair requires its installed highest-privilege scheduled task; skipping instead of showing a UAC prompt at sign-in.';exit 0}
-  Start-Sleep -Milliseconds 1800
-  $cfg=Get-AShellFeatureConfig $root
-  Hide-AShellDesktopIconsNow $root;Set-AShellDesktopHidden $root
-  Write-AShellRuntimeValues (Get-AShellCoreRuntimeValues)
-  $desktop=Resolve-AShellRuntimeBackground $root
-  Set-DesktopImage $desktop
-  & (Join-Path $PSScriptRoot 'Color.ps1') -Color (Get-AShellDesiredAccent $root)
-  $caps=Get-AShellCapabilities
-  if($caps.Windows11){Set-AShellScreenRuntime $root ([bool]$cfg.screens) -NoRestart;Set-AShellTaskbarRuntime $root ([bool]$cfg.taskbarTransparency) ([bool]$cfg.icons) -NoRestart}
-  elseif($cfg.screens){Write-AShellRuntimeValues (Get-AShellScreenRuntimeValues);if($desktop){Set-LockImage $desktop}}
-  Send-AShellThemeChange
-  & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action SessionApply
-  if($caps.Windows11){Restart-AShellWindhawkRuntime}
-  Write-Output '[OK] A-Shell session settings, images and integrations re-applied after sign-in.'
-  exit 0
- }
-
  if($Action -eq 'Start') {
   $cfg=Get-AShellFeatureConfig $root
   Write-AShellRuntimeStep 1 5 'Prepare desktop surface' 'Hiding desktop icons immediately. A-Shell always uses an empty desktop surface while active.'
@@ -127,13 +106,18 @@ try {
   if($caps.Windows11){Set-AShellScreenRuntime $root ([bool]$cfg.screens) -NoRestart}
   elseif($cfg.screens){Write-AShellRuntimeValues (Get-AShellScreenRuntimeValues);$lock=Resolve-AShellRuntimeBackground $root;if($lock){Set-LockImage $lock};Write-Output '[OK] Windows 10 lock/sign-in supported settings enabled; Windows 11 visual-tree screen mod is not used.'}
   else {Restore-AShellScreenBaseline $root -NoRestart}
-  if($caps.Windows11){Set-AShellTaskbarRuntime $root ([bool]$cfg.taskbarTransparency) ([bool]$cfg.icons) -NoRestart}
+  if($caps.Windows11){
+   Set-AShellTaskbarRuntime $root ([bool]$cfg.taskbarTransparency) ([bool]$cfg.icons) -NoRestart
+   if($cfg.taskbarTransparency -or $cfg.icons){Ensure-AShellTaskbarRuntimeLoaded $root}
+  }
 
-  Write-AShellRuntimeStep 4 5 'Rain and cursors' 'Ensuring rain startup is enabled without restarting an existing Matrix process, then applying the cursor scheme last.'
+  Write-AShellRuntimeStep 4 5 'Rain and cursors' 'Starting rain without replaying the Windows theme or restarting Windhawk, then applying the cursor scheme last.'
   Set-AShellRainRuntime $root $true
-  Send-AShellThemeChange
+  # Color.ps1 already sends the lightweight ImmersiveColorSet notification and
+  # Set-AShellTaskbarRuntime commits one Windhawk SettingsChangeTime update. A
+  # WM_THEMECHANGED broadcast or Windhawk restart here only unloads/repaints an
+  # already-correct taskbar and is the visible flicker this path must avoid.
   & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action Apply
-  if($caps.Windows11){Restart-AShellWindhawkRuntime}
 
   Write-AShellRuntimeStep 5 5 'Finish' 'A-Shell is active. Setup files and backups were not rebuilt or recopied.'
   Set-AShellRuntimeState $root $true 'ashell start'

@@ -68,7 +68,7 @@ if($Action -eq 'Apply') {
  }
 }
 if(!(Test-AShellAdministrator)) {
- Write-Output "[WORKING] Opening an Administrator Command Prompt for A-Shell $($Action.ToLowerInvariant())..."
+ Write-Output "[WORKING] Requesting administrator access for A-Shell $($Action.ToLowerInvariant()) in this terminal..."
  $parameters=@{Action=$Action;ExpectedSid=$ExpectedSid}
  if($Core){$parameters.Core=$true}
  if($OverrideLockScreenPolicy){$parameters.OverrideLockScreenPolicy=$true}elseif($DoNotOverrideLockScreenPolicy){$parameters.DoNotOverrideLockScreenPolicy=$true}
@@ -163,22 +163,30 @@ try {
   else {Write-Output 'Windows 10 compatibility profile: applying supported A-Shell features; Windows 11-only Windhawk styling is skipped.'}
   Write-AShellSetupStep 4 8 'Apply Windows appearance' 'Applying theme preferences, temporarily overriding consented lock-screen personalization blockers, then setting desktop and lock images.'
   Write-AShellLockScreenPolicyHandoffStatus $lockPolicyHandoff -OverridePolicy:$OverrideLockScreenPolicy
+  $themeRefreshRequired=$false
   foreach($v in $desired){
    $expectedExists=if($v.Count -ge 5){[bool]$v[4]}else{$true}
+   if($v[0] -eq 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -and $v[1] -in @('AppsUseLightTheme','SystemUsesLightTheme')){
+    $current=Read-RegistryValue $v[0] $v[1]
+    if(!$current.Exists -or [string]$current.Value -ne [string]$v[3]){$themeRefreshRequired=$true}
+   }
    Write-RegistryValue @{Path=$v[0];Name=$v[1];Kind=$v[2];Value=$v[3];Exists=$expectedExists}
   }
   # Tell Settings/Explorer that policy-backed personalization changed before
-  # invoking the supported lock-screen image API. This avoids requiring sign-out
-  # merely to make a locally-unlocked picker notice the handoff.
+  # invoking the supported lock-screen image API. A full WM_THEMECHANGED is only
+  # useful when the actual Windows app/system light-dark values changed; replaying
+  # it on repair/setup when they're already correct visibly repaints the taskbar.
   Send-AShellPolicyChange
-  Send-AShellThemeChange
+  if($themeRefreshRequired){Send-AShellThemeChange}else{Write-Output '[SKIP] Windows light/dark theme already matches A-Shell; no taskbar theme refresh was sent.'}
   Set-DesktopImage $image
   Set-LockImage $image
   Show-AShellSignInBackgroundStatus
   & (Join-Path $PSScriptRoot 'Color.ps1') -Color default
   Write-AShellSetupStep 5 8 'Apply icons and screen styling' $(if($useFullAppearance){'Installing automatic taskbar icon matching plus supported LockApp/sign-in styling.'}else{'Skipping Windhawk visual styling in Essentials/Windows 10 compatibility mode.'})
   if($useFullAppearance) {
-  Prepare-AShellWindhawkForFileUpdate $root
+  $payloadUpdateRequired=Test-AShellWindhawkPayloadUpdateRequired $root
+  if($payloadUpdateRequired){Prepare-AShellWindhawkForFileUpdate $root}
+  else {Write-Output '[SKIP] Windhawk binary payloads already match this build; keeping the live taskbar module loaded.'}
   foreach($path in @($modDestination,$sourceDestination)){New-Item -ItemType Directory -Path (Split-Path $path) -Force | Out-Null}
   # Avoid replacing a loaded DLL when this exact version already exists.
   $payload=Join-Path $root ('assets\windhawk\'+$meta.LibraryFileName)
@@ -192,18 +200,20 @@ try {
   Add-AShellAutomaticIcons $root
   Update-AShellIcons $root
   & (Join-Path $PSScriptRoot 'SignIn-Backdrop.ps1') -Action Apply -NoRestart
+  Ensure-AShellTaskbarRuntimeLoaded $root
   }
   Write-AShellSetupStep 6 8 'Install Matrix and commands' 'Installing instant rain startup plus the A-Shell terminal commands.'
   & (Join-Path $PSScriptRoot 'Manage.ps1') -Action Install
   & (Join-Path $PSScriptRoot 'Terminal.ps1') -Action Install
-  # Theme broadcasts can cause Windows to re-load the default pointer scheme.
-  # Refresh the shell first, then make cursors the final per-user appearance step.
-  Send-AShellThemeChange
-  Write-AShellSetupStep 7 8 'Apply cursor pack' 'Applying the cursor scheme after Windows theme broadcasts so the default scheme cannot win the race.'
+  # The real Windows theme transition already happened in step 4. Do not send a
+  # second WM_THEMECHANGED after Matrix starts: the taskbar is already correct and
+  # that redundant replay is visible as a light/dark + Windhawk flicker.
+  Write-AShellSetupStep 7 8 'Apply cursor pack' 'Applying the cursor scheme last without replaying the Windows theme.'
   & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action Apply
   Write-AShellSetupStep 8 8 'Verify installation' 'Checking required appearance settings, desktop visibility, selected mod payloads, cursor selection and Matrix startup.'
   Assert-AShellInstalled $root $desired -Core:(!$useFullAppearance) -PolicyOverride:$OverrideLockScreenPolicy
-  if($useFullAppearance){Start-Process $windhawk -ArgumentList '-restart','-tray-only' -WindowStyle Hidden}
+  # Taskbar/icon settings were committed live before rain started. Avoid an
+  # unconditional Windhawk restart here; it unloads/reloads an already-correct mod.
   Set-Content (Join-Path $stateDir 'applied.txt') (Get-Date -Format o)
   if($OverrideLockScreenPolicy){Set-Content -LiteralPath (Get-AShellLockScreenOverrideConsentPath $root) -Value ('consented '+(Get-Date -Format o)) -Encoding ascii}
   elseif($DoNotOverrideLockScreenPolicy){Remove-Item -LiteralPath (Get-AShellLockScreenOverrideConsentPath $root) -Force -ErrorAction SilentlyContinue}

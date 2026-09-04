@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Diagnostics;
+using System.Drawing;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -20,7 +21,50 @@ class Installer {
  [DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int nStdHandle);
  [DllImport("kernel32.dll")] static extern bool GetConsoleMode(IntPtr h, out int mode);
  [DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h, int mode);
+ [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern int SetCurrentProcessExplicitAppUserModelID(string appId);
+ [DllImport("kernel32.dll")] static extern IntPtr GetConsoleWindow();
+ [DllImport("user32.dll",CharSet=CharSet.Auto)] static extern IntPtr SendMessage(IntPtr hWnd,uint msg,IntPtr wParam,IntPtr lParam);
+ const uint WM_SETICON=0x0080;
+ const int ICON_SMALL=0, ICON_BIG=1;
  static bool Vt;
+ static IntPtr MonochromeWindowIcon=IntPtr.Zero;
+ static void SetShellIdentity(){try{SetCurrentProcessExplicitAppUserModelID("A-Shell.Setup");}catch{}}
+ static bool ReadJsonBool(string path,string name,bool fallback) {
+  try {
+   if(!File.Exists(path))return fallback;
+   var data=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(File.ReadAllText(path));
+   object value;if(!data.TryGetValue(name,out value)||value==null)return fallback;
+   if(value is bool)return (bool)value;
+   bool parsed;return Boolean.TryParse(Convert.ToString(value),out parsed)?parsed:fallback;
+  } catch {return fallback;}
+ }
+ static bool RuntimeIsActive(string root) {
+  string runtime=Path.Combine(root,@"state\runtime-state.json");
+  if(File.Exists(runtime))return ReadJsonBool(runtime,"active",false);
+  return File.Exists(Path.Combine(root,@"state\applied.txt"));
+ }
+ static bool MonochromeIconsAreActive(string root) {
+  if(String.IsNullOrEmpty(root)||!Directory.Exists(root)||!RuntimeIsActive(root))return false;
+  return ReadJsonBool(Path.Combine(root,@"state\features.json"),"icons",true);
+ }
+ static void ApplyMonochromeWindowIcon() {
+  try {
+   IntPtr window=GetConsoleWindow();if(window==IntPtr.Zero)return;
+   if(MonochromeWindowIcon==IntPtr.Zero) {
+    using(Stream stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("AShell.Monochrome.png")) {
+     if(stream==null)return;
+     using(Bitmap source=new Bitmap(stream))
+     using(Bitmap bitmap=new Bitmap(source,256,256))MonochromeWindowIcon=bitmap.GetHicon();
+    }
+   }
+   if(MonochromeWindowIcon==IntPtr.Zero)return;
+   // A console application's taskbar button follows its top-level window icon,
+   // not the AppUserModelID-only XAML selector used for normal app taskbar buttons.
+   SendMessage(window,WM_SETICON,(IntPtr)ICON_BIG,MonochromeWindowIcon);
+   SendMessage(window,WM_SETICON,(IntPtr)ICON_SMALL,MonochromeWindowIcon);
+  } catch {}
+ }
+ static void ApplyConfiguredSetupIcon(string root) {if(MonochromeIconsAreActive(root))ApplyMonochromeWindowIcon();}
  static bool IsAdministrator() {
   try {using(var id=WindowsIdentity.GetCurrent())return new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator);}catch{return false;}
  }
@@ -31,7 +75,7 @@ class Installer {
   psi.UseShellExecute=true;psi.Verb="runas";psi.WorkingDirectory=Environment.CurrentDirectory;
   psi.Arguments="--ashell-elevated "+QuoteArgument(target)+" "+QuoteArgument(sid);
   try {
-   using(var p=Process.Start(psi)){if(p==null)throw new Exception("Windows did not start the elevated installer.");p.WaitForExit();return p.ExitCode;}
+   using(var p=Process.Start(psi)){if(p==null)throw new Exception("Windows did not start the elevated installer.");return 0;}
   } catch(System.ComponentModel.Win32Exception e) {
    if(e.NativeErrorCode==1223){Line("Administrator approval was cancelled.",ConsoleColor.Yellow);return 0;}
    throw;
@@ -239,6 +283,13 @@ class Installer {
    return false;
   }
  }
+ static int MigrateStartupTasks(string root,string expectedSid) {
+  var start=new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),@"WindowsPowerShell\v1.0\powershell.exe"));
+  start.UseShellExecute=false;start.CreateNoWindow=true;start.WorkingDirectory=root;
+  start.Arguments="-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \""+Path.Combine(root,@"scripts\Manage.ps1")+"\" -Action Migrate -ExpectedSid "+expectedSid;
+  start.EnvironmentVariables["PSModulePath"]=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),@"WindowsPowerShell\v1.0\Modules");
+  using(var p=Process.Start(start)){p.WaitForExit();return p.ExitCode;}
+ }
  static int Setup(string root,bool essentials,bool overridePolicy,string expectedSid) {
   var start=new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),@"WindowsPowerShell\v1.0\powershell.exe"));
   start.UseShellExecute=false;start.WorkingDirectory=root;
@@ -254,16 +305,18 @@ class Installer {
   string previousInstall=null;
   string expectedSid=elevatedInteractive?args[2]:WindowsIdentity.GetCurrent().User.Value;
   try {
-   Console.Title="A-Shell Setup "+Version;InitColor();
+   string defaultTarget=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","A-Shell");
+   string iconStateRoot=elevatedInteractive?Path.GetFullPath(args[1]):defaultTarget;
+   SetShellIdentity();Console.Title="A-Shell Setup "+Version;InitColor();ApplyConfiguredSetupIcon(iconStateRoot);
    Console.WriteLine();Orange("  A - S H E L L   "+Version);
    Line("YOUR DESKTOP. A LITTLE ORANGE RAIN.",ConsoleColor.White);
    Rule();
    bool verify=args.Length==1&&args[0]=="--verify-only";
    bool extract=args.Length==2&&args[0]=="--extract-only";
    if(args.Length==0&&!IsAdministrator()) {
-    string originalTarget=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","A-Shell");
+    string originalTarget=defaultTarget;
     Section("ADMINISTRATOR ACCESS");
-    Line("Setup requests administrator access once, before installation or update begins.",ConsoleColor.Gray);
+    Line("Setup requests administrator access once, then hands off to the elevated A-Shell window.",ConsoleColor.Gray);
     suppressPause=true;
     return RelaunchElevated(originalTarget,expectedSid);
    }
@@ -273,7 +326,7 @@ class Installer {
    }
    if(!interactive&&!verify&&!extract)throw new Exception("Use --verify-only or --extract-only <new folder>.");
    bool essentials=false,overridePolicy=false;
-   target=extract?Path.GetFullPath(args[1]):(elevatedInteractive?Path.GetFullPath(args[1]):Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","A-Shell"));
+   target=extract?Path.GetFullPath(args[1]):(elevatedInteractive?Path.GetFullPath(args[1]):defaultTarget);
    bool upgradingTarget=!extract && Directory.Exists(target);
    if(interactive) {
     if(upgradingTarget) {
@@ -330,8 +383,11 @@ class Installer {
    Line("[OK] Files installed to "+target,ConsoleColor.Green);
    if(extract){Line("Extraction only: Windows settings were not changed.",ConsoleColor.Gray);return 0;}
    if(upgradingTarget){
+    Line("[WORKING] Migrating obsolete sign-in startup tasks without touching the current desktop/rain state...",ConsoleColor.DarkGray);
+    int migrationExit=MigrateStartupTasks(target,expectedSid);
+    if(migrationExit!=0)throw new Exception("Program files were updated, but startup-task migration failed (exit "+migrationExit+"). Rerun Setup so the obsolete sign-in appearance replay can be removed.");
     CleanupPrevious(previousInstall);previousInstall=null;
-    Stage(3,3,"UPDATE COMPLETE","Program files are current. Saved user data and the existing started/stopped state were not changed.");
+    Stage(3,3,"UPDATE COMPLETE","Program files and startup tasks are current. Saved user data and the existing started/stopped state were not changed.");
     Field("Next","Run: ashell version");
     return 0;
    }
@@ -342,6 +398,9 @@ class Installer {
     throw new Exception("A-Shell setup stopped before completion. Appearance rollback was requested by Setup and the previous installed program files were restored when this was an upgrade. See state\\setup.log or the retained failed-build folder for details.");
    }
    CleanupPrevious(previousInstall);
+   // On a fresh Complete install, icons become active while this Setup window is
+   // still open. Re-read the saved component state so the live icon switches now.
+   ApplyConfiguredSetupIcon(target);
    Stage(4,4,"COMPLETE","Installation and required A-Shell verification finished successfully.");
    Line("[OK] A-Shell is installed and the current program files are up to date.",ConsoleColor.Green);
    Field("Next","Open a new terminal and run: ashell help");

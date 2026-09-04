@@ -251,6 +251,20 @@ function Stop-AShellRendererForRestore([string]$Root,[switch]$PauseStartup) {
  }
  Write-Output '[OK] Rain drain started. Restoring wallpaper, colors and desktop now without waiting for the final trails.'
 }
+function Test-AShellWindhawkPayloadUpdateRequired([string]$Root) {
+ $meta=Get-Content -LiteralPath (Join-Path $Root 'assets\windhawk\mod.json') -Raw | ConvertFrom-Json
+ $libraries=@([string]$meta.LibraryFileName,'ashell-lockscreen-clear-background_1.9.dll')
+ $caps=Get-AShellCapabilities
+ if($caps.SignInOverlay){$libraries+='ashell-signin-clear-background_1.0.dll'}
+ foreach($library in $libraries) {
+  $source=Join-Path $Root ('assets\windhawk\'+$library)
+  $destination=Join-Path $env:ProgramData ('Windhawk\Engine\Mods\64\'+$library)
+  if(!(Test-Path -LiteralPath $source -PathType Leaf)){continue}
+  if(!(Test-Path -LiteralPath $destination -PathType Leaf)){return $true}
+  try {if((Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $destination).Hash){return $true}} catch {return $true}
+ }
+ return $false
+}
 function Prepare-AShellWindhawkForFileUpdate([string]$Root,[switch]$ForRestore) {
  $ids=@('windows-11-taskbar-styler','ashell-signin-clear-background','ashell-lockscreen-clear-background')
  $changed=$false

@@ -158,6 +158,41 @@ function Restart-AShellWindhawkRuntime {
  $windhawk=Join-Path $env:ProgramFiles 'Windhawk\windhawk.exe'
  if(Test-Path -LiteralPath $windhawk){Start-Process $windhawk -ArgumentList '-restart','-tray-only' -WindowStyle Hidden | Out-Null}
 }
+function Test-AShellTaskbarModuleLoaded([string]$LibraryFileName) {
+ if(!$LibraryFileName){return $false}
+ foreach($process in @(Get-Process explorer -ErrorAction SilentlyContinue)) {
+  try {
+   foreach($module in @($process.Modules)) {
+    if([string]::Equals([IO.Path]::GetFileName([string]$module.FileName),$LibraryFileName,[StringComparison]::OrdinalIgnoreCase)){return $true}
+   }
+  } catch {}
+ }
+ return $false
+}
+function Ensure-AShellTaskbarRuntimeLoaded([string]$Root,[int]$WaitMilliseconds=1200) {
+ $mod='HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler'
+ if(!(Test-Path -LiteralPath $mod)){return}
+ $config=Get-ItemProperty -LiteralPath $mod -ErrorAction SilentlyContinue
+ if(!$config -or [int]$config.Disabled -ne 0){return}
+ $library=[string]$config.LibraryFileName
+ if(!$library){return}
+ $deadline=(Get-Date).AddMilliseconds($WaitMilliseconds)
+ do {
+  if(Test-AShellTaskbarModuleLoaded $library){Write-Output '[OK] Taskbar styling hot-applied without restarting Windhawk.';return}
+  Start-Sleep -Milliseconds 100
+ } while((Get-Date) -lt $deadline)
+ # SettingsChangeTime is the normal zero-flicker path. Restart only as a fallback
+ # when the module genuinely failed to load (for example immediately after a
+ # first Windhawk install), and do it before Matrix rain starts.
+ Write-Output '[WORKING] Windhawk taskbar module did not hot-load; performing one fallback engine reload before rain starts...'
+ Restart-AShellWindhawkRuntime
+ $deadline=(Get-Date).AddMilliseconds(1800)
+ do {
+  if(Test-AShellTaskbarModuleLoaded $library){Write-Output '[OK] Windhawk taskbar module loaded.';return}
+  Start-Sleep -Milliseconds 120
+ } while((Get-Date) -lt $deadline)
+ Write-Warning 'Windhawk taskbar styling is configured but its module could not be confirmed in Explorer. The next Explorer/sign-in start can load it normally.'
+}
 function Restore-AShellTaskbarBaseline([string]$Root) {
  $baseline=Join-Path $Root 'state\baseline\checkpoint.clixml'
  if(!(Test-Path -LiteralPath $baseline)){
@@ -186,9 +221,16 @@ function Set-AShellTaskbarRuntime([string]$Root,[bool]$Transparency,[bool]$Icons
   $base=Get-Content -LiteralPath (Join-Path $Root 'assets\taskbar-base.json') -Raw|ConvertFrom-Json
   foreach($p in $base.PSObject.Properties){Write-RegistryValue @{Path="$mod\Settings";Name=$p.Name;Kind='String';Value=[string]$p.Value;Exists=$true}}
  }
- if($Icons){Update-AShellIcons $Root -SkipTaskbarBase -PreserveUnlisted}
- $stamp=[int][DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+ if($Icons){Update-AShellIcons $Root -SkipTaskbarBase -PreserveUnlisted -DeferApply}
+ # Commit transparency + icon changes as one Windhawk settings transaction. The
+ # old path could notify once from Update-AShellIcons and immediately notify again
+ # here, forcing two taskbar-style reinitializations.
+ $current=Read-RegistryValue $mod 'SettingsChangeTime'
+ $stamp=[uint32]([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
+ if($current.Exists -and [uint32]$current.Value -ge $stamp){$stamp=[uint32]$current.Value+1}
  Write-RegistryValue @{Path=$mod;Name='SettingsChangeTime';Kind='DWord';Value=$stamp;Exists=$true}
+ $pending=Join-Path $Root 'state\icons-refresh.pending'
+ if($Icons -and (Test-Path -LiteralPath $pending)){Remove-Item -LiteralPath $pending -Force}
  if(!$NoRestart){Restart-AShellWindhawkRuntime}
  Write-Output ('[OK] Taskbar components: transparency={0}; icon replacement={1}.' -f $(if($Transparency){'on'}else{'off'}),$(if($Icons){'on'}else{'off'}))
 }
