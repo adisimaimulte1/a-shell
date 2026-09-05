@@ -1,4 +1,4 @@
-# Verification
+﻿# Verification
 
 A-Shell combines supported Windows APIs/settings with a small number of explicitly version-sensitive visual hooks. Package verification proves file integrity and script syntax; live visual behavior must still be tested on Windows hardware before a release is labeled for that build.
 
@@ -45,7 +45,6 @@ The same test injects access-denied errors for optional Windows shell controls a
 - rollback and Undo recreate the exact original value, registry type and existence state;
 - Active Directory joined, Microsoft Entra device joined and MDM-enrolled devices report the blocker but do not override it.
 
-The LockApp dimming rule and `DisableAcrylicBackgroundOnLogon` remain separate from this policy handoff. The private 45% LogonUI brush hook stays hash-gated until a specific `Windows.UI.Logon.dll` build is individually verified.
 
 ## Windows matrix
 
@@ -54,5 +53,3 @@ Minimum release coverage for x64 builds:
 - Windows 11: Complete experience, Essentials only, reapply, restore, lock/unlock, sign-out/sign-in and restart.
 - Windows 11 + OneDrive Desktop backup: same, plus `Test-DesktopLive.ps1`.
 - Windows 10 22H2: compatibility feature profile and restore.
-
-The private LogonUI brush hook is intentionally enabled only for explicitly verified `Windows.UI.Logon.dll` hashes. Unknown Windows 11 builds use the named LockApp/LogonUI visual-tree styling and skip only that legacy fallback.

@@ -12,7 +12,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Build-Package.ps1 -Output C:\
 powershell -ExecutionPolicy Bypass -File .\scripts\Build-Installer.ps1 -Output C:\Releases\A-Shell-Setup.exe
 ```
 
-Stop this copy of Matrix before rebuilding it. Build.ps1 compiles MatrixDesktop and DesktopLayout, embeds the Windows compatibility manifest, adds icon/version resources, and rebuilds all bundled Windhawk DLLs from source. Branding uses assets/logo/A-Shell_Logo_Original.png and produces a seven-size A-Shell.ico. The Setup EXE keeps that orange file icon, but also embeds assets/icons/icons-a-shell-96.png and switches its live titlebar/taskbar window icon to monochrome whenever the installed A-Shell runtime has monochrome icons enabled. System hosts such as PowerShell retain their own Windows icons; A-Shell's own executables carry the project branding.
+Stop this copy of Matrix before rebuilding it. `VERSION` is the single source of truth for the public A-Shell version; packaging, CLI output, Setup assembly metadata and native executable resources all read it. Build.ps1 compiles MatrixDesktop and DesktopLayout, embeds the Windows compatibility manifest, adds icon/version resources, and rebuilds all bundled Windhawk DLLs from source. Branding uses assets/logo/A-Shell_Logo_Original.png and produces a seven-size A-Shell.ico. The Setup EXE keeps that orange file icon, but also embeds assets/icons/icons-a-shell-96.png and switches its live titlebar/taskbar window icon to monochrome whenever the installed A-Shell runtime has monochrome icons enabled. System hosts such as PowerShell retain their own Windows icons; A-Shell's own executables carry the project branding.
 
 ## Icon mapping
 
@@ -52,7 +52,6 @@ Isolated: Test-Matrix.ps1, Test-Background.ps1, Test-Enhancements.ps1, Test-Icon
 
 Live tests change real settings: Test-SetupLifecycle.ps1, Test-FirstSetup.ps1, Test-LiveCommands.ps1, Test-DesktopLive.ps1, Test-OptionalControls.ps1, Test-Colors.ps1, Test-TerminalCLI.ps1 and Test-MatrixRuntime.ps1. Use a test account when possible. DesktopLive uses unique temporary items, verifies hide-only behavior without moving them, and restores visibility/layout; the setup tests intentionally leave A-Shell applied. Never run multiple live mutation tests concurrently. Backups, test logs and outputs are excluded from releases.
 
-Do not change the private sign-in patch's allowed DLL hash without investigating the new Windows binary. Only the legacy offset-sensitive LogonUI brush fallback is hash-gated; ordinary Windows 11 taskbar/icon styling and the LockApp/LogonUI visual-tree fix remain enabled on other x64 Windows 11 builds. A successful package check is not proof of visual behavior on every Windows version.
 ### Rain timing
 
 The frame loop directly follows the supplied script.js: 50 ms interval, 5% fade, transparent cell clearing, random glyph selection, drawing, one-row increment and a fresh off-screen random restart check above 0.975. Random opening positions are preserved by explicit user request. Elapsed time does not alter advancement or rearrange streams. The native renderer retains cached masks and wallpaper composition; the original dark rectangles become transparent.

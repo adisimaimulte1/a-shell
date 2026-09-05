@@ -24,7 +24,7 @@ Write-RegistryValue $item
 if($script:writes -ne $before){throw 'A-Shell attempted to write SystemProtectedUserData.'}
 
 # Installer-owned Windhawk settings remain required in Complete mode.
-$item=@{Path='HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler';Name='Disabled';Kind='DWord';Value=0;Exists=$true}
+$item=@{Path='HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler';Name='Disabled';Kind='DWord';Value=1;Exists=$true}
 $failed=$false
 try{Write-RegistryValue $item}catch{$failed=$true}
 if(!$failed){throw 'Required A-Shell integration failures must still abort the transaction.'}

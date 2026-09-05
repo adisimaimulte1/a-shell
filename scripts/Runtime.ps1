@@ -1,10 +1,18 @@
 ﻿param(
- [ValidateSet('Start','Stop','Status','Component')][string]$Action='Status',
- [ValidateSet('','screens','taskbar-transparency','icons')][string]$Component='',
+ [string]$Action='Status',
+ [string]$Component='',
  [string]$Value='',
  [string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value)
 )
 $ErrorActionPreference='Stop'
+
+if($Action -ne 'Start' -and $Action -ne 'Stop' -and $Action -ne 'Status' -and $Action -ne 'Component') {
+ throw 'Action must be Start, Stop, Status, or Component.'
+}
+if($Component -ne '' -and $Component -ne 'screens' -and $Component -ne 'taskbar-transparency' -and $Component -ne 'icons') {
+ throw 'Component must be screens, taskbar-transparency, or icons.'
+}
+
 $root=Split-Path $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Appearance.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'Setup.Support.ps1')
@@ -15,155 +23,258 @@ $root=Split-Path $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Features.Support.ps1')
 . (Join-Path $PSScriptRoot 'Elevation.Helpers.ps1')
 
-if($Action -eq 'Status'){Write-AShellComponentStatus $root;& (Join-Path $PSScriptRoot 'Manage.ps1') -Action Status;exit 0}
-if(!(Test-Path -LiteralPath (Join-Path $root 'state\before-setup.clixml'))){throw 'A-Shell is not initialized. Run the Setup EXE first; start/stop only control an installed A-Shell.'}
+if($Action -eq 'Status') {
+ Write-AShellComponentStatus $root
+ exit 0
+}
 
-# Fast idempotency guard: repeated start/stop calls should not replay visual
-# transitions or send Matrix control messages when the requested state already exists.
+if(!(Test-Path -LiteralPath (Join-Path $root 'state\before-setup.clixml'))) {
+ throw 'A-Shell is not initialized. Run the Setup EXE first; start/stop only control an installed A-Shell.'
+}
+
+# Repeated start/stop calls must not replay visual transitions.
 $matrixExe=Join-Path $root 'bin\MatrixDesktop.exe'
 $ourMatrix=@((Get-Process MatrixDesktop -ErrorAction SilentlyContinue) | Where-Object {
- try {[IO.Path]::GetFullPath($_.Path) -eq [IO.Path]::GetFullPath($matrixExe)} catch {$false}
+ try {
+  [IO.Path]::GetFullPath($_.Path) -eq [IO.Path]::GetFullPath($matrixExe)
+ } catch {
+  $false
+ }
 })
+
 if($Action -eq 'Start' -and (Test-AShellRuntimeActive $root)) {
- Write-Output '[SKIP] A-Shell is already started. No settings, cursors, Windhawk state or Matrix rain were touched.'
+ Write-Output '[SKIP] A-Shell is already started. Nothing was reapplied.'
  exit 0
 }
 if($Action -eq 'Stop' -and !(Test-AShellRuntimeActive $root)) {
- if($ourMatrix.Count){
-  Write-Output '[SKIP] A-Shell is already stopped. Existing Matrix trails may still be draining; they were left untouched.'
+ if($ourMatrix.Count -gt 0) {
+  Write-Output '[SKIP] A-Shell is already stopped. Existing rain trails were left to drain.'
  } else {
-  Write-Output '[SKIP] A-Shell is already stopped. Nothing was restarted, drained or restored again.'
+  Write-Output '[SKIP] A-Shell is already stopped. Nothing needed restoring.'
  }
  exit 0
 }
 
 if($Action -eq 'Component') {
- if(!$Component){throw 'Choose a component: screens, taskbar-transparency, or icons.'}
- if($Value -notin @('on','off')){throw "Use: ashell component $Component on | off"}
- if(!(Test-AShellRuntimeActive $root)){
-  Write-Output "[SKIP] A-Shell is stopped. Component '$Component' was not changed or saved. Run ashell start first."
+ if($Component -eq '') {
+  throw 'Choose a component: screens, taskbar-transparency, or icons.'
+ }
+ if($Value -ne 'on' -and $Value -ne 'off') {
+  throw ('Use: ashell component '+$Component+' on | off')
+ }
+ if(!(Test-AShellRuntimeActive $root)) {
+  Write-Output ('[SKIP] A-Shell is stopped. '+$Component+' was not changed.')
+  exit 0
+ }
+
+ # Do the cheap saved-state/live-state check before requesting elevation or
+ # rewriting features.json. Repeating a switch should be as quiet as rain.
+ $cfg=Get-AShellFeatureConfig $root
+ $wanted=($Value -eq 'on')
+ $savedSame=$false
+ $liveSame=$false
+ $label=$Component
+ if($Component -eq 'screens') {
+  $label='Lock screen'
+  $savedSame=([bool]$cfg.screens -eq $wanted)
+  if($wanted){$liveSame=Test-AShellScreenRuntimeApplied $root}else{$liveSame=$true}
+ } elseif($Component -eq 'taskbar-transparency') {
+  $label='Taskbar'
+  $savedSame=([bool]$cfg.taskbarTransparency -eq $wanted)
+  if($savedSame){$liveSame=Test-AShellTaskbarRuntimeApplied $root $wanted ([bool]$cfg.icons)}
+ } elseif($Component -eq 'icons') {
+  $label='Icons'
+  $savedSame=([bool]$cfg.icons -eq $wanted)
+  if($savedSame){$liveSame=Test-AShellTaskbarRuntimeApplied $root ([bool]$cfg.taskbarTransparency) $wanted}
+ }
+ if($savedSame -and $liveSame) {
+  Write-Output ('[SKIP] '+$label+' is already '+$Value+'. Nothing changed.')
   exit 0
  }
 }
 
-$needsAdmin=$Action -in @('Start','Stop') -or ($Action -eq 'Component' -and (Test-AShellRuntimeActive $root))
-$admin=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$needsAdmin=$false
+if($Action -eq 'Start' -or $Action -eq 'Stop') {
+ $needsAdmin=$true
+} elseif($Action -eq 'Component' -and (Test-AShellRuntimeActive $root)) {
+ $needsAdmin=$true
+}
+
+$currentIdentity=[Security.Principal.WindowsIdentity]::GetCurrent()
+$currentPrincipal=New-Object Security.Principal.WindowsPrincipal($currentIdentity)
+$admin=$currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
 if($needsAdmin -and !$admin) {
- Write-Output "[WORKING] Requesting administrator access for A-Shell $($Action.ToLowerInvariant()) in this terminal..."
+ Write-Output ('[WORKING] Requesting administrator access for A-Shell '+$Action.ToLowerInvariant()+'...')
  $parameters=@{Action=$Action;ExpectedSid=$ExpectedSid}
- if($Component){$parameters.Component=$Component;$parameters.Value=$Value}
+ if($Component -ne '') {
+  $parameters.Component=$Component
+  $parameters.Value=$Value
+ }
  $exitCode=Invoke-AShellElevatedScript -ScriptPath $PSCommandPath -Parameters $parameters -Title ('A-Shell '+$Action+' - Administrator')
- if($exitCode){throw "A-Shell $($Action.ToLowerInvariant()) did not finish (exit $exitCode). See state\runtime.log."}
- Write-Output "[OK] A-Shell $($Action.ToLowerInvariant()) completed."
+ if($exitCode -ne 0) {
+  throw ('A-Shell '+$Action.ToLowerInvariant()+' did not finish (exit '+$exitCode+'). See state\runtime.log.')
+ }
  exit 0
 }
-if([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $ExpectedSid){throw 'Elevation switched to a different Windows account.'}
 
-New-Item -ItemType Directory -Path (Join-Path $root 'state') -Force|Out-Null
-Start-Transcript -Path (Join-Path $root 'state\runtime.log') -Append|Out-Null
+if([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $ExpectedSid) {
+ throw 'Elevation switched to a different Windows account.'
+}
+
+New-Item -ItemType Directory -Path (Join-Path $root 'state') -Force | Out-Null
+Start-Transcript -Path (Join-Path $root 'state\runtime.log') -Append | Out-Null
 . (Join-Path $PSScriptRoot 'State.Helpers.ps1')
 Enter-AShellOperation
-function Write-AShellRuntimeStep([int]$Number,[int]$Total,[string]$Title,[string]$Detail='') {
- Write-Output ''
- Write-Output '################################################################'
- Write-Output (('### STEP {0} OF {1}  |  {2}' -f $Number,$Total,$Title.ToUpperInvariant()))
- Write-Output '################################################################'
- if($Detail){Write-Output ('    '+$Detail)}
+
+function Write-AShellRuntimeStep([int]$Number,[int]$Total,[string]$Title) {
+ if($Number -ge $Total) {
+  return
+ }
+ Write-Output ('[WORKING] '+$Title+'.')
 }
+
 try {
  if($Action -eq 'Component') {
   $cfg=Get-AShellFeatureConfig $root
-  $next=[pscustomobject]@{version=2;screens=$cfg.screens;taskbarTransparency=$cfg.taskbarTransparency;icons=$cfg.icons}
-  switch($Component){
-   'screens' {$next.screens=($Value -eq 'on')}
-   'taskbar-transparency' {$next.taskbarTransparency=($Value -eq 'on')}
-   'icons' {$next.icons=($Value -eq 'on')}
+  $next=[pscustomobject]@{
+   version=4
+   screens=$cfg.screens
+   signInHook=$cfg.signInHook
+   taskbarTransparency=$cfg.taskbarTransparency
+   icons=$cfg.icons
+   rain=$cfg.rain
   }
-  switch($Component){
-   'screens' {Set-AShellScreenRuntime $root ([bool]$next.screens)}
-   'taskbar-transparency' {Set-AShellTaskbarRuntime $root ([bool]$next.taskbarTransparency) ([bool]$next.icons)}
-   'icons' {Set-AShellTaskbarRuntime $root ([bool]$next.taskbarTransparency) ([bool]$next.icons)}
+
+  if($Component -eq 'screens') {
+   $next.screens=($Value -eq 'on')
+   Set-AShellScreenRuntime $root ([bool]$next.screens) | Out-Null
+  } elseif($Component -eq 'taskbar-transparency') {
+   $next.taskbarTransparency=($Value -eq 'on')
+   Set-AShellTaskbarRuntime $root ([bool]$next.taskbarTransparency) ([bool]$next.icons) | Out-Null
+  } elseif($Component -eq 'icons') {
+   $next.icons=($Value -eq 'on')
+   Set-AShellTaskbarRuntime $root ([bool]$next.taskbarTransparency) ([bool]$next.icons) | Out-Null
   }
+
+  # Persist only after Windows accepted the requested runtime change.
   Save-AShellFeatureConfig $root $next
-  Write-Output "[OK] Component changed: $Component = $Value."
-  Write-AShellComponentStatus $root
+
+  $label=$Component
+  if($Component -eq 'screens') {
+   $label='Lock screen'
+  } elseif($Component -eq 'taskbar-transparency') {
+   $label='Taskbar'
+  } elseif($Component -eq 'icons') {
+   $label='Icons'
+  }
+  Write-Output ('[OK] '+$label+': '+$Value+'.')
   exit 0
  }
 
  if($Action -eq 'Start') {
   $cfg=Get-AShellFeatureConfig $root
-  Write-AShellRuntimeStep 1 5 'Prepare desktop surface' 'Hiding desktop icons immediately. A-Shell always uses an empty desktop surface while active.'
-  Hide-AShellDesktopIconsNow $root;Set-AShellDesktopHidden $root
 
-  Write-AShellRuntimeStep 2 5 'Apply core appearance' 'Restoring the installed A-Shell theme, desktop image and saved A-Shell accent without repeating setup or package installation.'
+  Write-AShellRuntimeStep 1 5 'Prepare desktop surface'
+  Hide-AShellDesktopIconsNow $root
+  Set-AShellDesktopHidden $root
+
+  Write-AShellRuntimeStep 2 5 'Apply core appearance'
   Write-AShellRuntimeValues (Get-AShellCoreRuntimeValues)
   $desktop=Resolve-AShellRuntimeBackground $root
   Set-DesktopImage $desktop
   & (Join-Path $PSScriptRoot 'Color.ps1') -Color (Get-AShellDesiredAccent $root)
 
-  Write-AShellRuntimeStep 3 5 'Apply optional components' 'Applying screens, taskbar transparency and icon replacement from the saved component switches.'
+  Write-AShellRuntimeStep 3 5 'Apply optional components'
   $caps=Get-AShellCapabilities
-  if($caps.Windows11){Set-AShellScreenRuntime $root ([bool]$cfg.screens) -NoRestart}
-  elseif($cfg.screens){Write-AShellRuntimeValues (Get-AShellScreenRuntimeValues);$lock=Resolve-AShellRuntimeBackground $root;if($lock){Set-LockImage $lock};Write-Output '[OK] Windows 10 lock/sign-in supported settings enabled; Windows 11 visual-tree screen mod is not used.'}
-  else {Restore-AShellScreenBaseline $root -NoRestart}
-  if($caps.Windows11){
-   Set-AShellTaskbarRuntime $root ([bool]$cfg.taskbarTransparency) ([bool]$cfg.icons) -NoRestart
-   if($cfg.taskbarTransparency -or $cfg.icons){Ensure-AShellTaskbarRuntimeLoaded $root}
+  if($caps.Core) {
+   Set-AShellScreenRuntime $root ([bool]$cfg.screens) -NoRestart
+  } elseif([bool]$cfg.screens) {
+   Write-AShellRuntimeValues (Get-AShellScreenRuntimeValues)
+   $lock=Resolve-AShellRuntimeBackground $root
+   if($lock){Set-LockImage $lock}
+   Write-Output '[OK] Compatibility lock/sign-in settings enabled.'
+  } else {
+   Restore-AShellScreenBaseline $root -NoRestart
   }
 
-  Write-AShellRuntimeStep 4 5 'Rain and cursors' 'Starting rain without replaying the Windows theme or restarting Windhawk, then applying the cursor scheme last.'
-  Set-AShellRainRuntime $root $true
-  # Color.ps1 already sends the lightweight ImmersiveColorSet notification and
-  # Set-AShellTaskbarRuntime commits one Windhawk SettingsChangeTime update. A
-  # WM_THEMECHANGED broadcast or Windhawk restart here only unloads/repaints an
-  # already-correct taskbar and is the visible flicker this path must avoid.
+  if($caps.Windows11) {
+   Set-AShellTaskbarRuntime $root ([bool]$cfg.taskbarTransparency) ([bool]$cfg.icons) -NoRestart
+   if([bool]$cfg.taskbarTransparency -or [bool]$cfg.icons) {
+    Ensure-AShellTaskbarRuntimeLoaded $root
+   }
+  }
+
+  Write-AShellRuntimeStep 4 5 'Restore rain and cursors'
+  Set-AShellRainRuntime $root ([bool]$cfg.rain)
   & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action Apply
 
-  Write-AShellRuntimeStep 5 5 'Finish' 'A-Shell is active. Setup files and backups were not rebuilt or recopied.'
   Set-AShellRuntimeState $root $true 'ashell start'
   Set-Content -LiteralPath (Join-Path $root 'state\applied.txt') -Value (Get-Date -Format o) -Encoding ascii
   Write-AShellComponentStatus $root
-  Write-Output '[OK] A-Shell settings are active. If Matrix was already running, its existing rain process was preserved.'
+
+  $rainState='off'
+  if([bool]$cfg.rain) {
+   $rainState='on'
+  }
+  Write-Output ('[OK] A-Shell started. Rain: '+$rainState+'.')
   exit 0
  }
 
- # STOP deliberately has no "restore the pre-stop checkpoint on failure" path.
- # A failed old full restore used to roll back to the A-Shell-active checkpoint,
- # which could re-enable the Matrix startup task and make rain appear to restart.
- # Stop is a best-effort deactivation transaction: each independent component is
- # restored even if another one reports an error, and rain is never re-enabled.
- $errors=New-Object System.Collections.Generic.List[string]
+ # Stop is best-effort: independent restore parts continue even if one fails.
+ $restoreErrors=@()
  function Invoke-AShellStopPart([string]$Name,[scriptblock]$Block) {
-  try {& $Block}
-  catch {$message="${Name}: $($_.Exception.Message)";$errors.Add($message);Write-Warning $message}
+  try {
+   & $Block
+  } catch {
+   $message=$Name+': '+$_.Exception.Message
+   $script:restoreErrors+=@($message)
+   Write-Warning $message
+  }
  }
+
  Set-AShellRuntimeState $root $false 'ashell stop started'
- Write-AShellRuntimeStep 1 5 'Stop rain first' 'Disabling A-Shell rain startup before the fade begins. Nothing later in stop can re-enable it.'
+
+ Write-AShellRuntimeStep 1 5 'Stop rain'
  Invoke-AShellStopPart 'Rain' {Set-AShellRainRuntime $root $false}
 
- Write-AShellRuntimeStep 2 5 'Restore screens and taskbar' 'Restoring original lock/sign-in policy and visual styling, then the pre-A-Shell taskbar registry configuration. No Windhawk DLL is replaced.'
+ Write-AShellRuntimeStep 2 5 'Restore screens and taskbar'
  $caps=Get-AShellCapabilities
  Invoke-AShellStopPart 'Screens' {Restore-AShellScreenBaseline $root -NoRestart}
- if($caps.Windows11){Invoke-AShellStopPart 'Taskbar' {Restore-AShellTaskbarBaseline $root}}
+ if($caps.Windows11) {
+  Invoke-AShellStopPart 'Taskbar' {Restore-AShellTaskbarBaseline $root}
+ }
 
- Write-AShellRuntimeStep 3 5 'Restore Windows appearance' 'Restoring saved theme values, desktop wallpaper and accent while the existing rain trails finish independently.'
+ Write-AShellRuntimeStep 3 5 'Restore Windows appearance'
  Invoke-AShellStopPart 'Windows preferences' {Restore-AShellOriginalSetupValues $root}
  Invoke-AShellStopPart 'Desktop background' {Set-DesktopImage (Get-AShellOriginalDesktopImage $root)}
  Invoke-AShellStopPart 'Accent color' {& (Join-Path $PSScriptRoot 'Color.ps1') -Action Restore}
 
- Write-AShellRuntimeStep 4 5 'Restore cursors and desktop icons' 'Restoring the original cursor scheme and exact saved desktop icon visibility/layout.'
+ Write-AShellRuntimeStep 4 5 'Restore cursors and desktop icons'
  Invoke-AShellStopPart 'Cursors' {& (Join-Path $PSScriptRoot 'Cursors.ps1') -Action Restore}
  Invoke-AShellStopPart 'Desktop icons' {Restore-AShellDesktop $root}
  Invoke-AShellStopPart 'Theme refresh' {Send-AShellThemeChange}
- if($caps.Windows11){Invoke-AShellStopPart 'Windhawk refresh' {Restart-AShellWindhawkRuntime}}
+ if($caps.Windows11) {
+  Invoke-AShellStopPart 'Windhawk refresh' {Restart-AShellWindhawkRuntime}
+ }
 
- Write-AShellRuntimeStep 5 5 'Finish' 'A-Shell remains installed and its command stays available; only the active desktop transformation is stopped.'
- Set-AShellRuntimeState $root $false $(if($errors.Count){'ashell stop completed with warnings'}else{'ashell stop'})
- if($errors.Count){
-  Write-Output '[ERROR] A-Shell stopped as far as possible, but some independent restore parts need attention:'
-  foreach($message in $errors){Write-Output ('  - '+$message)}
-  Write-Output '[OK] Rain startup remains disabled. A-Shell will NOT roll back to the active state.'
+ $stopReason='ashell stop'
+ if($restoreErrors.Count -gt 0) {
+  $stopReason='ashell stop completed with warnings'
+ }
+ Set-AShellRuntimeState $root $false $stopReason
+
+ if($restoreErrors.Count -gt 0) {
+  Write-Output '[ERROR] A-Shell stopped, but some restore steps reported warnings:'
+  foreach($message in $restoreErrors) {
+   Write-Output ('  - '+$message)
+  }
+  Write-Output '[OK] A-Shell remains stopped. Saved component preferences were preserved.'
   exit 1
  }
- Write-Output '[OK] A-Shell stopped. Original appearance is restored; A-Shell remains installed for a fast ashell start.'
-} finally {Exit-AShellOperation;Stop-Transcript|Out-Null}
+
+ Write-Output '[OK] A-Shell stopped. Original Windows appearance restored.'
+} finally {
+ Exit-AShellOperation
+ Stop-Transcript | Out-Null
+}

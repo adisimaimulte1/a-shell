@@ -19,13 +19,15 @@ if($cursors -notmatch "'Capture'"){throw 'Cursor pre-mutation capture is missing
 if($setup -notmatch '-Action Capture'){throw 'Setup does not capture cursors before appearance mutation.'}
 if($manage -match '-Action SessionRepair' -or $manage -match 'New-ScheduledTaskAction.+Runtime\.ps1'){throw 'Direct full-appearance PowerShell logon task still exists.'}
 if($manage -notmatch 'legacyRepairTaskName'){throw 'Legacy sign-in repair cleanup is missing.'}
-if($cursors -notmatch 'wscript\.exe' -or $cursors -match 'New-ScheduledTaskAction -Execute \$powershell'){throw 'Cursor repair is not using the windowless WScript launcher.'}
-if($installer -notmatch '1\.9\.3\.0'){throw 'Installer version metadata is stale.'}
+if($cursors -notmatch 'New-ScheduledTaskAction -Execute \$guardExe' -or $cursors -match 'wscript\.exe|New-ScheduledTaskAction -Execute \$powershell'){throw 'Cursor repair is not using the native windowless CursorSessionGuard helper.'}
+if($installer -notmatch 'AssemblyVersion\("__ASHELL_ASSEMBLY_VERSION__"\)' -or $installer -notmatch 'Version="__ASHELL_VERSION__"'){throw 'Installer version metadata is not generated from the canonical VERSION file.'}
 if($installer -notmatch 'MigrateStartupTasks'){throw 'Installer update path does not migrate obsolete startup tasks.'}
 if($installer -notmatch 'SetCurrentProcessExplicitAppUserModelID\("A-Shell\.Setup"\)'){throw 'Setup does not expose its stable shell identity.'}
 if($installer -notmatch 'GetConsoleWindow' -or $installer -notmatch 'WM_SETICON' -or $installer -notmatch 'MonochromeIconsAreActive'){throw 'Setup live-window monochrome icon switching is missing.'}
-if($installerBuild -notmatch 'AShell\.Monochrome\.png' -or $installerBuild -notmatch 'icons-a-shell-96\.png'){throw 'Setup monochrome icon is not embedded in the installer.'}
-if($signin -notmatch 'ColorOverlay' -or $signin -notmatch 'Background=Transparent'){throw 'Pure lock-screen XAML hardening rules are incomplete.'}
+if($installerBuild -notmatch 'AShell\.Monochrome\.png' -or $installerBuild -notmatch 'AShell\.Normal\.png' -or $installerBuild -notmatch 'icons-a-shell-96\.png' -or $installerBuild -notmatch 'A-Shell_Logo_Original_HQ\.png'){throw 'Setup normal/monochrome icon resources are not embedded in the installer.'}
+if($installer -notmatch 'ForceNoHandoff' -or $installer -notmatch 'RelaunchInClassicConsole'){throw 'Setup does not escape Windows Terminal pseudoconsole hosting for deterministic taskbar branding.'}
+if($signin -notmatch 'LockScreenOverlay' -or $signin -notmatch 'DimmingOverlayPassword' -or $signin -notmatch 'DimmingOverlayNoPassword'){throw 'Explicit LockApp overlay selectors are incomplete.'}
 if($features -notmatch 'DisableWidgetsOnLockScreen'){throw 'Lock-screen widget suppression is missing.'}
-if($screenSource -notmatch 'AShellIsDarkTranslucentBrush' -or $screenSource -notmatch 'AShellClearRawBackgroundFilter'){throw 'Native raw-background brush filter pass is missing.'}
-'Runtime 1.9 source regression checks passed, including windowless sign-in startup.'
+if($screenSource -notmatch 'AShellClearRawBackgroundFilter' -or $screenSource -match '@include\s+LogonUI\.exe'){throw 'Guarded LockApp-only overlay fallback is not present or is scoped too broadly.'}
+if($features -notmatch "'AnimateLockScreenBackground','DWord',1"){throw 'Screen runtime does not prevent the lock/logon image zoom path.'}
+'Runtime source regression checks passed, including guarded LockApp styling, static image policy and windowless sign-in startup.'

@@ -1,18 +1,52 @@
 ﻿$ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Color.Support.ps1')
-function Get-AShellCapabilities([int]$Build=[Environment]::OSVersion.Version.Build,[string]$Architecture=[Environment]::GetEnvironmentVariable('PROCESSOR_ARCHITECTURE','Machine'),[string]$LogonHash='') {
- if(!$LogonHash -and (Test-Path "$env:SystemRoot\System32\Windows.UI.Logon.dll")){$LogonHash=(Get-FileHash "$env:SystemRoot\System32\Windows.UI.Logon.dll").Hash}
+function Get-AShellCapabilities([int]$Build=[Environment]::OSVersion.Version.Build,[string]$Architecture=[Environment]::GetEnvironmentVariable('PROCESSOR_ARCHITECTURE','Machine')) {
+ # A-Shell's current native helpers are x64, so the package baseline remains
+ # Windows 10 22H2+ / Windows 11 x64. The sign-in overlay hook deliberately
+ # fails closed unless Windows.UI.Logon.dll matches the verified known-good build.
  $core=($Build -ge 19045 -and $Architecture -eq 'AMD64' -and [Environment]::Is64BitProcess)
  $windows11=($core -and $Build -ge 22000)
- $signInOverlay=($windows11 -and $LogonHash -eq '51B3AA2B50944111F039C0DE035F9C8951A3FD7A65EDA7380AD30ECE5C2565BF')
- # The LogonUI brush hook is the only hash-sensitive feature. Do not disable
- # taskbar icons or the LockApp visual-tree fix just because Windows updated it.
+ $signInOverlay=$core
  return @{Core=$core;Windows11=$windows11;Full=$windows11;TaskbarStyling=$windows11;LockScreenBackdrop=$windows11;SignInOverlay=$signInOverlay}
+}
+function Get-AShellLockScreenPayloadInfo([string]$Root) {
+ $source=Join-Path $Root 'assets\windhawk\ashell-lockscreen-clear-background_1.7.dll'
+ if(!(Test-Path -LiteralPath $source -PathType Leaf)){throw 'The bundled LockApp support DLL is missing.'}
+ $hash=(Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+ $library=('ashell-lockscreen-clear-background_1.7_'+$hash.Substring(0,12)+'.dll')
+ return [pscustomobject]@{SourcePath=$source;Sha256=$hash;LibraryFileName=$library;Version='1.7'}
+}
+function Get-AShellSignInPayloadInfo([string]$Root) {
+ $source=Join-Path $Root 'assets\windhawk\ashell-signin-clear-background_1.0.dll'
+ if(!(Test-Path -LiteralPath $source -PathType Leaf)){throw 'The verified narrow LogonUI backdrop DLL is missing.'}
+ $hash=(Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+ $library=('ashell-signin-clear-background_1.0_'+$hash.Substring(0,12)+'.dll')
+ return [pscustomobject]@{SourcePath=$source;Sha256=$hash;LibraryFileName=$library;Version='1.0'}
+}
+function Remove-AShellStaleLockScreenPayloads([string]$KeepLibrary='') {
+ $folder=Join-Path $env:ProgramData 'Windhawk\Engine\Mods\64'
+ if(!(Test-Path -LiteralPath $folder -PathType Container)){return}
+ foreach($file in @(Get-ChildItem -LiteralPath $folder -Filter 'ashell-lockscreen-clear-background_*.dll' -File -ErrorAction SilentlyContinue)) {
+  if($KeepLibrary -and $file.Name -eq $KeepLibrary){continue}
+  try {Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop}catch{}
+ }
+}
+function Remove-AShellStaleSignInPayloads([string]$KeepLibrary='') {
+ $folder=Join-Path $env:ProgramData 'Windhawk\Engine\Mods\64'
+ if(!(Test-Path -LiteralPath $folder -PathType Container)){return}
+ foreach($file in @(Get-ChildItem -LiteralPath $folder -Filter 'ashell-signin-clear-background_*.dll' -File -ErrorAction SilentlyContinue)) {
+  if($KeepLibrary -and $file.Name -eq $KeepLibrary){continue}
+  try {Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop}catch{}
+ }
 }
 function Assert-AShellPackage([string]$Root,[switch]$RequireCompatible) {
  $manifest=Join-Path $Root 'assets\package-manifest.json'
  if(!(Test-Path $manifest)){throw 'Package manifest is missing. Extract the complete ZIP.'}
  $data=Get-Content $manifest -Raw | ConvertFrom-Json
+ $versionFile=Join-Path $Root 'VERSION'
+ if(!(Test-Path -LiteralPath $versionFile -PathType Leaf)){throw 'Canonical VERSION file is missing.'}
+ $productVersion=(Get-Content -LiteralPath $versionFile -Raw).Trim()
+ if($productVersion -notmatch '^\d+\.\d+\.\d+$' -or [string]$data.version -ne $productVersion){throw 'VERSION and package-manifest.json do not identify the same A-Shell release.'}
  $prefix=[IO.Path]::GetFullPath($Root).TrimEnd('\')+'\'
  foreach($item in $data.files) {
   $full=[IO.Path]::GetFullPath((Join-Path $Root $item.path))
@@ -21,23 +55,38 @@ function Assert-AShellPackage([string]$Root,[switch]$RequireCompatible) {
   if(!$editable -and (!(Test-Path -LiteralPath $full) -or (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash -ne $item.sha256)){throw "Missing or modified package file: $($item.path). Re-extract the ZIP, or rebuild its manifest after intentional edits."}
  }
  foreach($file in Get-ChildItem (Join-Path $Root 'scripts') -Filter '*.ps1') {
-  $errors=$null;[void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$null,[ref]$errors)
-  if($errors){throw "Invalid PowerShell script: $($file.Name)"}
+  $tokens=$null
+  $errors=$null
+  [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+  if($errors -and $errors.Count -gt 0){
+   $details=@($errors | ForEach-Object {"line $($_.Extent.StartLineNumber), column $($_.Extent.StartColumnNumber): $($_.Message)"}) -join '; '
+   throw "Invalid PowerShell script: $($file.Name) - $details"
+  }
  }
+ $cursorGuardSource=Join-Path $Root 'src\CursorSessionGuard.cpp'
+ $cursorGuardBinary=Join-Path $Root 'bin\CursorSessionGuard.exe'
+ if(!(Test-Path -LiteralPath $cursorGuardSource) -or !(Test-Path -LiteralPath $cursorGuardBinary)){throw 'The native cursor session guard is missing. Run scripts\Build.ps1 before building a package or installer.'}
  $screenSource=Join-Path $Root 'assets\windhawk\ashell-lockscreen-clear-background.wh.cpp'
- $screenBinary=Join-Path $Root 'assets\windhawk\ashell-lockscreen-clear-background_1.9.dll'
+ $screenBinary=Join-Path $Root 'assets\windhawk\ashell-lockscreen-clear-background_1.7.dll'
  $screenBuild=Join-Path $Root 'assets\windhawk\ashell-lockscreen-clear-background.build.json'
- if(!(Test-Path -LiteralPath $screenSource) -or !(Test-Path -LiteralPath $screenBinary) -or !(Test-Path -LiteralPath $screenBuild)){throw 'The compiled lock/sign-in screen mod is missing. Run scripts\Build.ps1 before building a package or installer.'}
+ if(!(Test-Path -LiteralPath $screenSource) -or !(Test-Path -LiteralPath $screenBinary) -or !(Test-Path -LiteralPath $screenBuild)){throw 'The compiled LockApp screen mod is missing. Run scripts\Build.ps1 before building a package or installer.'}
  $screenMeta=Get-Content -LiteralPath $screenBuild -Raw | ConvertFrom-Json
- if((Get-FileHash -LiteralPath $screenSource -Algorithm SHA256).Hash -ne [string]$screenMeta.sourceSha256 -or (Get-FileHash -LiteralPath $screenBinary -Algorithm SHA256).Hash -ne [string]$screenMeta.binarySha256){throw 'The bundled lock/sign-in Windhawk DLL is stale relative to its source. Run scripts\Build.ps1, then build the package again.'}
+ if((Get-FileHash -LiteralPath $screenSource -Algorithm SHA256).Hash -ne [string]$screenMeta.sourceSha256 -or (Get-FileHash -LiteralPath $screenBinary -Algorithm SHA256).Hash -ne [string]$screenMeta.binarySha256){throw 'The bundled LockApp Windhawk DLL is stale relative to its source. Run scripts\Build.ps1, then build the package again.'}
+ $signInSource=Join-Path $Root 'src\signin-clear-background.wh.cpp'
+ $signInBinary=Join-Path $Root 'assets\windhawk\ashell-signin-clear-background_1.0.dll'
+ $signInBuild=Join-Path $Root 'assets\windhawk\ashell-signin-clear-background_1.0.build.json'
+ if(!(Test-Path -LiteralPath $signInSource -PathType Leaf) -or !(Test-Path -LiteralPath $signInBinary -PathType Leaf) -or !(Test-Path -LiteralPath $signInBuild -PathType Leaf)){throw 'The verified narrow sign-in backdrop hook or its build metadata is missing.'}
+ $signInMeta=Get-Content -LiteralPath $signInBuild -Raw | ConvertFrom-Json
+ if((Get-FileHash -LiteralPath $signInSource -Algorithm SHA256).Hash -ne [string]$signInMeta.sourceSha256 -or (Get-FileHash -LiteralPath $signInBinary -Algorithm SHA256).Hash -ne [string]$signInMeta.binarySha256){throw 'The bundled LogonUI Windhawk DLL is stale relative to its source. Run scripts\Build.ps1, then build the package again.'}
  . (Join-Path $PSScriptRoot 'Icons.Support.ps1')
  $iconPlan=Get-AShellIconPlan $Root
- & (Join-Path $Root 'scripts\Cursors.ps1') -Action Check
+ $cursorCheck=@(& (Join-Path $Root 'scripts\Cursors.ps1') -Action Check)
  $caps=Get-AShellCapabilities
- Write-Output "Package integrity verified. Windows 11 styling: $($caps.Windows11); visual-tree sign-in styling: $($caps.Windows11); legacy exact overlay fallback: $($caps.SignInOverlay)"
+ Write-Output '[OK] Package: verified.'
+ Write-Output '[OK] Cursors: 17 / 17 valid.'
  if($RequireCompatible -and !$caps.Core){throw 'Setup requires Windows 10 22H2 or Windows 11, x64. No appearance settings were changed.'}
- if($caps.Windows11 -and !$caps.SignInOverlay){Write-Output 'This Windows 11 build uses named XAML visual-tree styling for LockApp/LogonUI. The old version-sensitive byte-offset hook is not required and remains disabled.'}
- elseif(!$caps.Windows11){Write-Output 'Windows 10 compatibility profile: Matrix, accent color, cursors, desktop/lock background and native clear sign-in background are available; sign-in reuses the lock image when the Windows preference is enabled. Windows 11 taskbar/LockApp mods are skipped.'}
+ if($caps.Windows11){Write-Output '[OK] Windows 11 lock/sign-in styling: supported.'}
+ else{Write-Output '[OK] Windows 10 sign-in backdrop hook: supported. Windows 11-only taskbar/LockApp styling is skipped.'}
 }
 
 function Ensure-Windhawk([string]$Root) {
@@ -105,30 +154,57 @@ function Assert-AShellInstalled([string]$Root,$Desired,[switch]$Core,[switch]$Po
  }
  $caps=Get-AShellCapabilities
  $requiredMods=@()
- if(!$Core){$requiredMods+=@('windows-11-taskbar-styler','ashell-lockscreen-clear-background');if($caps.SignInOverlay){$requiredMods+='ashell-signin-clear-background'}}
+ if(!$Core){
+  if($caps.Windows11){$requiredMods+=@('windows-11-taskbar-styler','ashell-lockscreen-clear-background')}
+  if($caps.SignInOverlay){$requiredMods+='ashell-signin-clear-background'}
+ }
  foreach($id in $requiredMods) {
   $config=Get-ItemProperty ('HKLM:\SOFTWARE\Windhawk\Engine\Mods\'+$id)
   if($config.Disabled -ne 0){throw "Mod is disabled: $id"}
   $installed=Join-Path $env:ProgramData ('Windhawk\Engine\Mods\64\'+$config.LibraryFileName)
-  $original=Join-Path $Root ('assets\windhawk\'+$config.LibraryFileName)
-  if((Get-FileHash $installed).Hash -ne (Get-FileHash $original).Hash){throw "Mod verification failed: $id"}
+  if($id -eq 'ashell-lockscreen-clear-background') {
+   $payloadInfo=Get-AShellLockScreenPayloadInfo $Root
+   $original=$payloadInfo.SourcePath
+   if([string]$config.LibraryFileName -ne [string]$payloadInfo.LibraryFileName){throw 'LockApp support mod points at a stale Windhawk payload.'}
+  } elseif($id -eq 'ashell-signin-clear-background') {
+   $payloadInfo=Get-AShellSignInPayloadInfo $Root
+   $original=$payloadInfo.SourcePath
+   if([string]$config.LibraryFileName -ne [string]$payloadInfo.LibraryFileName){throw 'Portable sign-in backdrop mod points at a stale Windhawk payload.'}
+  } else {
+   $original=Join-Path $Root ('assets\windhawk\'+$config.LibraryFileName)
+  }
+  if(!(Test-Path -LiteralPath $installed -PathType Leaf) -or (Get-FileHash $installed).Hash -ne (Get-FileHash $original).Hash){throw "Mod verification failed: $id"}
   if($id -eq 'ashell-lockscreen-clear-background') {
    $include=[string]$config.Include
-   if($include -notmatch '(?i)LockApp\.exe' -or $include -notmatch '(?i)LogonUI\.exe'){throw 'Lock/sign-in visual-tree mod is not configured for both LockApp and LogonUI.'}
+   if($include -notmatch '(?i)LockApp\.exe' -or $include -match '(?i)LogonUI\.exe'){throw 'Lock-screen support mod must be LockApp-only; LogonUI belongs to the dedicated backdrop hook.'}
+  } elseif($id -eq 'ashell-signin-clear-background') {
+   if([string]$config.Include -notmatch '(?i)LogonUI\.exe'){throw 'Portable sign-in backdrop mod is not configured for LogonUI.'}
   }
  }
  $task=Get-ScheduledTask -TaskName 'Matrix Desktop - Instant Rain'
  if($task.Actions[0].Execute -ne (Join-Path $Root 'bin\MatrixDesktop.exe')){throw 'Matrix startup points at the wrong folder.'}
+ if([string]$task.Actions[0].Arguments -notmatch '(?i)(^|\s)--autostart($|\s)'){throw 'Matrix sign-in startup is not state-aware. Run the Setup EXE again.'}
  $deadline=(Get-Date).AddSeconds(8)
  while(!(Get-Process MatrixDesktop -ErrorAction SilentlyContinue)) {if((Get-Date) -gt $deadline){throw 'Matrix did not start.'};Start-Sleep -Milliseconds 200}
  $cursorPath=(Get-ItemProperty 'HKCU:\Control Panel\Cursors').Arrow
  if(!(Test-Path $cursorPath) -or (Get-FileHash $cursorPath).Hash -ne (Get-FileHash (Join-Path $Root 'assets\cursors\pointer.cur')).Hash){throw 'Cursor installation verification failed.'}
+ $defaultCursor=(Read-RegistryValue 'Registry::HKEY_USERS\.DEFAULT\Control Panel\Cursors' 'Arrow')
+ if(!$defaultCursor.Exists -or !(Test-Path -LiteralPath ([string]$defaultCursor.Value)) -or (Get-FileHash -LiteralPath ([string]$defaultCursor.Value)).Hash -ne (Get-FileHash (Join-Path $Root 'assets\cursors\pointer.cur')).Hash){throw 'Pre-logon cursor persistence verification failed.'}
+ $cursorTheme=Read-RegistryValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes' 'ThemeChangesMousePointers'
+ if(!$cursorTheme.Exists -or [string]$cursorTheme.Value -ne '0'){throw 'Windows themes are still allowed to replace the active A-Shell cursor scheme.'}
+ $cursorGuardTask=Get-ScheduledTask -TaskName 'A-Shell Cursor Session Guard' -ErrorAction SilentlyContinue
+ if(!$cursorGuardTask -or $cursorGuardTask.Actions[0].Execute -ne (Join-Path $Root 'bin\CursorSessionGuard.exe')){throw 'Native cursor sign-in guard installation verification failed.'}
+ if(Get-Command Test-AShellLegacyMachineLockScreenPath -ErrorAction SilentlyContinue){
+  foreach($machineValue in @(Get-AShellMachineLockScreenRegistryValues)){
+   if($machineValue.Exists -and (Test-AShellLegacyMachineLockScreenPath ([string]$machineValue.Value))){throw 'Legacy A-Shell machine lock-screen pin is still active. Rerun Setup to migrate it.'}
+  }
+ }
  if(!$Core){$service=Get-Service Windhawk;if($service.Status -ne 'Running'){Start-Service Windhawk}}
  if((Read-RegistryValue 'HKCU:\Software\A-Shell' 'AccentColor').Value -ne 'D65A00'){throw 'Setup accent color verification failed.'}
  $desktopIcons=Read-RegistryValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'HideIcons'
  if(!$desktopIcons.Exists -or [int]$desktopIcons.Value -ne 1){throw 'Desktop icon visibility verification failed.'}
  Send-AShellColorChange
- Write-Output 'Verified appearance settings, hidden desktop view, selected mod payloads, cursor selection, shared accent and Matrix startup.'
+ Write-Output 'Verified appearance settings, native lock/sign-in image path, native cursor startup guard, hidden desktop view, selected mod payloads, shared accent and state-aware Matrix startup.'
 }
 
 function Read-AShellTree([string]$Path) {
@@ -139,7 +215,7 @@ function Read-AShellTree([string]$Path) {
 }
 function Restore-AShellTree($Tree) {
  # Only installer-owned appearance locations may be replaced.
- if($Tree.Path -notmatch '^HKLM:\\SOFTWARE\\Windhawk\\Engine\\Mods\\(windows-11-taskbar-styler|ashell-signin-clear-background|ashell-lockscreen-clear-background)$' -and $Tree.Path -ne 'HKCU:\Control Panel\Cursors'){throw 'Unrecognized registry checkpoint path.'}
+ if($Tree.Path -notmatch '^HKLM:\\SOFTWARE\\Windhawk\\Engine\\Mods\\(windows-11-taskbar-styler|ashell-signin-clear-background|ashell-lockscreen-clear-background)$' -and $Tree.Path -notin @('HKCU:\Control Panel\Cursors','Registry::HKEY_USERS\.DEFAULT\Control Panel\Cursors')){throw 'Unrecognized registry checkpoint path.'}
  if(Test-Path -LiteralPath $Tree.Path){Remove-Item -LiteralPath $Tree.Path -Recurse -Force}
  if($Tree.Exists){foreach($path in $Tree.Keys){New-Item -Path $path -Force | Out-Null};foreach($value in $Tree.Values){Write-RegistryValue $value}}
 }
@@ -151,11 +227,13 @@ function Save-AShellCheckpoint([string]$Folder,$Desired,[string]$Root) {
  $desktopLayout=Join-Path $Folder 'desktop-layout.bin'
  & (Join-Path $Root 'bin\DesktopLayout.exe') save $desktopLayout
  if($LASTEXITCODE){throw 'Could not capture the current desktop view for rollback.'}
- $trees=@(foreach($path in @('HKCU:\Control Panel\Cursors','HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler','HKLM:\SOFTWARE\Windhawk\Engine\Mods\ashell-signin-clear-background','HKLM:\SOFTWARE\Windhawk\Engine\Mods\ashell-lockscreen-clear-background')){Read-AShellTree $path})
+ $trees=@(foreach($path in @('HKCU:\Control Panel\Cursors','Registry::HKEY_USERS\.DEFAULT\Control Panel\Cursors','HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler','HKLM:\SOFTWARE\Windhawk\Engine\Mods\ashell-signin-clear-background','HKLM:\SOFTWARE\Windhawk\Engine\Mods\ashell-lockscreen-clear-background')){Read-AShellTree $path})
  $values=@(foreach($v in $Desired){Read-RegistryValue $v[0] $v[1]})
  $values+=Read-RegistryValue 'HKLM:\SOFTWARE\Windhawk\Engine\Settings' 'Include'
  $values+=Get-AShellColorValues
  $values+=Read-RegistryValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'HideIcons'
+ $values+=Read-RegistryValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes' 'ThemeChangesMousePointers'
+ if(Get-Command Get-AShellMachineLockScreenRegistryValues -ErrorAction SilentlyContinue){$values+=Get-AShellMachineLockScreenRegistryValues}
  $wallpaper=(Get-ItemProperty 'HKCU:\Control Panel\Desktop').Wallpaper
  $cached=Join-Path $env:APPDATA 'Microsoft\Windows\Themes\TranscodedWallpaper'
  $desktopCopy=Join-Path $Folder 'desktop.img'
@@ -167,7 +245,7 @@ function Save-AShellCheckpoint([string]$Folder,$Desired,[string]$Root) {
   $lockOriginal='lock-original'+[IO.Path]::GetExtension($lockSource)
   Copy-Item -LiteralPath $lockSource -Destination (Join-Path $Folder $lockOriginal)
  }
- $tasks=@(foreach($name in @('Matrix Desktop - Instant Rain','A-Shell Session Repair','A-Shell Cursor Session Repair','Codex Early Lively Wallpaper','Lively Wallpaper - Adi')){
+ $tasks=@(foreach($name in @('Matrix Desktop - Instant Rain','A-Shell Cursor Session Guard','A-Shell Cursor Session Repair','A-Shell Session Repair','Codex Early Lively Wallpaper','Lively Wallpaper - Adi')){
   $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
   @{Name=$name;Exists=($null -ne $task);Running=($task.State -eq 'Running');Xml=$(if($task){Export-ScheduledTask -TaskName $name})}
  })
@@ -232,6 +310,12 @@ function Update-AShellBaselineForNewValues([string]$Folder,$Desired) {
   $exists=@($values | Where-Object {$_.Path -eq $entry[0] -and $_.Name -eq $entry[1]}).Count -gt 0
   if(!$exists){$values+=Read-RegistryValue $entry[0] $entry[1]}
  }
+ if(Get-Command Get-AShellMachineLockScreenRegistryValues -ErrorAction SilentlyContinue){
+  foreach($value in @(Get-AShellMachineLockScreenRegistryValues)){
+   $exists=@($values | Where-Object {$_.Path -eq $value.Path -and $_.Name -eq $value.Name}).Count -gt 0
+   if(!$exists){$values+=$value}
+  }
+ }
  $saved.Values=$values
  $saved | Export-Clixml -LiteralPath $path
 }
@@ -252,21 +336,22 @@ function Stop-AShellRendererForRestore([string]$Root,[switch]$PauseStartup) {
  Write-Output '[OK] Rain drain started. Restoring wallpaper, colors and desktop now without waiting for the final trails.'
 }
 function Test-AShellWindhawkPayloadUpdateRequired([string]$Root) {
+ # The taskbar payload keeps its upstream-compatible fixed filename, so it must
+ # be unloaded before replacement. Both A-Shell lock/sign-in payloads are
+ # content-addressed and are installed side-by-side by SignIn-Backdrop.ps1.
  $meta=Get-Content -LiteralPath (Join-Path $Root 'assets\windhawk\mod.json') -Raw | ConvertFrom-Json
- $libraries=@([string]$meta.LibraryFileName,'ashell-lockscreen-clear-background_1.9.dll')
- $caps=Get-AShellCapabilities
- if($caps.SignInOverlay){$libraries+='ashell-signin-clear-background_1.0.dll'}
- foreach($library in $libraries) {
-  $source=Join-Path $Root ('assets\windhawk\'+$library)
-  $destination=Join-Path $env:ProgramData ('Windhawk\Engine\Mods\64\'+$library)
-  if(!(Test-Path -LiteralPath $source -PathType Leaf)){continue}
-  if(!(Test-Path -LiteralPath $destination -PathType Leaf)){return $true}
-  try {if((Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $destination).Hash){return $true}} catch {return $true}
- }
- return $false
+ $source=Join-Path $Root ('assets\windhawk\'+[string]$meta.LibraryFileName)
+ $destination=Join-Path $env:ProgramData ('Windhawk\Engine\Mods\64\'+[string]$meta.LibraryFileName)
+ if(!(Test-Path -LiteralPath $source -PathType Leaf)){return $false}
+ if(!(Test-Path -LiteralPath $destination -PathType Leaf)){return $true}
+ try {
+  $sourceHash=(Get-FileHash -LiteralPath $source).Hash
+  $destinationHash=(Get-FileHash -LiteralPath $destination).Hash
+  return $sourceHash -ne $destinationHash
+ } catch {return $true}
 }
 function Prepare-AShellWindhawkForFileUpdate([string]$Root,[switch]$ForRestore) {
- $ids=@('windows-11-taskbar-styler','ashell-signin-clear-background','ashell-lockscreen-clear-background')
+ $ids=if($ForRestore){@('windows-11-taskbar-styler','ashell-signin-clear-background','ashell-lockscreen-clear-background')}else{@('windows-11-taskbar-styler')}
  $changed=$false
  foreach($id in $ids) {
   $path='HKLM:\SOFTWARE\Windhawk\Engine\Mods\'+$id
@@ -372,6 +457,9 @@ function Restore-AShellCheckpoint([string]$Folder,[string]$Root,[switch]$Restore
  if($saved.Wallpaper -and (Test-Path -LiteralPath $saved.Wallpaper) -and (Get-FileHash $saved.Wallpaper).Hash -eq (Get-FileHash (Join-Path $Folder 'desktop.img')).Hash){Set-DesktopImage $saved.Wallpaper}
  elseif(Test-Path (Join-Path $Folder 'desktop.img')){Set-DesktopImage (Join-Path $Folder 'desktop.img')}
  else {Set-DesktopImage ''}
+ # Migrate any legacy machine-level image pin away before restoring through the
+ # normal per-user LockScreen API. The checkpoint's exact policy values are restored below.
+ if(Get-Command Restore-AShellLegacyMachineLockScreenPin -ErrorAction SilentlyContinue){[void](Restore-AShellLegacyMachineLockScreenPin $Root)}
  if(Get-Command Release-AShellLockScreenPolicyBlockers -ErrorAction SilentlyContinue){[void](Release-AShellLockScreenPolicyBlockers)}
  if($saved.LockOriginal -and (Test-Path (Join-Path $Folder $saved.LockOriginal))) {
   $original=Join-Path $Folder $saved.LockOriginal
@@ -399,6 +487,11 @@ function Restore-AShellCheckpoint([string]$Folder,[string]$Root,[switch]$Restore
  Send-AShellColorChange
  [void](Update-SystemCursors -BestEffort)
  foreach($task in $saved.Tasks){
+  if($task.Name -in @('A-Shell Session Repair','A-Shell Cursor Session Repair')){
+   $owned=Get-ScheduledTask -TaskName $task.Name -ErrorAction SilentlyContinue
+   if($owned){Unregister-ScheduledTask -TaskName $task.Name -Confirm:$false}
+   continue
+  }
   if($task.Exists){Register-ScheduledTask -TaskName $task.Name -Xml $task.Xml -Force | Out-Null;if($task.Running){Start-ScheduledTask -TaskName $task.Name}}
   elseif(Get-ScheduledTask -TaskName $task.Name -ErrorAction SilentlyContinue){Unregister-ScheduledTask -TaskName $task.Name -Confirm:$false}
  }

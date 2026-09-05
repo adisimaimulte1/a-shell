@@ -1,4 +1,4 @@
-param([string]$Compiler='C:\Program Files\Windhawk\Compiler\bin\clang++.exe')
+﻿param([string]$Compiler='C:\Program Files\Windhawk\Compiler\bin\clang++.exe')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 $testOutput=Join-Path $root 'state\tests'

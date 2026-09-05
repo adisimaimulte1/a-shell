@@ -1,4 +1,4 @@
-# Third-party notices
+﻿# Third-party notices
 
 A-Shell code and original modifications: Copyright (C) 2026 Adrian Contraș, GPL-3.0. See ../LICENSE. Separately licensed artwork is excluded from that code license.
 
@@ -10,7 +10,7 @@ Windows 11 Taskbar Styler 1.9 by m417z: https://github.com/ramensoftware/windhaw
 
 A-Shell clear lock-screen background is a modified Windows 11 Start Menu Styler 1.7 by m417z: https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-start-menu-styler.wh.cpp . Modified 2026-09-03 for narrowly scoped LockApp/LogonUI targeting, removal of irrelevant Start-menu statistics, and dimming-element status reporting. Full source: windhawk/ashell-lockscreen-clear-background.wh.cpp. GPL-3.0.
 
-The original sign-in brush mod is under ../src/signin-clear-background.wh.cpp. Windows binaries and Microsoft debugging symbols are not distributed or modified on disk.
+The lock/sign-in visual-tree mod is built from assets/windhawk/ashell-lockscreen-clear-background.wh.cpp. A-Shell does not distribute or patch Windows binaries on disk.
 
 ## Lively Wallpaper
 

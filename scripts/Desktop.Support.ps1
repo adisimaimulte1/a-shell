@@ -1,4 +1,4 @@
-. (Join-Path $PSScriptRoot 'State.Helpers.ps1')
+﻿. (Join-Path $PSScriptRoot 'State.Helpers.ps1')
 function Get-AShellChildPath([string]$Parent,[string]$Name) {
  if(!$Name -or $Name -in @('.','..') -or [IO.Path]::GetFileName($Name) -ne $Name){throw 'Invalid desktop journal name.'}
  $prefix=[IO.Path]::GetFullPath($Parent).TrimEnd('\')+'\'
@@ -78,6 +78,90 @@ function Restore-AShellDesktopItems($Saved,[string]$Journal,[string[]]$OnlyNames
  return $conflicts
 }
 
+
+function Get-AShellUniqueRestoredDesktopPath([string]$Desktop,[string]$Name,[bool]$Directory) {
+ $target=Join-Path $Desktop $Name
+ if(!(Test-Path -LiteralPath $target)){return $target}
+ $base=if($Directory){$Name}else{[IO.Path]::GetFileNameWithoutExtension($Name)}
+ $ext=if($Directory){''}else{[IO.Path]::GetExtension($Name)}
+ for($i=1;$i -le 9999;$i++){
+  $suffix=if($i -eq 1){' (restored by A-Shell)'}else{" (restored by A-Shell $i)"}
+  $candidate=Join-Path $Desktop ($base+$suffix+$ext)
+  if(!(Test-Path -LiteralPath $candidate)){return $candidate}
+ }
+ throw "Could not choose a safe restored Desktop name for: $Name"
+}
+function Move-AShellLegacyDesktopTree([string]$Source,[string]$Destination) {
+ New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+ foreach($item in @(Get-ChildItem -LiteralPath $Source -Force -ErrorAction Stop)){
+  $wanted=Join-Path $Destination $item.Name
+  $isDir=[bool]$item.PSIsContainer
+  $isLink=[bool]($item.Attributes -band [IO.FileAttributes]::ReparsePoint)
+  if(!(Test-Path -LiteralPath $wanted)){
+   Move-Item -LiteralPath $item.FullName -Destination $wanted -Force -ErrorAction Stop
+   continue
+  }
+  $destItem=Get-Item -LiteralPath $wanted -Force -ErrorAction Stop
+  $canMerge=$isDir -and $destItem.PSIsContainer -and !$isLink -and !([bool]($destItem.Attributes -band [IO.FileAttributes]::ReparsePoint))
+  if($canMerge){
+   Move-AShellLegacyDesktopTree $item.FullName $wanted
+   if(@(Get-ChildItem -LiteralPath $item.FullName -Force -ErrorAction Stop).Count -eq 0){Remove-Item -LiteralPath $item.FullName -Force -ErrorAction Stop}
+   continue
+  }
+  # Never overwrite a Desktop item. A conflicting legacy file/folder/link still
+  # comes back to the Desktop under a deterministic recovery name.
+  $safe=Get-AShellUniqueRestoredDesktopPath $Destination $item.Name $isDir
+  Move-Item -LiteralPath $item.FullName -Destination $safe -Force -ErrorAction Stop
+ }
+}
+function Restore-AShellLegacyDesktopArchive([string]$Root) {
+ $desktop=[Environment]::GetFolderPath('DesktopDirectory')
+ if(!$desktop){throw 'Windows did not return the current Desktop known-folder path.'}
+ $candidates=New-Object System.Collections.Generic.List[string]
+ $journal=Join-Path $Root 'state\desktop-before.clixml'
+ if(Test-Path -LiteralPath $journal){
+  try {$saved=Import-Clixml -LiteralPath $journal;if($saved.PSObject.Properties.Name -contains 'Archive' -and $saved.Archive){$candidates.Add([string]$saved.Archive)}}catch{}
+ }
+ $documents=[Environment]::GetFolderPath('MyDocuments')
+ if($documents){$candidates.Add((Join-Path $documents 'original_desktop'))}
+ $profile=[Environment]::GetFolderPath('UserProfile')
+ if($profile){$candidates.Add((Join-Path $profile 'Documents\original_desktop'))}
+ $candidates.Add((Join-Path $Root 'original_desktop'))
+ $seen=@{}
+ $restored=0
+ foreach($candidate in @($candidates)){
+  if(!$candidate){continue}
+  try {$full=[IO.Path]::GetFullPath($candidate)}catch{continue}
+  if($seen.ContainsKey($full)){continue};$seen[$full]=$true
+  if(!(Test-Path -LiteralPath $full -PathType Container)){continue}
+  Assert-AShellDesktopRoots $desktop $full
+  $count=@(Get-ChildItem -LiteralPath $full -Force -ErrorAction Stop).Count
+  if($count){Move-AShellLegacyDesktopTree $full $desktop;$restored+=$count}
+  $left=@(Get-ChildItem -LiteralPath $full -Force -ErrorAction Stop)
+  if($left.Count){throw "Legacy Desktop archive still contains $($left.Count) item(s): $full. Uninstall was stopped so nothing is lost."}
+  Remove-Item -LiteralPath $full -Force -ErrorAction Stop
+ }
+ # Normalize legacy journal states after the exhaustive archive pass. The item may
+ # have returned under a safe conflict name, so absence from the archive is the
+ # authoritative signal that A-Shell no longer owns/marshals it.
+ if(Test-Path -LiteralPath $journal){
+  try {
+   $saved=Import-Clixml -LiteralPath $journal
+   if($saved.PSObject.Properties.Name -contains 'Entries' -and $saved.PSObject.Properties.Name -contains 'Archive'){
+    $changed=$false
+    foreach($entry in $saved.Entries){
+     if($entry.State -notin @('Archived','Moving','Restoring')){continue}
+     $source=Get-AShellChildPath ([string]$saved.Archive) ([string]$entry.ArchivedName)
+     if(!(Test-Path -LiteralPath $source)){$entry.State='Restored';$changed=$true}
+    }
+    if($changed){Save-AShellState $saved $journal}
+   }
+  } catch {Write-Warning ('Legacy Desktop journal normalization could not complete: '+$_.Exception.Message)}
+ }
+ if($restored){Write-Output "[OK] Restored legacy original_desktop contents to Desktop ($restored top-level item(s)); archive removed."}
+ else {Write-Output '[SKIP] No legacy original_desktop contents needed recovery.'}
+}
+
 function Hide-AShellDesktopIconsNow([string]$Root) {
  Write-RegistryValue @{Path='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced';Name='HideIcons';Kind='DWord';Exists=$true;Value=1}
  # FWF_NOICONS changes the active Explorer desktop view immediately; HideIcons keeps
@@ -154,5 +238,9 @@ function Restore-AShellDesktop([string]$Root) {
    if($LASTEXITCODE -ne 2 -or $attempt -eq 7){Write-Warning 'Some desktop positions or view flags could not be verified. A changed display layout or unavailable cloud item may prevent an exact position restore; the original backup is retained.';break}
   }
  }
- if($conflicts.Count){Write-Warning ($conflicts -join "`n");throw 'Some legacy archived desktop files need attention. No conflicting files were overwritten. Resolve the listed names, then rerun undo.'}
+ $missing=@($conflicts | Where-Object {$_ -like 'Missing legacy archive item:*'})
+ if($missing.Count){Write-Warning ($missing -join "`n");throw 'A legacy Desktop archive journal references missing data. Uninstall/restore stopped so recovery state is preserved.'}
+ # Name collisions are resolved by the exhaustive archive pass below using safe
+ # '(restored by A-Shell)' names instead of overwriting anything on Desktop.
+ Restore-AShellLegacyDesktopArchive $Root
 }

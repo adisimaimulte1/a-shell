@@ -12,12 +12,61 @@
 #include <cmath>
 #include <limits>
 
+static std::wstring AShellRootPath() {
+ wchar_t path[32768]{};
+ DWORD count=GetModuleFileNameW(nullptr,path,static_cast<DWORD>(_countof(path)));
+ if(!count || count>=_countof(path))return L"";
+ std::wstring value(path,count);
+ auto binSlash=value.find_last_of(L"\\/");
+ if(binSlash==std::wstring::npos)return L"";
+ value.resize(binSlash); // ...\\A-Shell\\bin
+ auto rootSlash=value.find_last_of(L"\\/");
+ if(rootSlash==std::wstring::npos)return L"";
+ value.resize(rootSlash); // ...\\A-Shell
+ return value;
+}
+static bool AShellFileExists(const std::wstring& path) {
+ DWORD attrs=GetFileAttributesW(path.c_str());
+ return attrs!=INVALID_FILE_ATTRIBUTES && !(attrs&FILE_ATTRIBUTE_DIRECTORY);
+}
+static std::string AShellReadSmallFile(const std::wstring& path) {
+ HANDLE file=CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+                         nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+ if(file==INVALID_HANDLE_VALUE)return {};
+ LARGE_INTEGER size{};
+ if(!GetFileSizeEx(file,&size) || size.QuadPart<0 || size.QuadPart>1024*1024){CloseHandle(file);return {};}
+ std::string bytes(static_cast<size_t>(size.QuadPart),'\0');
+ DWORD read=0;
+ if(!bytes.empty() && !ReadFile(file,bytes.data(),static_cast<DWORD>(bytes.size()),&read,nullptr)){CloseHandle(file);return {};}
+ CloseHandle(file);bytes.resize(read);return bytes;
+}
+static bool AShellReadJsonBool(const std::string& json,const char* key,bool fallback) {
+ std::string token="\""+std::string(key)+"\"";
+ auto pos=json.find(token);if(pos==std::string::npos)return fallback;
+ pos=json.find(':',pos+token.size());if(pos==std::string::npos)return fallback;
+ ++pos;while(pos<json.size() && (json[pos]==' '||json[pos]=='\t'||json[pos]=='\r'||json[pos]=='\n'))++pos;
+ if(json.compare(pos,4,"true")==0)return true;
+ if(json.compare(pos,5,"false")==0)return false;
+ return fallback;
+}
+static bool AShellShouldAutoStartRain() {
+ const auto root=AShellRootPath();if(root.empty())return false;
+ const auto runtime=root+L"\\state\\runtime-state.json";
+ bool active=false;
+ if(AShellFileExists(runtime))active=AShellReadJsonBool(AShellReadSmallFile(runtime),"active",false);
+ else active=AShellFileExists(root+L"\\state\\applied.txt"); // legacy installs
+ if(!active)return false;
+ const auto features=root+L"\\state\\features.json";
+ if(!AShellFileExists(features))return true; // v1/v2 default
+ return AShellReadJsonBool(AShellReadSmallFile(features),"rain",true);
+}
+
 static HWND control, wall, parent, icons;
 static HDC dc;
 static HBITMAP bitmap, previous;
 static uint32_t* pixels;
 static int width, height, cell;
-static bool locked=false, resetPending=false, desktopAvailable=true, covered=false;
+static bool locked=false, resetPending=false, desktopAvailable=true;
 static bool disconnected=false, suspended=false;
 static bool layoutPending=false, notificationsRegistered=false;
 static UINT timerInterval=0;
@@ -107,7 +156,11 @@ static void ResetAnimation(const wchar_t* reason) {
  for(auto& row:drops)row=-int(Random()%std::max(1,height/cell));
  for(size_t i=0;i<std::min(size_t(8),drops.size());i++)
   drops[Random()%drops.size()]=0;
- CompositeRain(true); lastFrame=GetTickCount64(); ++resetCount; Log(reason);
+ CompositeRain(true);
+ // Publish the clean wallpaper now: clearing the DIB alone leaves DWM's last
+ // presented rain frame visible when Windows uncovers the desktop at unlock.
+ if(IsWindow(wall)){InvalidateRect(wall,nullptr,FALSE);UpdateWindow(wall);GdiFlush();}
+ lastFrame=GetTickCount64(); ++resetCount; Log(reason);
 }
 static bool EnsureSurface(int newWidth,int newHeight,int newCell) {
  if(pixels && width==newWidth && height==newHeight && cell==newCell)return true;
@@ -163,18 +216,24 @@ static bool EnsureSurface(int newWidth,int newHeight,int newCell) {
 static void Advance(double elapsedMs) {
  if(!pixels || elapsedMs<=0)return;
  // Original frame loop: fade once, draw, increment, then random reset.
- const double decay=0.95;
- 
- uint32_t fade[256];
- for(int i=0;i<256;i++) {
-  unsigned a=static_cast<unsigned>(i*decay);
-  fade[i]=a<3?0:((a<<24)|((((accent>>16)&255)*a/255)<<16)|((((accent>>8)&255)*a/255)<<8)|((accent&255)*a/255));
+ // Rebuild color tables only when the accent changes, not every frame.
+ static uint32_t cachedAccent=~uint32_t(0), fade[256], ink[256];
+ if(cachedAccent!=accent) {
+  for(unsigned i=0;i<256;++i) {
+   ink[i]=(i<<24)|((((accent>>16)&255)*i/255)<<16)|
+          ((((accent>>8)&255)*i/255)<<8)|((accent&255)*i/255);
+   unsigned a=static_cast<unsigned>(i*0.95);
+   fade[i]=a<3?0:((a<<24)|((((accent>>16)&255)*a/255)<<16)|
+             ((((accent>>8)&255)*a/255)<<8)|((accent&255)*a/255));
+  }
+  cachedAccent=accent;
  }
  size_t kept=0;
  for(uint32_t index:activePixels) {
   uint32_t p=pixels[index];
   pixels[index]=fade[p>>24];
   if(pixels[index])activePixels[kept++]=index;
+  else if(displayPixels)displayPixels[index]=WallpaperPixel(index);
  }
  activePixels.resize(kept);
  for(size_t col=0;col<drops.size();col++) {
@@ -183,7 +242,11 @@ static void Advance(double elapsedMs) {
   // Original clears the cell below the alphabetic glyph baseline.
   // Clear to transparent rather than painting its opaque dark rectangle.
   for(int yy=std::max(0,row*cell);yy<std::min(height,(row+1)*cell);yy++)
-   for(int xx=x;xx<std::min(width,x+cell);xx++)pixels[size_t(yy)*width+xx]=0;
+   for(int xx=x;xx<std::min(width,x+cell);xx++) {
+    const auto index=size_t(yy)*width+xx;
+    if(pixels[index] && displayPixels)displayPixels[index]=WallpaperPixel(uint32_t(index));
+    pixels[index]=0;
+   }
   auto& mask=masks[Random()%masks.size()];
   int y=(row-1)*cell;
   if(y>=0 && y<height) {
@@ -192,7 +255,7 @@ static void Advance(double elapsedMs) {
     unsigned a=mask[yy*cell+xx]; if(!a)continue;
     const uint32_t index=uint32_t(size_t(y+yy)*width+x+xx);
     auto& p=pixels[index]; unsigned inv=255-a;
-    if(!p)activePixels.push_back(index);
+    if(!p){activePixels.push_back(index);p=ink[a];continue;}
     unsigned oa=a+((p>>24)*inv)/255;
     unsigned r=(((accent>>16)&255)*a+((p>>16)&255)*inv)/255;
     unsigned g=(((accent>>8)&255)*a+((p>>8)&255)*inv)/255;
@@ -214,7 +277,6 @@ static void Draw() {
  // Complete any batched GDI reads before modifying the DIB on this thread.
  GdiFlush();
  if(wallpaperPending || !displayDC)ReloadWallpaper();
- if(displayPixels)for(auto index:activePixels)displayPixels[index]=WallpaperPixel(index);
  Advance(static_cast<double>(elapsed)); CompositeRain();
  InvalidateRect(wall,nullptr,FALSE); UpdateWindow(wall);
  static ULONGLONG nextReport=0, maximumGap=0, frameCount=0;
@@ -256,20 +318,25 @@ static bool Attach() {
  wchar_t message[180]; swprintf(message,180,L"Desktop attached; child=%p parent=%p cell=%d size=%dx%d attaches=%u resets=%u",wall,parent,cell,width,height,attachCount,resetCount); Log(message);
  return true;
 }
-static bool Covered() {
- HWND fg=GetForegroundWindow(); if(!fg || fg==parent)return false;
- wchar_t cls[80]; GetClassNameW(fg,cls,80);
- if(!wcscmp(cls,L"Progman") || !wcscmp(cls,L"WorkerW"))return false;
- RECT r; if(!GetWindowRect(fg,&r))return false;
- return r.left<=0 && r.top<=0 && r.right>=GetSystemMetrics(SM_CXSCREEN) && r.bottom>=GetSystemMetrics(SM_CYSCREEN);
-}
 static void SetInterval(UINT interval) {
  if(timerInterval!=interval) {SetTimer(control,1,interval,nullptr); timerInterval=interval;}
 }
 static void SessionChanged(WPARAM event) {
  if(event==WTS_SESSION_LOCK) {
-  locked=true; resetPending=true; SetInterval(250); Log(L"Session paused; fresh rain pending on unlock");
+  locked=true;
+  // Prepare the new sequence while the secure desktop is covering us. Resetting
+  // after UNLOCK lets one or two frames of the old rain escape before the reset.
+  if(pixels) {
+   ResetAnimation(L"Fresh animation prepared while session locked");
+   resetPending=false;
+  } else resetPending=true;
+  SetInterval(250); Log(L"Session paused; fresh rain prepared for unlock");
  } else if(event==WTS_SESSION_UNLOCK) {
+  // A missing surface is the only case that still needs the timer fallback.
+  if(resetPending && pixels) {
+   ResetAnimation(L"Fresh animation prepared before session unlock");
+   resetPending=false;
+  }
   locked=false; nextDesktopCheck=0; SetInterval(50);
  } else if(event==WTS_CONSOLE_DISCONNECT || event==WTS_REMOTE_DISCONNECT) {
   disconnected=true;SetInterval(250);
@@ -288,11 +355,11 @@ static void Tick() {
   bool ready=DesktopReady();
   if(!desktopAvailable && ready)lastFrame=now;
   desktopAvailable=ready;
-  covered=Covered(); nextDesktopCheck=now+250;
+  nextDesktopCheck=now+250;
  }
  if(locked || disconnected || suspended || !desktopAvailable) {if(draining)PostMessageW(control,WM_CLOSE,0,0);lastFrame=now; SetInterval(250); return;}
  if(resetPending && pixels) {
-  ResetAnimation(L"Fresh animation after session unlock"); resetPending=false;
+  ResetAnimation(L"Fresh animation after surface recovery"); resetPending=false;
   // Clear the previous frame even if a full-screen window currently covers it.
   if(IsWindow(wall)){InvalidateRect(wall,nullptr,FALSE); UpdateWindow(wall);}
  }
@@ -308,7 +375,6 @@ static void Tick() {
   SetWindowPos(wall,nullptr,origin.x,origin.y,width,height,SWP_NOACTIVATE|SWP_NOZORDER);
   layoutPending=false;
  }
- if(covered && !draining) {lastFrame=now; SetInterval(250); return;}
  SetInterval(50); Draw();
 }
 static LRESULT CALLBACK ControlProc(HWND hwnd,UINT msg,WPARAM w,LPARAM l) {
@@ -345,6 +411,9 @@ static LRESULT CALLBACK ControlProc(HWND hwnd,UINT msg,WPARAM w,LPARAM l) {
 }
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,PWSTR args,int) {
  started=GetTickCount64(); CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
+ // Scheduled sign-in startup is state-aware. The task may remain installed while
+ // A-Shell or rain is off; in that case exit before creating any desktop/window.
+ if(wcsstr(args,L"--autostart") && !AShellShouldAutoStartRain())return 0;
  if(wcsstr(args,L"--drain")) { HWND other=FindWindowW(L"MatrixDesktopController",nullptr); if(other)PostMessageW(other,WM_APP+10,0,0); return 0; }
  if(wcsstr(args,L"--resume")) { HWND other=FindWindowW(L"MatrixDesktopController",nullptr); if(other)PostMessageW(other,WM_APP+11,0,0); return 0; }
  if(wcsstr(args,L"--stop")) { HWND other=FindWindowW(L"MatrixDesktopController",nullptr); if(other)PostMessageW(other,WM_CLOSE,0,0); return 0; }

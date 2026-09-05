@@ -33,6 +33,5 @@ Recommended GitHub release files:
 - `A-Shell-Setup.exe.sha256`
 - `A-Shell.zip` for portable/manual installation
 
-The installer is unsigned unless you code-sign it separately. Test Complete setup, Essentials setup and restore on a clean x64 Windows 11 machine and, for Windows 10 compatibility claims, on Windows 10 22H2. Include at least one test account with OneDrive Desktop backup/Known Folder Move enabled; Desktop files must remain in place while the icon view is hidden. For a new Windows 11 build, `ashell check` should report the Windows build and whether the optional exact LogonUI overlay hook is supported; do not add a new DLL hash without inspecting and validating the changed Windows binary.
 
 `Build-Package.ps1` also validates/recreates generated Windhawk payload provenance. Because the lock/sign-in visual-tree source is compiled code, do not run Setup directly from an edited source checkout until `scripts\Build.ps1` has completed successfully.

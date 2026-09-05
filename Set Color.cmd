@@ -2,7 +2,6 @@
 setlocal
 rem Prefer Windows PowerShell modules when launched from PowerShell 7.
 set "PSModulePath=%SystemRoot%\System32\WindowsPowerShell\v1.0\Modules;%PSModulePath%"
-setlocal
 if "%~1"=="" (
   echo Usage: "Set Color.cmd" 00AAFF
   echo        "Set Color.cmd" default

@@ -1,19 +1,18 @@
-﻿// ==WindhawkMod==
+// ==WindhawkMod==
 // @id              ashell-lockscreen-clear-background
 // @name            A-Shell clear lock-screen background
 // @description     Remove the lock-screen dimming overlays for A-Shell
-// @version         1.9
+// @version         1.7
 // @author          m417z
 // @github          https://github.com/m417z
 // @twitter         https://twitter.com/m417z
 // @homepage        https://m417z.com/
 // @include         LockApp.exe
-// @include         LogonUI.exe
 // @architecture    x86-64
 // @compilerOptions -lcomctl32 -lole32 -loleaut32 -lruntimeobject -lversion
 // ==/WindhawkMod==
-// Modified by Adrian Contras, 2026-09-03: LockApp + LogonUI targeting,
-// pure-background overlay cleanup and dimming-element status reporting.
+// Modified by Adrian Contras, 2026-09-02: LockApp-only targeting,
+// removed Start-menu statistics and added dimming-element status reporting.
 // Based on Windows 11 Start Menu Styler 1.7 by m417z; GPL-3.0.
 #ifndef WH_MOD_ID
 #define WH_MOD_ID L"ashell-lockscreen-clear-background"
@@ -511,6 +510,15 @@ from the **TranslucentTB** project.
 #undef GetCurrentTime
 
 #include <winrt/Windows.UI.Xaml.h>
+#include <winrt/Windows.UI.Xaml.Controls.h>
+#include <winrt/Windows.UI.Xaml.Media.h>
+#include <winrt/Windows.UI.Xaml.Shapes.h>
+#include <winrt/Windows.UI.Xaml.Hosting.h>
+#include <winrt/Windows.UI.Composition.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.System.UserProfile.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.UI.Xaml.Media.Imaging.h>
 
 struct ThemeTargetStyles {
     PCWSTR target;
@@ -7604,17 +7612,13 @@ namespace winrt {
 namespace wf = winrt::Windows::Foundation;
 namespace wux = winrt::Windows::UI::Xaml;
 
+static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexcept;
+
 #pragma endregion  // winrt_hpp
 
 #pragma region visualtreewatcher_hpp
 
 #include <winrt/Windows.UI.Xaml.h>
-#include <winrt/Windows.UI.h>
-#include <winrt/Windows.UI.Xaml.Controls.h>
-#include <winrt/Windows.UI.Xaml.Media.h>
-#include <winrt/Windows.UI.Xaml.Shapes.h>
-
-static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexcept;
 
 class VisualTreeWatcher : public winrt::implements<VisualTreeWatcher, IVisualTreeServiceCallback2, winrt::non_agile>
 {
@@ -7969,21 +7973,18 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <variant>
 #include <vector>
 
-// A-Shell raw-background pass. Windows has used more than one XAML shape for
-// the lock/sign-in dimmer. On the legacy inspected build the unwanted layer
-// was a black SolidColorBrush at ~45% brush opacity, which is different from
-// FrameworkElement::Opacity and therefore cannot always be found by a simple
-// Rectangle[Opacity=0.45] selector. Keep this conservative: only clear a dark
-// translucent brush when the element/name/ancestor identifies a background,
-// wallpaper, overlay, scrim, dim or shade context, or when the element itself
-// is effectively full-screen. The user tile/profile image is an Image and is
-// deliberately never modified here.
+// LockApp uses both named dimmers and unnamed full-screen brushes depending on
+// the active credential/Spotlight state. The registry selectors handle the
+// stable names; this pass handles only dark translucent background surfaces in
+// LockApp. Images and opaque layout backgrounds are deliberately excluded.
 static bool AShellNameIsBackgroundContext(winrt::hstring const& value) {
     if (value.empty()) return false;
     std::wstring name(value.c_str());
-    std::transform(name.begin(), name.end(), name.begin(), [](wchar_t c) { return static_cast<wchar_t>(std::towlower(c)); });
+    std::transform(name.begin(), name.end(), name.begin(), [](wchar_t c) {
+        return static_cast<wchar_t>(std::towlower(c));
+    });
     for (auto token : {L"background", L"wallpaper", L"overlay", L"dimming",
-                       L"dimmer", L"scrim", L"shade", L"tint"}) {
+                       L"dimmer", L"scrim", L"smoke", L"shade", L"tint"}) {
         if (name.find(token) != std::wstring::npos) return true;
     }
     return false;
@@ -7993,7 +7994,7 @@ static bool AShellIsBackgroundContext(wux::FrameworkElement element) {
     using winrt::Windows::UI::Xaml::Media::VisualTreeHelper;
     wux::FrameworkElement top = element;
     wux::DependencyObject current = element;
-    for (int depth = 0; current && depth < 10; ++depth) {
+    for (int depth = 0; current && depth < 12; ++depth) {
         if (auto fe = current.try_as<wux::FrameworkElement>()) {
             top = fe;
             if (AShellNameIsBackgroundContext(fe.Name())) return true;
@@ -8001,40 +8002,150 @@ static bool AShellIsBackgroundContext(wux::FrameworkElement element) {
         current = VisualTreeHelper::GetParent(current);
     }
 
-    // Name-less full-screen dim surfaces are common. Compare against the top
-    // XAML element instead of physical pixels so DPI scaling doesn't matter.
-    const double w = element.ActualWidth();
-    const double h = element.ActualHeight();
-    const double rw = top.ActualWidth();
-    const double rh = top.ActualHeight();
-    return w > 0 && h > 0 && rw > 0 && rh > 0 &&
-           w >= rw * 0.80 && h >= rh * 0.80;
+    const double width = element.ActualWidth();
+    const double height = element.ActualHeight();
+    const double rootWidth = top.ActualWidth();
+    const double rootHeight = top.ActualHeight();
+    return width > 0 && height > 0 && rootWidth > 0 && rootHeight > 0 &&
+           width >= rootWidth * 0.90 && height >= rootHeight * 0.90;
+}
+
+// These keys are present in this LockApp's resources.pri. Mutate the brush
+// itself so existing resource references also become transparent.
+static void AShellClearPlateResources(wux::ResourceDictionary const& resources, int depth = 0) {
+    if (!resources || depth > 8) return;
+    for (auto key : {L"LockScreenContentBackgroundBrush", L"BackplateBorderBrush",
+                     L"BatteryStackPanelBackground", L"Brush_MediaControl_DesktopBackground",
+                     L"DetailPanelBackplateBrush", L"DetailPanelBackplateBorderBrush",
+                     L"Brush_UIBorder"}) {
+        auto boxed = winrt::box_value(key);
+        if (resources.HasKey(boxed)) {
+            if (auto brush = resources.Lookup(boxed).try_as<winrt::Windows::UI::Xaml::Media::Brush>()) {
+                if (brush.Opacity() != 0) {
+                    brush.Opacity(0);
+                    Wh_SetIntValue(key, 1);
+                }
+            }
+        }
+    }
+    for (auto child : resources.MergedDictionaries()) AShellClearPlateResources(child, depth + 1);
+    for (auto pair : resources.ThemeDictionaries())
+        if (auto child = pair.Value().try_as<wux::ResourceDictionary>()) AShellClearPlateResources(child, depth + 1);
+}
+
+static bool AShellIsWidgetPlate(wux::FrameworkElement const& element) {
+    auto name = element.Name();
+    if (name == L"BackplateBorder" || name == L"BatteryStackPanelBackground") return true;
+    // Media, widgets and native advisory/dialog plates share the same paint
+    // cleanup. Keep prompt text, input, buttons and their visibility intact.
+    wux::DependencyObject node = element;
+    for (int depth = 0; node && depth < 12; ++depth) {
+        auto type = winrt::get_class_name(node);
+        // PIN-required advisories can use native popup/dialog templates rather
+        // than a widget class. Match structure, never localized prompt text.
+        auto view = std::wstring_view(type);
+        bool advisory = view.starts_with(L"LockApp.") &&
+            (view.find(L"Credential") != view.npos || view.find(L"Notification") != view.npos ||
+             view.find(L"Message") != view.npos || view.find(L"Toast") != view.npos);
+        if (advisory || type == L"Windows.UI.Xaml.Controls.ContentDialog" ||
+            type == L"Windows.UI.Xaml.Controls.FlyoutPresenter" ||
+            type == L"Windows.UI.Xaml.Controls.Primitives.Popup" ||
+            type == L"LockApp.DesktopMediaControlsOverlaySV2" ||
+            type == L"LockApp.DesktopMediaControlsOverlay" ||
+            type == L"LockCanvas.LockCanvasWidgetFrame" ||
+            type == L"LockApp.LockAdaptiveCard" ||
+            (std::wstring_view(type).starts_with(L"LockApp.") && std::wstring_view(type).find(L"Widget") != std::wstring_view::npos)) return true;
+        node = winrt::Windows::UI::Xaml::Media::VisualTreeHelper::GetParent(node);
+    }
+    return false;
+}
+
+// Preserve artwork carried by ImageBrush; only widget surface paint is removed.
+static bool AShellIsWidgetSurfaceBrush(wux::Media::Brush const& brush) {
+    if (!brush || brush.Opacity() == 0 || brush.try_as<wux::Media::ImageBrush>()) return false;
+    if (auto solid = brush.try_as<wux::Media::SolidColorBrush>()) return solid.Color().A != 0;
+    return true;
 }
 
 static bool AShellIsDarkTranslucentBrush(
-    winrt::Windows::UI::Xaml::Media::Brush const& source) {
+    winrt::Windows::UI::Xaml::Media::Brush const& source, double elementOpacity = 1.0) {
     auto brush = source.try_as<winrt::Windows::UI::Xaml::Media::SolidColorBrush>();
-    if (!brush) return false;
+    if (!brush) {
+        if (source.try_as<winrt::Windows::UI::Xaml::Media::AcrylicBrush>()) return true;
+        if (auto gradient = source.try_as<winrt::Windows::UI::Xaml::Media::LinearGradientBrush>()) {
+            bool visible = false;
+            for (auto stop : gradient.GradientStops()) {
+                auto c = stop.Color();
+                if (c.R > 16 || c.G > 16 || c.B > 16) return false;
+                visible = visible || c.A > 0;
+            }
+            return visible;
+        }
+        return false;
+    }
     auto color = brush.Color();
-    if (color.R > 12 || color.G > 12 || color.B > 12) return false;
-    const double effectiveAlpha =
-        (static_cast<double>(color.A) / 255.0) * brush.Opacity();
-    // Wide enough to catch the stock 40/45% layer and nearby Windows builds,
-    // narrow enough not to erase fully opaque black layout backgrounds.
-    return effectiveAlpha >= 0.18 && effectiveAlpha <= 0.70;
+    if (color.R > 16 || color.G > 16 || color.B > 16) return false;
+    const double alpha =
+        (static_cast<double>(color.A) / 255.0) * brush.Opacity() * elementOpacity;
+    return alpha > 0.0 && alpha <= 0.75;
 }
 
 static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexcept {
     try {
-        if (!AShellIsBackgroundContext(element)) return;
-        auto transparent = winrt::Windows::UI::Xaml::Media::SolidColorBrush(
+        const auto name = element.Name();
+        // LockApp-only frame paint: leave text, icon strokes, artwork and focus
+        // visuals intact. Clear borders even when Background is null.
+        if (auto border = element.try_as<wux::Controls::Border>()) {
+            if (border.BorderBrush()) border.BorderBrush(nullptr);
+            auto thickness = border.BorderThickness();
+            if (thickness.Left || thickness.Top || thickness.Right || thickness.Bottom)
+                border.BorderThickness(wux::Thickness{0});
+        }
+        if (auto control = element.try_as<wux::Controls::Control>()) {
+            if (control.BorderBrush()) control.BorderBrush(nullptr);
+            auto thickness = control.BorderThickness();
+            if (thickness.Left || thickness.Top || thickness.Right || thickness.Bottom)
+                control.BorderThickness(wux::Thickness{0});
+        }
+        if (auto presenter = element.try_as<wux::Controls::ContentPresenter>()) {
+            if (presenter.BorderBrush()) presenter.BorderBrush(nullptr);
+            auto thickness = presenter.BorderThickness();
+            if (thickness.Left || thickness.Top || thickness.Right || thickness.Bottom)
+                presenter.BorderThickness(wux::Thickness{0});
+        }
+        const bool knownDimmer = name == L"LockScreenOverlay" ||
+                                 name == L"DimmingOverlayPassword" ||
+                                 name == L"DimmingOverlayNoPassword" ||
+                                 (name == L"SmokeLayerBackground" &&
+                                  bool(element.try_as<wux::Shapes::Rectangle>()));
+        // Visual states can restore these properties after stylesheet matching.
+        // Apply them directly as each known LockApp dimmer enters the tree.
+        if (knownDimmer) {
+            if (element.Visibility() == wux::Visibility::Collapsed && element.Opacity() == 0) return;
+            // Clear the paint too: visual states can restore element opacity.
+            auto clear = winrt::Windows::UI::Xaml::Media::SolidColorBrush(
+                winrt::Windows::UI::Colors::Transparent());
+            if (auto rectangle = element.try_as<winrt::Windows::UI::Xaml::Shapes::Rectangle>()) rectangle.Fill(clear);
+            if (auto panel = element.try_as<winrt::Windows::UI::Xaml::Controls::Panel>()) panel.Background(clear);
+            if (auto border = element.try_as<winrt::Windows::UI::Xaml::Controls::Border>()) border.Background(clear);
+            if (auto control = element.try_as<winrt::Windows::UI::Xaml::Controls::Control>()) control.Background(clear);
+            element.Opacity(0.0);
+            element.Visibility(wux::Visibility::Collapsed);
+            Wh_SetIntValue(L"OverlayRemoved", 1);
+            Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
+            Wh_Log(L"A-Shell collapsed known LockApp dimmer %s", name.c_str());
+            return;
+        }
+        const bool widgetPlate = AShellIsWidgetPlate(element);
+        if (!widgetPlate && !AShellIsBackgroundContext(element)) return;
+        thread_local auto transparent = winrt::Windows::UI::Xaml::Media::SolidColorBrush(
             winrt::Windows::UI::Colors::Transparent());
         bool changed = false;
 
         if (auto rectangle =
                 element.try_as<winrt::Windows::UI::Xaml::Shapes::Rectangle>()) {
             auto fill = rectangle.Fill();
-            if (fill && AShellIsDarkTranslucentBrush(fill)) {
+            if (fill && AShellIsDarkTranslucentBrush(fill, element.Opacity())) {
                 rectangle.Fill(transparent);
                 changed = true;
             }
@@ -8042,7 +8153,7 @@ static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexce
         if (auto border =
                 element.try_as<winrt::Windows::UI::Xaml::Controls::Border>()) {
             auto background = border.Background();
-            if (background && AShellIsDarkTranslucentBrush(background)) {
+            if (background && ((widgetPlate && AShellIsWidgetSurfaceBrush(background)) || AShellIsDarkTranslucentBrush(background, element.Opacity()))) {
                 border.Background(transparent);
                 changed = true;
             }
@@ -8050,7 +8161,7 @@ static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexce
         if (auto panel =
                 element.try_as<winrt::Windows::UI::Xaml::Controls::Panel>()) {
             auto background = panel.Background();
-            if (background && AShellIsDarkTranslucentBrush(background)) {
+            if (background && ((widgetPlate && AShellIsWidgetSurfaceBrush(background)) || AShellIsDarkTranslucentBrush(background, element.Opacity()))) {
                 panel.Background(transparent);
                 changed = true;
             }
@@ -8058,19 +8169,233 @@ static void AShellClearRawBackgroundFilter(wux::FrameworkElement element) noexce
         if (auto control =
                 element.try_as<winrt::Windows::UI::Xaml::Controls::Control>()) {
             auto background = control.Background();
-            if (background && AShellIsDarkTranslucentBrush(background)) {
+            if (background && ((widgetPlate && AShellIsWidgetSurfaceBrush(background)) || AShellIsDarkTranslucentBrush(background, element.Opacity()))) {
                 control.Background(transparent);
                 changed = true;
             }
         }
 
+        // Button templates paint hover/pressed backplates on ContentPresenter,
+        // independently of Control.Background (including the Spotify controls).
+        if (auto presenter = element.try_as<wux::Controls::ContentPresenter>()) {
+            auto background = presenter.Background();
+            if (background && ((widgetPlate && AShellIsWidgetSurfaceBrush(background)) ||
+                               AShellIsDarkTranslucentBrush(background, element.Opacity()))) {
+                presenter.Background(transparent);
+                changed = true;
+            }
+        }
+
         if (changed) {
-            Wh_Log(L"A-Shell cleared translucent black background filter on %s#%s",
+            Wh_SetIntValue(L"OverlayRemoved", 1);
+            Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
+            Wh_Log(L"A-Shell cleared LockApp background filter on %s#%s",
                    winrt::get_class_name(element).c_str(), element.Name().c_str());
         }
     } catch (...) {
-        // Visual-tree differences must never destabilize LockApp/LogonUI.
+        // Unknown LockApp trees fail closed instead of destabilizing lock/unlock.
     }
+}
+
+// The Add notification can precede layout (ActualWidth/Height are then zero).
+// Revisit the laid-out tree, and visual-state changes, on the owning UI thread.
+thread_local wux::DispatcherTimer g_ashellBackdropTimer{nullptr};
+thread_local winrt::event_token g_ashellBackdropTick{};
+thread_local wux::Media::CompositionTarget::Rendering_revoker g_ashellBackdropRendering;
+thread_local std::wstring g_ashellLastBackdropTree;
+thread_local unsigned g_ashellBackdropHistory = 0;
+static void AShellClearCompositionBackdrop(wux::UIElement const& root, std::wostringstream& report, float rootWidth, float rootHeight) {
+    using namespace winrt::Windows::UI::Composition;
+    auto visual = winrt::Windows::UI::Xaml::Hosting::ElementCompositionPreview::GetElementVisual(root);
+    winrt::Windows::Foundation::Numerics::float2 bounds{rootWidth, rootHeight};
+    std::vector<Visual> queue{visual};
+    if (auto child = winrt::Windows::UI::Xaml::Hosting::ElementCompositionPreview::GetElementChildVisual(root)) queue.push_back(child);
+    for (size_t i = 0; i < queue.size() && i < 2048; ++i) {
+        auto current = queue[i];
+        auto size = current.Size();
+        if (size.x >= bounds.x * 0.9f && size.y >= bounds.y * 0.9f && size.x > 0 && size.y > 0) {
+            report << L"Composition " << winrt::get_class_name(current).c_str()
+                   << L" " << size.x << L"x" << size.y << L" opacity=" << current.Opacity();
+            if (auto sprite = current.try_as<SpriteVisual>()) {
+                if (auto brush = sprite.Brush()) {
+                    report << L" brush=" << winrt::get_class_name(brush).c_str();
+                    if (auto colorBrush = brush.try_as<CompositionColorBrush>()) {
+                        auto color = colorBrush.Color();
+                        report << L" ARGB=" << int(color.A) << L"," << int(color.R) << L"," << int(color.G) << L"," << int(color.B);
+                        const float alpha = color.A / 255.0f * current.Opacity();
+                        if (color.R <= 16 && color.G <= 16 && color.B <= 16 && alpha > 0.0f && alpha <= 0.75f) {
+                            color.A = 0;
+                            colorBrush.Color(color);
+                            Wh_SetIntValue(L"CompositionOverlayRemoved", 1);
+                            Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
+                        }
+                    }
+                }
+            }
+            report << L"\n";
+        }
+        if (auto container = current.try_as<ContainerVisual>())
+            for (auto child : container.Children()) if (queue.size() < 2048) queue.push_back(child);
+    }
+}
+// Paint the original image on the clock page itself. The system's shared
+// background can carry dimming outside XAML; a fully opaque image here covers
+// that surface without modifying LogonUI or the foreground controls.
+thread_local wux::Controls::Panel g_ashellRawImagePanel{nullptr};
+thread_local wux::Media::Brush g_ashellPreviousPanelBrush{nullptr};
+thread_local wux::Media::ImageBrush g_ashellRawImageBrush{nullptr};
+thread_local wux::Controls::Control g_ashellRawImageFrame{nullptr};
+thread_local wux::Media::Brush g_ashellPreviousFrameBrush{nullptr};
+thread_local winrt::hstring g_ashellRawImageUri;
+thread_local ULONGLONG g_ashellNextImageCheck = 0;
+static void AShellApplyOriginalClockImage(wux::FrameworkElement const& element) noexcept {
+    try {
+        // Base wallpaper placement from 1.9.14. Media visibility separately
+        // enables the 1.9.13 clock-grid placement below.
+        auto window = wux::Window::Current();
+        if (!window || element != window.Content()) return;
+        auto frame = element.try_as<wux::Controls::Control>();
+        auto panel = element.try_as<wux::Controls::Panel>();
+        if (!frame && !panel) return;
+        auto now = GetTickCount64();
+        if (!g_ashellRawImageBrush || now >= g_ashellNextImageCheck) {
+            g_ashellNextImageCheck = now + 1000;
+            auto uri = winrt::Windows::System::UserProfile::LockScreen::OriginalImageFile().AbsoluteUri();
+            if (!g_ashellRawImageBrush || uri != g_ashellRawImageUri) {
+                auto stream = winrt::Windows::System::UserProfile::LockScreen::GetImageStream();
+                wux::Media::Imaging::BitmapImage bitmap;
+                bitmap.SetSource(stream);
+                wux::Media::ImageBrush brush;
+                brush.ImageSource(bitmap);
+                brush.Stretch(wux::Media::Stretch::UniformToFill);
+                brush.Opacity(1);
+                g_ashellRawImageBrush = brush;
+                g_ashellRawImageUri = uri;
+            }
+        }
+        // Reassert cached paint immediately; only image lookup is throttled.
+        if (frame) {
+            if (g_ashellRawImageFrame != frame) {
+                g_ashellPreviousFrameBrush = frame.Background();
+                g_ashellRawImageFrame = frame;
+            }
+            if (frame.Background() != g_ashellRawImageBrush) frame.Background(g_ashellRawImageBrush);
+        } else {
+            if (g_ashellRawImagePanel != panel) {
+                g_ashellPreviousPanelBrush = panel.Background();
+                g_ashellRawImagePanel = panel;
+            }
+            if (panel.Background() != g_ashellRawImageBrush) panel.Background(g_ashellRawImageBrush);
+        }
+        if (Wh_GetIntValue(L"OriginalClockImageApplied", 0) != 1)
+            Wh_SetIntValue(L"OriginalClockImageApplied", 1);
+    } catch (...) {
+        Wh_SetIntValue(L"OriginalClockImageError", winrt::to_hresult());
+    }
+}
+thread_local wux::Controls::Panel g_ashellMediaImagePanel{nullptr};
+thread_local wux::Media::Brush g_ashellMediaOriginalBrush{nullptr};
+static bool AShellVisibleMedia(wux::FrameworkElement const& element) {
+    auto type = winrt::get_class_name(element);
+    if (type != L"LockApp.DesktopMediaControlsOverlaySV2" &&
+        type != L"LockApp.DesktopMediaControlsOverlay") return false;
+    if (element.ActualWidth() <= 0 || element.ActualHeight() <= 0) return false;
+    wux::DependencyObject node = element;
+    while (node) {
+        if (auto ui = node.try_as<wux::UIElement>())
+            if (ui.Visibility() != wux::Visibility::Visible || ui.Opacity() <= 0) return false;
+        node = wux::Media::VisualTreeHelper::GetParent(node);
+    }
+    return true;
+}
+static void AShellApplyMediaClockImage(bool visible, wux::Controls::Panel const& panel) {
+    if (g_ashellMediaImagePanel && (!visible || panel != g_ashellMediaImagePanel)) {
+        g_ashellMediaImagePanel.Background(g_ashellMediaOriginalBrush);
+        g_ashellMediaImagePanel = nullptr;
+        g_ashellMediaOriginalBrush = nullptr;
+    }
+    if (visible && panel && g_ashellRawImageBrush) {
+        if (!g_ashellMediaImagePanel) {
+            g_ashellMediaImagePanel = panel;
+            g_ashellMediaOriginalBrush = panel.Background();
+        }
+        if (panel.Background() != g_ashellRawImageBrush) panel.Background(g_ashellRawImageBrush);
+    }
+}
+static void AShellReleaseOriginalClockImage() noexcept {
+    // The window owns the ordinary ImageBrush after our references are released.
+    // Run after style restoration: it may have overwritten Background too.
+    // Only native XAML objects survive unloading; no callback into this DLL.
+    try {
+        if (g_ashellRawImageBrush) {
+            if (g_ashellRawImageFrame) g_ashellRawImageFrame.Background(g_ashellRawImageBrush);
+            else if (g_ashellRawImagePanel) g_ashellRawImagePanel.Background(g_ashellRawImageBrush);
+        }
+    } catch (...) {}
+    g_ashellMediaImagePanel = nullptr;
+    g_ashellMediaOriginalBrush = nullptr;
+    g_ashellRawImagePanel = nullptr;
+    g_ashellRawImageBrush = nullptr;
+    g_ashellRawImageFrame = nullptr;
+    g_ashellRawImageUri = L"";
+    g_ashellNextImageCheck = 0;
+}
+
+static void AShellScanBackgroundTree(bool diagnostics = true) noexcept {
+    try {
+        auto window = wux::Window::Current();
+        if (!window || !window.Content()) return;
+        std::vector<wux::DependencyObject> queue{window.Content()};
+        std::wostringstream report;
+        bool mediaVisible = false;
+        wux::Controls::Panel clockPanel{nullptr};
+        auto root = window.Content().try_as<wux::FrameworkElement>();
+        if (!root) return;
+        AShellApplyOriginalClockImage(root);
+        if (diagnostics) AShellClearPlateResources(wux::Application::Current().Resources());
+        for (size_t i = 0; i < queue.size() && i < 2048; ++i) {
+            auto node = queue[i];
+            if (auto element = node.try_as<wux::FrameworkElement>()) {
+                mediaVisible = mediaVisible || AShellVisibleMedia(element);
+                if (element.Name() == L"LockRootGrid") clockPanel = element.try_as<wux::Controls::Panel>();
+                if (diagnostics) AShellClearPlateResources(element.Resources());
+                if (diagnostics) AShellClearCompositionBackdrop(element, report, float(root.ActualWidth()), float(root.ActualHeight()));
+                if (diagnostics && (AShellIsBackgroundContext(element) || AShellIsWidgetPlate(element))) {
+                    report << winrt::get_class_name(element).c_str() << L"#" << element.Name().c_str()
+                           << L" " << element.ActualWidth() << L"x" << element.ActualHeight()
+                           << L" opacity=" << element.Opacity();
+                    winrt::Windows::UI::Xaml::Media::Brush brush{nullptr};
+                    if (auto r = element.try_as<winrt::Windows::UI::Xaml::Shapes::Rectangle>()) brush = r.Fill();
+                    else if (auto p = element.try_as<winrt::Windows::UI::Xaml::Controls::Panel>()) brush = p.Background();
+                    else if (auto b = element.try_as<winrt::Windows::UI::Xaml::Controls::Border>()) brush = b.Background();
+                    else if (auto c = element.try_as<winrt::Windows::UI::Xaml::Controls::Control>()) brush = c.Background();
+                    if (brush) {
+                        report << L" brush=" << winrt::get_class_name(brush).c_str() << L" opacity=" << brush.Opacity();
+                        if (auto solid = brush.try_as<winrt::Windows::UI::Xaml::Media::SolidColorBrush>()) {
+                            auto color = solid.Color();
+                            report << L" ARGB=" << int(color.A) << L"," << int(color.R) << L"," << int(color.G) << L"," << int(color.B);
+                        }
+                    }
+                    report << L"\n";
+                }
+                AShellClearRawBackgroundFilter(element);
+            }
+            int count = winrt::Windows::UI::Xaml::Media::VisualTreeHelper::GetChildrenCount(node);
+            for (int child = 0; child < count && queue.size() < 2048; ++child)
+                queue.push_back(winrt::Windows::UI::Xaml::Media::VisualTreeHelper::GetChild(node, child));
+        }
+        AShellApplyMediaClockImage(mediaVisible, clockPanel);
+        if (!diagnostics) return;
+        auto tree = report.str();
+        if (tree != g_ashellLastBackdropTree) {
+            // Structural diagnostics only: never read credential/text content.
+            Wh_SetStringValue(L"BackgroundTree", tree.c_str());
+            auto slot = L"BackgroundTreeHistory" + std::to_wstring(g_ashellBackdropHistory++ % 8);
+            Wh_SetStringValue(slot.c_str(), tree.c_str());
+            Wh_SetIntValue(L"BackgroundTreePid", GetCurrentProcessId());
+            g_ashellLastBackdropTree = std::move(tree);
+        }
+    } catch (...) {}
 }
 
 using namespace std::string_view_literals;
@@ -8084,6 +8409,9 @@ using namespace std::string_view_literals;
 #include <winstring.h>
 
 #include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.System.UserProfile.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Graphics.Effects.h>
 #include <winrt/Windows.Networking.Connectivity.h>
@@ -14325,7 +14653,7 @@ void ApplyCustomizations(InstanceHandle handle,
         return;
     }
 
-    if (element.Name() == L"DimmingOverlayPassword" || element.Name() == L"DimmingOverlayNoPassword") {
+    if (element.Name() == L"LockScreenOverlay" || element.Name() == L"DimmingOverlayPassword" || element.Name() == L"DimmingOverlayNoPassword") {
         Wh_SetIntValue(element.Name().c_str(), 1);
         Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
     }
@@ -15477,6 +15805,13 @@ void UninitializeResourceVariables() {
 }
 
 void UninitializeSettingsAndTap() {
+    g_ashellBackdropRendering.revoke();
+    if (g_ashellBackdropTimer) {
+        g_ashellBackdropTimer.Stop();
+        g_ashellBackdropTimer.Tick(g_ashellBackdropTick);
+        g_ashellBackdropTimer = nullptr;
+    }
+    g_ashellLastBackdropTree.clear();
     // Clear tracked image brushes for this thread (revokers will automatically
     // unregister).
     if (auto& timer = g_trackedImageBrushesForThread.retryDebounceTimer) {
@@ -15549,6 +15884,7 @@ void UninitializeSettingsAndTap() {
 
     g_webViewsCustomizationState.clear();
 
+    AShellReleaseOriginalClockImage();
     g_targetThreadId = 0;
 }
 
@@ -15560,6 +15896,15 @@ void InitializeSettingsAndTap() {
     }
 
     ProcessAllStylesFromSettings();
+
+    // Visual states can paint between timer ticks. Enforce before each XAML
+    // frame; keep resource discovery and diagnostic serialization on the timer.
+    g_ashellBackdropRendering = wux::Media::CompositionTarget::Rendering(
+        winrt::auto_revoke, [](auto const&, auto const&) { AShellScanBackgroundTree(false); });
+    g_ashellBackdropTimer = wux::DispatcherTimer();
+    g_ashellBackdropTimer.Interval(std::chrono::milliseconds(100));
+    g_ashellBackdropTick = g_ashellBackdropTimer.Tick([](auto const&, auto const&) { AShellScanBackgroundTree(); });
+    g_ashellBackdropTimer.Start();
 
     HRESULT hr = InjectWindhawkTAP();
     if (FAILED(hr)) {
@@ -16119,10 +16464,7 @@ BOOL Wh_ModInit() {
     wchar_t ashellProcess[MAX_PATH]{};
     GetModuleFileNameW(nullptr, ashellProcess, MAX_PATH);
     auto ashellName = wcsrchr(ashellProcess, L'\\');
-    if (!ashellName) return FALSE;
-    const wchar_t* processName = ashellName + 1;
-    if (_wcsicmp(processName, L"LockApp.exe") != 0 &&
-        _wcsicmp(processName, L"LogonUI.exe") != 0) return FALSE;
+    if (!ashellName || _wcsicmp(ashellName + 1, L"LockApp.exe")) return FALSE;
 
     Wh_Log(L">");
 

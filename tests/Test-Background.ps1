@@ -14,6 +14,10 @@ function Get-AShellLockSource {return $script:lockPath}
 function Save-LockImage($Path){Copy-Item -LiteralPath $script:lockPath -Destination $Path}
 function Read-RegistryValue($Path,$Name){return @{Path=$Path;Name=$Name;Exists=$true;Kind='String';Value=$(if($Name -eq 'Wallpaper'){$script:desktopPath}else{'original value'})}}
 function Write-RegistryValue($Item){}
+# This test exercises image transaction/rollback only. Report no unrelated
+# lock-screen policy blockers and no legacy machine image pin.
+function Restore-AShellLegacyMachineLockScreenPin($Root){return $false}
+function Get-AShellLockScreenPolicyHandoff {return [pscustomobject]@{Entries=@();ExternallyManaged=$false;ManagementReasons=@()}}
 function Get-AShellColorValues {return @{Path='fake';Name='Accent';Value='12AB34';Exists=$true;Kind='String'}}
 function Send-AShellColorChange {$script:notifications++}
 function Set-DesktopImage($Path){$script:desktopPath=$Path}

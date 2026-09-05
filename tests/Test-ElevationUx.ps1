@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference='Stop'
+$ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 $files=@('Runtime.ps1','Icons.ps1','Background.ps1','Manage.ps1','Profile-Picture.ps1','SignIn-Backdrop.ps1','Setup.ps1','Uninstall.ps1')
 foreach($name in $files){

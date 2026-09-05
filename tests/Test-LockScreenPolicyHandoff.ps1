@@ -1,4 +1,4 @@
-﻿# Isolated regression checks for lock-screen policy discovery/handoff. No registry changes.
+# Isolated regression checks for lock-screen policy discovery/handoff. No registry changes.
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 . (Join-Path $root 'scripts\Appearance.Helpers.ps1')
@@ -38,9 +38,21 @@ $override=@(Get-AShellLockScreenOverrideValues $handoff 'C:\A-Shell-lock.png')
 $noChange=@($override | Where-Object {$_.Name -eq 'NoChangingLockScreen'})[0]
 Assert ($noChange.Exists -and [int]$noChange.Value -eq 0) 'Consented override must explicitly disable NoChangingLockScreen while A-Shell is active.'
 $forced=@($override | Where-Object {$_.Name -eq 'LockScreenImage'})[0]
-Assert ($forced.Exists -and $forced.Value -eq 'C:\A-Shell-lock.png') 'When Windows already forces a lock image, consented override should point that same policy at the active A-Shell image.'
+Assert (!$forced.Exists) 'A pre-existing forced LockScreenImage must be temporarily removed, not repointed at A-Shell, to preserve native lock-to-sign-in framing.'
 function Get-AShellExternalManagementState {[pscustomobject]@{Managed=$true;Reasons=@('fixture MDM')}}
 $managed=Get-AShellLockScreenPolicyHandoff
 Assert $managed.ExternallyManaged 'Managed fixture was not detected.'
 Assert (@($managed.Entries).Count -eq @($handoff.Entries).Count) 'Managed detection must still report blockers for diagnostics.'
-'PASS: lock-screen blockers are captured reversibly; consent disables blocking switches and re-points an existing forced-image policy at A-Shell; managed devices remain identifiable without blocking explicit consent.'
+'PASS: lock-screen blockers are captured reversibly; consent releases forced-image policy without re-pointing it; managed devices remain identifiable without blocking explicit consent.'
+# The known-good exact hook is the only LogonUI overlay hook; unknown builds fail closed.
+$signInScript=Get-Content -LiteralPath (Join-Path $root 'scripts\SignIn-Backdrop.ps1') -Raw
+$nativeSource=Get-Content -LiteralPath (Join-Path $root 'src\signin-clear-background.wh.cpp') -Raw
+foreach($retired in @('LogonBackgroundBrush:=','LogonBackgroundBackdrop:=')) {
+ if($signInScript -match [regex]::Escape($retired)){throw "Retired sign-in resource override is still configured: $retired"}
+}
+foreach($needle in @('0x94140','0x64970','ZoomHookInstalled','ZoomDisabled','0x170','0.45','51b3aa2b50944111f039c0de035f9c8951a3fd7a65eda7380ad30ece5c2565bf')) {
+ if($nativeSource -notmatch [regex]::Escape($needle)){throw "Sign-in hook is missing expected exact/narrow guard: $needle"}
+}
+
+if($signInScript -notmatch 'Include=\$lockTarget;Exclude=''''') {throw 'The generic LockApp support module must stay out of LogonUI.'}
+if($signInScript -notmatch 'Include=\$target;Exclude=''''') {throw 'The dedicated narrow backdrop hook must own LogonUI.'}

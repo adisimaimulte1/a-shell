@@ -8,16 +8,9 @@ function ConvertTo-AShellPowerShellLiteral([object]$Value) {
 }
 function Write-AShellElevatedOutputLine([string]$Line) {
  if($null -eq $Line){return}
- $color='Gray'
- if($Line -match '^\s*\[OK\]'){$color='Green'}
- elseif($Line -match '^\s*\[(ERROR|FAILED)\]' -or $Line -match '^\s*FAILED:'){$color='Red'}
- elseif($Line -match '^\s*\[WORKING\]'){$color='Yellow'}
- elseif($Line -match '^\s*\[STATUS\]'){$color='Cyan'}
- elseif($Line -match '^\s*\[SKIP\]'){$color='DarkYellow'}
- elseif($Line -match '^\s*WARNING:'){$color='Yellow'}
- elseif($Line -match '^\s*### STEP '){$color='DarkYellow'}
- elseif($Line -match '^\s*#{20,}\s*$'){$color='DarkGray'}
- Write-Host $Line -ForegroundColor $color
+ if(Get-Command Write-AShellLine -ErrorAction SilentlyContinue){Write-AShellLine $Line;return}
+ $color=if($Line -match '^\s*\[ERROR\]'){'Red'}elseif($Line -match '^\s*\[OK\]'){'Green'}elseif($Line -match '^\s*\[WORKING\]'){'DarkYellow'}else{'Gray'}
+ Write-Host ('  '+$Line.Trim()) -ForegroundColor $color
 }
 function Invoke-AShellElevatedScript {
  [CmdletBinding()]

@@ -20,6 +20,13 @@ function Send-AShellPolicyChange {
  $result=[IntPtr]::Zero
  [void][AShellAccentNative]::Broadcast([IntPtr]0xffff,0x1a,[IntPtr]::Zero,'Policy',2,250,[ref]$result)
 }
+function Send-AShellMaterialPreferenceChange {
+ # Settings uses this lightweight WM_SETTINGCHANGE notification when immersive
+ # color/material preferences change. It refreshes Acrylic/Smoke eligibility
+ # without the expensive WM_THEMECHANGED taskbar repaint.
+ $result=[IntPtr]::Zero
+ [void][AShellAccentNative]::Broadcast([IntPtr]0xffff,0x1a,[IntPtr]::Zero,'ImmersiveColorSet',2,150,[ref]$result)
+}
 function Send-AShellThemeChange {
  # Theme changes need a refresh beyond the lightweight accent notification.
  # Only setup/restore calls this; live rain-color changes keep their fast path.
@@ -59,7 +66,7 @@ function Send-AShellColorChange {
   if([AShellAccentNative]::Send($window,$message,[IntPtr]::Zero,[IntPtr]::Zero,2,1500,[ref]$result) -eq [IntPtr]::Zero){throw 'Matrix did not acknowledge the color update.'}
   if($result.ToInt64() -ne ([Convert]::ToInt64($hex,16)+1)){throw 'Update MatrixDesktop.exe before using live colors.'}
  }
- [void][AShellAccentNative]::Broadcast([IntPtr]0xffff,0x1a,[IntPtr]::Zero,'ImmersiveColorSet',2,100,[ref]$result)
+ Send-AShellMaterialPreferenceChange
  # ImmersiveColorSet is sufficient; WM_THEMECHANGED forces expensive global redraws.
 }
 function Set-AShellAccent([string]$Color) {

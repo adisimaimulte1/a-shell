@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id              ashell-signin-clear-background
 // @name            A-Shell clear sign-in background
-// @description     Removes the separate 45% black sign-in backdrop on the verified Windows build.
+// @description     Removes the sign-in dimmer and disables its background zoom on the verified Windows build.
 // @version         1.0
 // @author          A-Shell
 // @include         LogonUI.exe
@@ -46,19 +46,27 @@ static bool VerifiedFile(PCWSTR path) {
 }
 
 // QI avoids relying on the C++/CX class pointer's default interface layout.
-static bool ClearVerifiedBrush(void* raw) noexcept {
+static bool ClearVerifiedBrush(void* raw, bool verifiedMember = false) noexcept {
     if (!raw) return false;
     try {
         winrt::Windows::UI::Xaml::Media::SolidColorBrush brush{nullptr};
         if (FAILED(static_cast<IUnknown*>(raw)->QueryInterface(
                 winrt::guid_of<decltype(brush)>(), winrt::put_abi(brush)))) return false;
         auto c = brush.Color();
-        if (c.A != 255 || c.R || c.G || c.B) return false;
+        // Color alpha remains zero even if the handoff storyboard animates
+        // Brush.Opacity after the getter returns. Opacity alone can flash back.
+        if (c.R || c.G || c.B) return false;
+        if (c.A == 0) { brush.Opacity(0.0); return true; }
+        if (c.A != 255) return false;
         double opacity = brush.Opacity();
-        if (opacity == 0.0) return true;
-        if (std::abs(opacity - 0.45) > 0.000001) return false;
+        if (opacity == 0.0) { brush.Color({0, 0, 0, 0}); return true; }
+        // The exact getter/member identity also permits intermediate fade values.
+        // Keep the original narrow check for brushes without that identity proof.
+        if (!std::isfinite(opacity) || opacity < 0 || opacity > 1) return false;
+        if (!verifiedMember && std::abs(opacity - 0.45) > 0.000001) return false;
+        brush.Color({0, 0, 0, 0});
         brush.Opacity(0.0);
-        return brush.Opacity() == 0.0;
+        return brush.Opacity() == 0.0 && brush.Color().A == 0;
     } catch (winrt::hresult_error const& e) {
 #ifdef ASHELL_TEST
         printf("Brush operation failed: %08x\n", unsigned(e.code().value));
@@ -67,26 +75,68 @@ static bool ClearVerifiedBrush(void* raw) noexcept {
     } catch (...) { return false; }
 }
 
+static bool VerifiedEntryPoints(HMODULE module) {
+    if (!module) return false;
+    const BYTE prologue[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57,0x41,0x56,0x41,0x57};
+    const BYTE zoomPrologue[] = {0x40,0x55,0x53,0x57,0x48,0x8b,0xec,0x48,0x83,0xec,0x40};
+    const BYTE zoomGetterPrologue[] = {0x8a,0x81,0x58,0x01,0x00,0x00,0xc3};
+    const BYTE zoomSetterPrologue[] = {0x88,0x91,0x58,0x01,0x00,0x00,0xc3};
+    auto base = reinterpret_cast<const BYTE*>(module);
+    return !memcmp(base + 0x94140, prologue, sizeof(prologue)) &&
+           !memcmp(base + 0x64970, zoomPrologue, sizeof(zoomPrologue)) &&
+           !memcmp(base + 0xbb260, zoomGetterPrologue, sizeof(zoomGetterPrologue)) &&
+           !memcmp(base + 0xb75d0, zoomSetterPrologue, sizeof(zoomSetterPrologue));
+}
+
 #ifndef ASHELL_TEST
 using Getter = void* (*)(void*);
+using ZoomPolicy = bool (*)(void*);
+using ZoomGetter = bool (*)(void*);
+using ZoomSetter = void (*)(void*, bool);
 static Getter originalGetter;
+static ZoomPolicy originalZoomPolicy;
+static ZoomGetter originalZoomGetter;
+static ZoomSetter setZoomDisabled;
 static HMODULE logonModule;
-static volatile LONG reported;
+static volatile LONG reported, zoomReported;
 
 static void* BackgroundGetter(void* self) {
+    setZoomDisabled(self, true);
     void* result = originalGetter(self);
     // Only the known non-acrylic member, never another returned brush.
     if (result && result == *reinterpret_cast<void**>(static_cast<BYTE*>(self) + 0x170)
-        && ClearVerifiedBrush(result) && InterlockedCompareExchange(&reported, 1, 0) == 0) {
+        && ClearVerifiedBrush(result, true) && InterlockedCompareExchange(&reported, 1, 0) == 0) {
         Wh_SetIntValue(L"OverlayRemoved", 1);
         Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
     }
     return result;
 }
 
+static bool ZoomPolicyHook(void* self) {
+    // Microsoft PDB: this is ShouldPanLockLogonImage, NOT IsZoomDisabled.
+    // Returning true enables image panning and its oversized image surface.
+    originalZoomPolicy(self);
+    setZoomDisabled(self, true);
+    Wh_SetIntValue(L"PanDisabled", 1);
+    return false;
+}
+
+static bool ZoomGetterHook(void* self) {
+    // Native property getter: generated XAML bindings bypass the ABI wrapper.
+    setZoomDisabled(self, true);
+    if (InterlockedCompareExchange(&zoomReported, 1, 0) == 0) {
+        Wh_SetIntValue(L"ZoomDisabled", 1);
+        Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
+    }
+    return originalZoomGetter(self);
+}
+
 BOOL Wh_ModInit() {
     Wh_SetIntValue(L"OverlayRemoved", 0);
     Wh_SetIntValue(L"HookInstalled", 0);
+    Wh_SetIntValue(L"ZoomHookInstalled", 0);
+    Wh_SetIntValue(L"ZoomDisabled", 0);
+    Wh_SetIntValue(L"PanDisabled", 0);
     wchar_t path[MAX_PATH];
     if (!GetSystemDirectoryW(path, MAX_PATH)) return FALSE;
     wcscat_s(path, L"\\Windows.UI.Logon.dll");
@@ -98,13 +148,22 @@ BOOL Wh_ModInit() {
     logonModule = LoadLibraryExW(path, nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!logonModule) return FALSE;
     BYTE* target = reinterpret_cast<BYTE*>(logonModule) + 0x94140;
-    const BYTE prologue[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57,0x41,0x56,0x41,0x57};
-    if (memcmp(target, prologue, sizeof(prologue)) ||
+    BYTE* zoomTarget = reinterpret_cast<BYTE*>(logonModule) + 0x64970;
+    setZoomDisabled = reinterpret_cast<ZoomSetter>(reinterpret_cast<BYTE*>(logonModule) + 0xb75d0);
+    if (!VerifiedEntryPoints(logonModule) ||
         !Wh_SetFunctionHook(target, reinterpret_cast<void*>(BackgroundGetter),
                           reinterpret_cast<void**>(&originalGetter))) {
         FreeLibrary(logonModule); logonModule = nullptr; return FALSE;
     }
+    if (!Wh_SetFunctionHook(zoomTarget, reinterpret_cast<void*>(ZoomPolicyHook),
+                            reinterpret_cast<void**>(&originalZoomPolicy))) {
+        FreeLibrary(logonModule); logonModule = nullptr; return FALSE;
+    }
+    if (!Wh_SetFunctionHook(reinterpret_cast<BYTE*>(logonModule) + 0xbb260,
+                            reinterpret_cast<void*>(ZoomGetterHook),
+                            reinterpret_cast<void**>(&originalZoomGetter))) return FALSE;
     Wh_SetIntValue(L"HookInstalled", 1);
+    Wh_SetIntValue(L"ZoomHookInstalled", 1);
     return TRUE;
 }
 
@@ -142,11 +201,36 @@ int main() {
         printf("After: cleared=%d opacity=%.9f\n",cleared,black.Opacity());
         if (!cleared || black.Opacity() != 0) return 1;
         if (!ClearVerifiedBrush(winrt::get_abi(black))) return 2;
+        // A late transition opacity animation must not make this brush visible.
+        black.Opacity(0.45);
+        if (black.Color().A != 0) return 12;
+        if (!ClearVerifiedBrush(winrt::get_abi(black)) || black.Opacity() != 0) return 13;
         if (ClearVerifiedBrush(winrt::get_abi(white)) || white.Opacity() != 0.45) return 3;
         if (ClearVerifiedBrush(winrt::get_abi(different)) || different.Opacity() != 0.6) return 4;
+        for (double opacity : {0.01, 0.12, 0.3, 0.6, 1.0}) {
+            auto fading = winrt::make<TestBrush>(winrt::Windows::UI::Color{255,0,0,0}, opacity).as<SolidColorBrush>();
+            if (!ClearVerifiedBrush(winrt::get_abi(fading), true) || fading.Color().A != 0) return 14;
+        }
+        if (ClearVerifiedBrush(winrt::get_abi(white), true)) return 15;
         if (ClearVerifiedBrush(nullptr)) return 5;
         if (!VerifiedFile(L"C:\\Windows\\System32\\Windows.UI.Logon.dll")) return 6;
         if (VerifiedFile(L"C:\\Windows\\System32\\kernel32.dll")) return 7;
+        auto module = LoadLibraryExW(L"C:\\Windows\\System32\\Windows.UI.Logon.dll", nullptr, DONT_RESOLVE_DLL_REFERENCES);
+        bool entriesMatch = VerifiedEntryPoints(module);
+        if (entriesMatch) {
+            // Exercise the exact native property pair used by _ChangeLayout's
+            // vtable call, on isolated storage rather than a credential object.
+            alignas(void*) BYTE model[0x200]{};
+            auto setter = reinterpret_cast<void (*)(void*, bool)>(reinterpret_cast<BYTE*>(module) + 0xb75d0);
+            auto getter = reinterpret_cast<bool (*)(void*)>(reinterpret_cast<BYTE*>(module) + 0xbb260);
+            setter(model, false);
+            if (getter(model)) return 10;
+            setter(model, true);
+            if (!getter(model) || model[0x158] != 1) return 11;
+            puts("PASS: native IsZoomDisabled property round-trip used by layout.");
+        }
+        if (module) FreeLibrary(module);
+        if (!entriesMatch) return 9;
         puts("PASS: correct brush cleared; unrelated brushes unchanged; binary guard passed.");
         return 0;
     } catch (winrt::hresult_error const& e) { printf("XAML test failed: %08x\n", unsigned(e.code().value)); return 8; }

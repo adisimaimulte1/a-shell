@@ -20,6 +20,38 @@ int main() {
  assert(EnsureSurface(280,140,14));
 
 
+ // Compare incremental restoration against full reference composition per pixel.
+ // Exercise image/solid wallpaper, glyph clears, expiration and accent changes.
+ std::vector<uint32_t> composed(size_t(width)*height);
+ displayPixels=composed.data();
+ for(bool solid : {false,true}) {
+  wallpaperSolid=solid;wallpaperColor=0xff18345a;
+  wallpaperPixels.resize(composed.size());
+  for(size_t i=0;i<composed.size();++i)wallpaperPixels[i]=0xff000000|((i*7919)&0xffffff);
+  ResetAnimation(L"Incremental composition test");CompositeRain(true);
+  for(int frame=0;frame<250;++frame) {
+   if(frame==90)accent=0x33bbff;
+   if(frame==120)draining=true;
+   Advance(50);CompositeRain();
+   for(size_t i=0;i<composed.size();++i)
+    assert(displayPixels[i]==BlendWallpaper(pixels[i],WallpaperPixel(uint32_t(i))));
+  }
+  draining=false;
+ }
+ displayPixels=nullptr;wallpaperPixels.clear();wallpaperSolid=false;
+ accent=0xD65A00;ResetAnimation(L"Composition test complete");
+
+ // Exhaust all opacity/channel inputs against the original integer formula.
+ for(unsigned a=0;a<256;++a)for(unsigned c=0;c<256;++c) {
+  uint32_t foreground=(a<<24)|((214*a/255)<<16)|((90*a/255)<<8)|(17*a/255);
+  uint32_t background=0xff000000|(c<<16)|((255-c)<<8)|((c*73)&255);
+  unsigned inv=255-a;
+  uint32_t reference=0xff000000|
+   (((foreground>>16&255)+(background>>16&255)*inv/255)<<16)|
+   (((foreground>>8&255)+(background>>8&255)*inv/255)<<8)|
+   ((foreground&255)+(background&255)*inv/255);
+  assert(BlendWallpaper(foreground,background)==reference);
+ }
  // Fading blends into the wallpaper, including white and saturated images.
  assert(BlendWallpaper(0,0xffabcdef)==0xffabcdef);
  assert(BlendWallpaper(0xffd65a00,0xffffffff)==0xffd65a00);
@@ -95,32 +127,35 @@ int main() {
  parent=control;
  wall=CreateWindowW(cls.lpszClassName,L"",WS_CHILD,0,0,1,1,parent,nullptr,cls.hInstance,nullptr);
  assert(control && wall);
- notificationsRegistered=true;desktopAvailable=true;covered=false;nextDesktopCheck=GetTickCount64()+60000;
+ notificationsRegistered=true;desktopAvailable=true;nextDesktopCheck=GetTickCount64()+60000;
  const auto promptResets=resetCount;const auto promptDrops=drops;
  desktopAvailable=false;Tick();
  assert(drops==promptDrops && !resetPending && resetCount==promptResets);
- desktopAvailable=true;covered=true;Tick();
- assert(drops==promptDrops && resetCount==promptResets);
+ desktopAvailable=true;lastFrame=GetTickCount64()-50;Tick();
+ assert(drops!=promptDrops && resetCount==promptResets && timerInterval==50);
  SessionChanged(WTS_CONSOLE_DISCONNECT);Tick();
  SessionChanged(WTS_CONSOLE_CONNECT);nextDesktopCheck=GetTickCount64()+60000;Tick();
  ControlProc(control,WM_POWERBROADCAST,PBT_APMSUSPEND,0);Tick();
  lastFrame=GetTickCount64()-3600000;
  ControlProc(control,WM_POWERBROADCAST,PBT_APMRESUMEAUTOMATIC,0);nextDesktopCheck=GetTickCount64()+60000;Tick();
  assert(GetTickCount64()-lastFrame<100);
- assert(!resetPending && resetCount==promptResets && drops==promptDrops);
+ assert(!resetPending && resetCount==promptResets);
+ const auto beforeLock=resetCount;
  SessionChanged(WTS_SESSION_LOCK);
- const auto beforeLock=drops;
- Tick(); assert(locked && drops==beforeLock && resetPending && timerInterval==250);
- SessionChanged(WTS_SESSION_UNLOCK);
- nextDesktopCheck=GetTickCount64()+60000;
- covered=true; // Verify clearing even when an app hides the desktop.
- const auto beforeUnlock=resetCount;
- Tick(); assert(!locked && !resetPending && resetCount==beforeUnlock+1 && activePixels.empty());
+ const auto preparedDrops=drops;
+ Tick(); assert(locked && drops==preparedDrops && !resetPending && timerInterval==250);
+ assert(resetCount==beforeLock+1 && activePixels.empty());
  for(auto row:drops)assert(row<1);
  SessionChanged(WTS_SESSION_UNLOCK);
  nextDesktopCheck=GetTickCount64()+60000;
- Tick(); assert(resetCount==beforeUnlock+1); // Duplicate unlock is harmless.
- covered=false;
+ 
+ const auto beforeUnlock=resetCount;
+ Tick(); assert(!locked && !resetPending && resetCount==beforeUnlock && activePixels.empty());
+ for(auto row:drops)assert(row<1);
+ SessionChanged(WTS_SESSION_UNLOCK);
+ nextDesktopCheck=GetTickCount64()+60000;
+ Tick(); assert(resetCount==beforeUnlock); // Duplicate unlock is harmless.
+ 
  HWND progman=FindWindowW(L"Progman",nullptr);
  assert(EnsureSurface(GetSystemMetrics(SM_CXVIRTUALSCREEN),GetSystemMetrics(SM_CYVIRTUALSCREEN),std::max(14,MulDiv(14,GetDpiForWindow(parent),96))));
  const auto displayBitmap=bitmap;const auto displayResets=resetCount;

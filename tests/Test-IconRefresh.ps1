@@ -51,3 +51,12 @@ Assert ($failed -and (Test-Path -LiteralPath (Join-Path $fixture 'state\icons-re
 $script:writes=0;Update-AShellIcons $fixture
 Assert ($script:writes -eq 1 -and !(Test-Path -LiteralPath (Join-Path $fixture 'state\icons-refresh.pending'))) 'Retry must notify even if all settings already match.'
 Write-Output 'PASS: real icon refresh with fixture registry; unchanged zero-write run, changed-image-only update and notification retry.'
+
+$taskbarSource=Get-Content -LiteralPath (Join-Path $root 'assets\windhawk\windows-11-taskbar-styler.wh.cpp') -Raw
+foreach($needle in @('WatchAShellTaskbarIdentity','AutomationIdProperty','RegisterPropertyChangedCallback','ReapplyCustomizationsForSubtree(button, true)','UnwatchAShellTaskbarIdentity')){
+ if(!$taskbarSource.Contains($needle)){throw "Live taskbar identity refresh is missing: $needle"}
+}
+if($taskbarSource -match 'A-Shell: taskbar app identity changed.+Restart|A-Shell: taskbar app identity changed.+Sleep'){
+ throw 'Live A-Shell icon refresh must not restart Explorer or wait arbitrarily.'
+}
+Write-Output 'PASS: live taskbar button identity changes re-match the existing button without Explorer restart.'

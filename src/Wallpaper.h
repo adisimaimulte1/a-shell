@@ -25,10 +25,13 @@ static void PollWallpaper(ULONGLONG now) {
 }
 static uint32_t BlendWallpaper(uint32_t foreground,uint32_t background) {
  unsigned inv=255-(foreground>>24);
- unsigned r=((foreground>>16)&255)+((background>>16)&255)*inv/255;
- unsigned g=((foreground>>8)&255)+((background>>8)&255)*inv/255;
- unsigned b=(foreground&255)+(background&255)*inv/255;
- return 0xff000000|(r<<16)|(g<<8)|b;
+ // Two independent 16-bit lanes scale red/blue together. For x<=65025,
+ // (x+1+(x>>8))>>8 is exactly floor(x/255), including both endpoints.
+ uint32_t rb=(background&0x00ff00ff)*inv;
+ rb=((rb+0x00010001+((rb>>8)&0x00ff00ff))>>8)&0x00ff00ff;
+ uint32_t g=((background>>8)&255)*inv;
+ g=(g+1+(g>>8))>>8;
+ return 0xff000000|((foreground&0x00ffffff)+rb+(g<<8));
 }
 static uint32_t WallpaperPixel(uint32_t index){return wallpaperSolid?wallpaperColor:wallpaperPixels[index];}
 static void CompositeRain(bool clear=false) {
@@ -36,8 +39,11 @@ static void CompositeRain(bool clear=false) {
  if(clear){if(wallpaperSolid)std::fill(displayPixels,displayPixels+size_t(width)*height,wallpaperColor);else memcpy(displayPixels,wallpaperPixels.data(),wallpaperPixels.size()*4);}
  if(wallpaperSolid) {
   // One background contribution per opacity, not three divisions per pixel.
-  uint32_t background[256];
-  for(unsigned a=0;a<256;a++)background[a]=BlendWallpaper(a<<24,wallpaperColor)&0xffffff;
+  static uint32_t background[256],cachedColor=0;
+  if(cachedColor!=wallpaperColor) {
+   for(unsigned a=0;a<256;a++)background[a]=BlendWallpaper(a<<24,wallpaperColor)&0xffffff;
+   cachedColor=wallpaperColor;
+  }
   for(auto index:activePixels){uint32_t p=pixels[index];displayPixels[index]=0xff000000|((p&0xffffff)+background[p>>24]);}
  } else for(auto index:activePixels)displayPixels[index]=BlendWallpaper(pixels[index],wallpaperPixels[index]);
 }

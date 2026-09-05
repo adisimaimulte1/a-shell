@@ -33,7 +33,7 @@ if($Action -eq 'list') {
 if($Action -eq 'check'){$plan=Get-AShellIconPlan $root -SkipTaskbarBase;Write-Output "Valid mapping: $($plan.AppIds.Count) exact app IDs, $($plan.Assets.Count) images.";Test-AShellPinnedShortcuts;exit 0}
 
 $cfg=Get-AShellFeatureConfig $root
-if(!$cfg.icons){Write-Output '[STATUS] Icon replacement component is off. Mapping changes are saved; use "ashell component icons on" to display them.';return}
+if(!$cfg.icons){Write-Output '[STATUS] Icon replacement component is off. Mapping changes are saved; use "ashell icons on" to display them.';return}
 
 if(!(Test-AShellAdministrator)) {
  Write-Output '[WORKING] Requesting administrator access to refresh A-Shell icons in this terminal...'

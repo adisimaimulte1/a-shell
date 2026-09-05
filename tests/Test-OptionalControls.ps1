@@ -1,4 +1,4 @@
-﻿param([switch]$Worker)
+param([switch]$Worker)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 if(!$Worker){$p=Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -Worker') -Wait -PassThru;exit $p.ExitCode}

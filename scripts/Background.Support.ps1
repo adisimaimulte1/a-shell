@@ -19,6 +19,72 @@ function Get-AShellExternalManagementState {
  } catch {}
  return [pscustomobject]@{Managed=($reasons.Count -gt 0);Reasons=@($reasons)}
 }
+
+function Get-AShellMachineLockScreenRegistryValues {
+ $items=@(
+  @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization','LockScreenImage'),
+  @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization','NoChangingLockScreen'),
+  @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP','LockScreenImagePath'),
+  @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP','LockScreenImageUrl')
+ )
+ return @(foreach($item in $items){Read-RegistryValue $item[0] $item[1]})
+}
+function Test-AShellLegacyMachineLockScreenPath([string]$Value) {
+ if([string]::IsNullOrWhiteSpace($Value)){return $false}
+ $candidate=$Value.Trim()
+ if($candidate.StartsWith('file:',[StringComparison]::OrdinalIgnoreCase)){try {$candidate=([Uri]$candidate).LocalPath}catch{return $false}}
+ try {$candidate=[IO.Path]::GetFullPath($candidate)}catch{return $false}
+ $legacyFolder=[IO.Path]::GetFullPath((Join-Path $env:ProgramData 'A-Shell\LockScreen')).TrimEnd('\')+'\'
+ return $candidate.StartsWith($legacyFolder,[StringComparison]::OrdinalIgnoreCase)
+}
+function Restore-AShellLegacyMachineLockScreenPin([string]$Root) {
+ # A legacy release briefly forced LockScreenImage/PersonalizationCSP values so the image
+ # survived pre-login boot. That path changed Windows' framing/crop behavior.
+ # Restore its saved machine values once, then delete the old staging folder.
+ $baseline=Join-Path $Root 'state\machine-lockscreen-before.clixml'
+ $changed=$false
+ if(Test-Path -LiteralPath $baseline) {
+  try {
+   $saved=Import-Clixml -LiteralPath $baseline
+   $currentValues=@(Get-AShellMachineLockScreenRegistryValues)
+   $ownsLegacyImage=@($currentValues | Where-Object {$_.Exists -and (Test-AShellLegacyMachineLockScreenPath ([string]$_.Value))}).Count -gt 0
+   # Restore the snapshot only while the old A-Shell path is still active. If
+   # an administrator or management tool changed these values later, preserve
+   # that newer choice instead of treating our old snapshot as authoritative.
+   if($ownsLegacyImage){
+    foreach($value in @($saved.Values)) {
+     if($value.Name -eq 'LockScreenImageStatus'){continue}
+     $current=Read-RegistryValue $value.Path $value.Name
+     $different=($current.Exists -ne [bool]$value.Exists)
+     if(!$different -and $value.Exists){$different=([string]$current.Value -ne [string]$value.Value)}
+     if($different){Write-RegistryValue $value;$changed=$true}
+    }
+   }
+   Remove-Item -LiteralPath $baseline -Force -ErrorAction SilentlyContinue
+  } catch {Write-Warning "Could not fully migrate the old machine lock-screen pin: $($_.Exception.Message)"}
+ } else {
+  $current=@(Get-AShellMachineLockScreenRegistryValues)
+  $ownsLegacyImage=@($current | Where-Object {$_.Exists -and (Test-AShellLegacyMachineLockScreenPath ([string]$_.Value))}).Count -gt 0
+  if($ownsLegacyImage) {
+   foreach($value in $current) {
+    $remove=(Test-AShellLegacyMachineLockScreenPath ([string]$value.Value))
+    if(!$remove -and $value.Name -eq 'NoChangingLockScreen' -and $value.Exists -and [string]$value.Value -notin @('','0')){$remove=$true}
+    if($remove){
+     Write-RegistryValue @{Path=$value.Path;Name=$value.Name;Kind=$value.Kind;Value=$null;Exists=$false}
+     $changed=$true
+    }
+   }
+  }
+ }
+ if($changed -and (Get-Command Send-AShellPolicyChange -ErrorAction SilentlyContinue)){Send-AShellPolicyChange;Start-Sleep -Milliseconds 200}
+ $legacyFolder=Join-Path $env:ProgramData 'A-Shell\LockScreen'
+ if(Test-Path -LiteralPath $legacyFolder -PathType Container) {
+  $stillReferenced=@(Get-AShellMachineLockScreenRegistryValues | Where-Object {$_.Exists -and (Test-AShellLegacyMachineLockScreenPath ([string]$_.Value))}).Count -gt 0
+  if(!$stillReferenced){Remove-Item -LiteralPath $legacyFolder -Recurse -Force -ErrorAction SilentlyContinue}
+ }
+ return $changed
+}
+
 function Get-AShellLockScreenPolicyHandoff {
  $management=Get-AShellExternalManagementState
  $policyPath='HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization'
@@ -35,23 +101,27 @@ function Get-AShellLockScreenPolicyHandoff {
   @{Path=$policyPath;Name='LockScreenImage';Mode='force-image';Block={param($v) $v.Exists -and -not [string]::IsNullOrWhiteSpace([string]$v.Value)};Meaning='Force a specific lock-screen/logon image'}
  )) {
   $current=Read-RegistryValue $item.Path $item.Name
+  $ownedImage=Read-RegistryValue $policyPath 'LockScreenImage'
+  $aShellOwnsMachineImage=($ownedImage.Exists -and (Test-AShellLegacyMachineLockScreenPath ([string]$ownedImage.Value)))
+  if($item.Name -eq 'LockScreenImage' -and $aShellOwnsMachineImage){continue}
+  if($item.Name -eq 'NoChangingLockScreen' -and $aShellOwnsMachineImage -and $current.Exists -and [string]$current.Value -notin @('','0')){continue}
   if(& $item.Block $current) {
-   $operation=if($item.Mode -eq 'force-image'){'temporarily point at the active A-Shell image'}else{'temporarily disable'}
+   $operation=if($item.Mode -eq 'force-image'){'temporarily remove'}else{'temporarily disable'}
    $entries += [pscustomobject]@{Path=$item.Path;Name=$item.Name;Kind=$current.Kind;Value=$null;Exists=$false;OverrideMode=$item.Mode;Operation=$operation;Meaning=$item.Meaning;Original=$current.Value}
   }
  }
 
  # Some locally provisioned/customized PCs use the Personalization CSP backing
- # values directly. They are not a public registry API, so A-Shell never creates
- # them. If they already exist and actively pin a lock image, temporarily remove only
- # those existing values after explicit override consent and restore them exactly later.
+ # values directly. If they already exist and actively pin a different lock image,
+ # temporarily remove only those pre-existing values so the supported per-user
+ # LockScreen API can own the image, then restore the exact originals on stop/Undo.
  $cspPath='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP'
  # LockScreenImageStatus is a CSP status/output value (Get-only in the public
  # CSP contract), not an image-selection input. Leave it alone. Only existing
  # Path/Url values can pin the image through legacy/provisioning-backed setups.
  $cspImage=Read-RegistryValue $cspPath 'LockScreenImagePath'
  $cspUrl=Read-RegistryValue $cspPath 'LockScreenImageUrl'
- $cspInputs=@(@($cspImage,$cspUrl) | Where-Object {$_.Exists -and -not [string]::IsNullOrWhiteSpace([string]$_.Value)})
+ $cspInputs=@(@($cspImage,$cspUrl) | Where-Object {$_.Exists -and -not [string]::IsNullOrWhiteSpace([string]$_.Value) -and !(Test-AShellLegacyMachineLockScreenPath ([string]$_.Value))})
  foreach($current in $cspInputs) {
   $entries += [pscustomobject]@{Path=$cspPath;Name=$current.Name;Kind=$current.Kind;Value=$null;Exists=$false;Operation='temporarily remove';Meaning='Existing lock-screen Personalization CSP image input';Original=$current.Value}
  }
@@ -72,7 +142,9 @@ function Get-AShellLockScreenOverrideValues($Handoff,[string]$Image) {
   if($entry.OverrideMode -eq 'disable') {
    $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=0;Exists=$true}
   } elseif($entry.OverrideMode -eq 'force-image') {
-   $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind='String';Value=$Image;Exists=$true}
+   # Do not repoint LockScreenImage at A-Shell: that machine policy uses a
+   # different render/cache path and can zoom/crop the sign-in image differently.
+   $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=$null;Exists=$false}
   } else {
    $result += [pscustomobject]@{Path=$entry.Path;Name=$entry.Name;Kind=$entry.Kind;Value=$entry.Value;Exists=$entry.Exists}
   }
@@ -150,6 +222,7 @@ function Save-AShellBackground([string]$Folder,[switch]$OverrideManaged) {
   Copy-Item -LiteralPath $lockSource -Destination (Join-Path $Folder $lockFile)
  } else {Save-LockImage (Join-Path $Folder $lockFile)}
  $values=@(Get-AShellColorValues)
+ $values+=Get-AShellMachineLockScreenRegistryValues
  foreach($entry in @(
   @('HKCU:\Control Panel\Desktop','WallpaperStyle'),@('HKCU:\Control Panel\Desktop','TileWallpaper'),
   @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','RotatingLockScreenEnabled'),
@@ -164,12 +237,13 @@ function Save-AShellBackground([string]$Folder,[switch]$OverrideManaged) {
  if($OverrideManaged -or !$handoff.ExternallyManaged){foreach($entry in @($handoff.Entries)){$values+=Read-RegistryValue $entry.Path $entry.Name}}
  Save-AShellState @{Sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value;Wallpaper=$wallpaper;LockSource=$lockSource;LockFile=$lockFile;Values=$values} (Join-Path $Folder 'background.clixml')
 }
-function Restore-AShellBackground([string]$Folder) {
+function Restore-AShellBackground([string]$Folder,[string]$Root='') {
+ if(!$Root){$Root=Split-Path (Split-Path $Folder)}
  if(!(Test-Path -LiteralPath (Join-Path $Folder 'background.clixml'))){return}
  $saved=Import-Clixml -LiteralPath (Join-Path $Folder 'background.clixml');Assert-AShellAccount $saved
- # A-Shell may currently own the forced LockScreenImage policy. Release active
- # blockers first so the supported LockScreen API can put the saved image back,
- # then restore the exact policy values that were present at this checkpoint.
+ # Remove any legacy A-Shell machine image pin, then temporarily release original
+ # blockers so the supported per-user LockScreen API can restore the checkpoint.
+ [void](Restore-AShellLegacyMachineLockScreenPin $Root)
  [void](Release-AShellLockScreenPolicyBlockers)
  $desktop=Join-Path $Folder 'desktop.img'
  if(Test-Path -LiteralPath $desktop) {
@@ -179,7 +253,7 @@ function Restore-AShellBackground([string]$Folder) {
  $lock=Join-Path $Folder $saved.LockFile
  if($saved.LockSource -and (Test-Path -LiteralPath $saved.LockSource) -and (Get-FileHash -LiteralPath $saved.LockSource).Hash -eq (Get-FileHash -LiteralPath $lock).Hash){Set-LockImage $saved.LockSource}
  else {Set-LockImage $lock}
- foreach($value in $saved.Values){Write-RegistryValue $value}
+ foreach($value in @($saved.Values)){Write-RegistryValue $value}
  if(Get-Command Send-AShellPolicyChange -ErrorAction SilentlyContinue){Send-AShellPolicyChange}
  Send-AShellColorChange
 }
@@ -206,6 +280,7 @@ function Set-AShellBackground([string]$Root,[string]$Image,[switch]$DesktopOnly)
  $target=Join-Path $folder ($hash+$ext)
  if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $target).Hash -ne $hash){Copy-Item -LiteralPath $Image -Destination $target -Force}
  $colors=@(Get-AShellColorValues)
+ if(!$DesktopOnly){[void](Restore-AShellLegacyMachineLockScreenPin $Root)}
  $handoff=$(if($DesktopOnly){[pscustomobject]@{Entries=@();ExternallyManaged=$false;ManagementReasons=@()}}else{Get-AShellLockScreenPolicyHandoff})
  try {
   if(@($handoff.Entries).Count -and !$allowPolicyOverride){
@@ -233,8 +308,8 @@ function Set-AShellBackground([string]$Root,[string]$Image,[switch]$DesktopOnly)
   if(!$DesktopOnly){Set-LockImage $target;Show-AShellSignInBackgroundStatus}
   foreach($value in $colors){Write-RegistryValue $value};Send-AShellColorChange
   Set-Content -LiteralPath (Join-Path $Root 'state\desired-background.txt') -Value $target -Encoding UTF8
- } catch {Restore-AShellBackground $checkpoint;throw}
- Write-Output $(if($DesktopOnly){'Image saved for A-Shell and applied to the desktop. Screen customization is off, so the original Windows lock/login image and effects were left untouched.'}else{'Image set for desktop and lock/login screens. A-Shell screen filtering removes the targeted acrylic/dim/scrim/tint layers while screen customization is on.'})
+ } catch {Restore-AShellBackground $checkpoint $Root;throw}
+ Write-Output $(if($DesktopOnly){'Image saved for A-Shell and applied to the desktop. Screen customization is off, so the original Windows lock/login image and effects were left untouched.'}else{"Image set for desktop and lock/login screens through Windows' normal lock-screen image path. A-Shell removes logon acrylic blur and, on the verified build, the separate 45% black backdrop."})
 }
 function Restore-AShellOriginalWallpaper([string]$Root) {
  $baseline=Join-Path $Root 'state\baseline'
@@ -260,9 +335,13 @@ function Restore-AShellOriginalWallpaper([string]$Root) {
    Set-DesktopImage $desktop
   } else {Set-DesktopImage ''}
   if(!(Test-Path -LiteralPath $lock)){throw 'Original lock-screen backup is missing.'}
+  # Keep the lock and sign-in framing identical to the normal Windows lock-screen
+  # path. Do not force a machine/CSP image, which uses a different crop/cache path.
+  [void](Restore-AShellLegacyMachineLockScreenPin $Root)
+  [void](Release-AShellLockScreenPolicyBlockers)
   Set-LockImage $lock
   foreach($value in $saved.Values){if($value.Name -in @('WallpaperStyle','TileWallpaper','SlideshowEnabled','RotatingLockScreenEnabled','RotatingLockScreenOverlayEnabled','DisableLogonBackgroundImage')){Write-RegistryValue $value}}
   foreach($value in $colors){Write-RegistryValue $value};Send-AShellColorChange
   Write-Output '[OK] Pre-setup desktop and lock backgrounds restored; sign-in follows the restored Windows preference. Accent, icons and rain remain enabled.'
- } catch {Restore-AShellBackground $checkpoint;throw}
+ } catch {Restore-AShellBackground $checkpoint $Root;throw}
 }

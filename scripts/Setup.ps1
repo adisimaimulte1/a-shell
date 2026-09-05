@@ -1,4 +1,4 @@
-﻿param([ValidateSet('Apply','Restore','Check')][string]$Action='Apply',[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value),[switch]$Core,[switch]$OverrideLockScreenPolicy,[switch]$DoNotOverrideLockScreenPolicy)
+param([ValidateSet('Apply','Restore','Check')][string]$Action='Apply',[string]$ExpectedSid=([Security.Principal.WindowsIdentity]::GetCurrent().User.Value),[switch]$Core,[switch]$OverrideLockScreenPolicy,[switch]$DoNotOverrideLockScreenPolicy)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 $stateDir=Join-Path $root 'state'
@@ -13,7 +13,6 @@ $desired=@(
  @('HKCU:\Control Panel\Desktop','TileWallpaper','String','0'),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize','AppsUseLightTheme','DWord',0),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize','SystemUsesLightTheme','DWord',0),
- @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize','EnableTransparency','DWord',1),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize','ColorPrevalence','DWord',0),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced','TaskbarAl','DWord',1),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced','ShowTaskViewButton','DWord',0),
@@ -26,6 +25,7 @@ $desired=@(
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager','SubscribedContent-338387Enabled','DWord',0),
  @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen','DetailedStatusApp','String',''),
  @('HKLM:\SOFTWARE\Policies\Microsoft\Dsh','DisableWidgetsOnLockScreen','DWord',1),
+ @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization','AnimateLockScreenBackground','DWord',1),
  @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\System','DisableAcrylicBackgroundOnLogon','DWord',1),
  @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System','DisableAutomaticRestartSignOn','DWord',1)
 )
@@ -34,8 +34,10 @@ $desired=@(
 . (Join-Path $PSScriptRoot 'Background.Support.ps1')
 . (Join-Path $PSScriptRoot 'Features.Support.ps1')
 . (Join-Path $PSScriptRoot 'Elevation.Helpers.ps1')
+. (Join-Path $PSScriptRoot 'Console.Helpers.ps1')
 $capabilities=Get-AShellCapabilities
 $useFullAppearance=(!$Core -and $capabilities.Windows11)
+$useSignInAppearance=(!$Core -and $capabilities.SignInOverlay)
 if($Action -eq 'Apply') {
  $desiredBackgroundPath=Join-Path $root 'state\desired-background.txt'
  if(Test-Path -LiteralPath $desiredBackgroundPath){
@@ -46,11 +48,11 @@ if($Action -eq 'Apply') {
 }
 if($Action -in @('Apply','Check')) {Assert-AShellPackage $root -RequireCompatible}
 if($Action -eq 'Check') {
- Write-Output ''
- Write-Output 'Lock-screen policy diagnostics:'
- Write-AShellLockScreenPolicyHandoffStatus (Get-AShellLockScreenPolicyHandoff) -DiagnosticOnly
+ $handoff=Get-AShellLockScreenPolicyHandoff
+ if(@($handoff.Entries).Count -eq 0){Write-Output '[OK] Lock-screen policy: ready.'}
+ else{Write-Output ('[INFO] Lock-screen policy: '+@($handoff.Entries).Count+' blocker(s) detected; Setup can handle them with consent.')}
  & (Join-Path $PSScriptRoot 'SignIn-Backdrop.ps1') -Action Check
- Write-Output 'Check completed without changing appearance settings.'
+ Write-Output '[OK] Check complete. No settings were changed.'
  exit 0
 }
 if($Action -eq 'Apply') {
@@ -85,10 +87,8 @@ Start-Transcript -Path (Join-Path $stateDir 'setup.log') -Append | Out-Null
 function Write-AShellSetupStep([int]$Number,[int]$Total,[string]$Title,[string]$Detail='') {
  $script:AShellCurrentSetupStep=('STEP {0} OF {1} | {2}' -f $Number,$Total,$Title)
  Write-Host ''
- Write-Host '  ================================================================' -ForegroundColor DarkYellow
- Write-Host (('  >>> STEP {0} OF {1}  |  {2}' -f $Number,$Total,$Title.ToUpperInvariant())) -ForegroundColor DarkYellow
- Write-Host '  ================================================================' -ForegroundColor DarkYellow
- if($Detail){Write-Host ('      '+$Detail) -ForegroundColor Gray}
+ Write-AShellAccent (('  [{0}/{1}] {2}' -f $Number,$Total,$Title))
+ if($Detail){Write-Host ('        '+$Detail) -ForegroundColor DarkGray}
 }
 try {
  . (Join-Path $PSScriptRoot 'Desktop.Support.ps1')
@@ -99,6 +99,9 @@ try {
  # overridden, but only after the user grants the dedicated consent switch/prompt.
  $lockPolicyHandoff=$null
  if($Action -eq 'Apply') {
+  # Remove the old machine-level image pin before capturing/applying the
+  # new state so lock and sign-in use the same native Windows image pipeline.
+  [void](Restore-AShellLegacyMachineLockScreenPin $root)
   $lockPolicyHandoff=Get-AShellLockScreenPolicyHandoff
   if($OverrideLockScreenPolicy) {
    foreach($entry in @(Get-AShellLockScreenOverrideValues $lockPolicyHandoff $image)) {
@@ -133,13 +136,14 @@ try {
   $sourceDestination=Join-Path $env:ProgramData 'Windhawk\ModsSource\windows-11-taskbar-styler.wh.cpp'
   if(!(Test-Path $snapshot)) {
    $values=@(foreach($v in $desired){Read-RegistryValue $v[0] $v[1]})
+   $values+=Get-AShellMachineLockScreenRegistryValues
    # The wallpaper cache is needed when the old source has been moved/deleted.
    $wallpaper=(Get-ItemProperty 'HKCU:\Control Panel\Desktop').Wallpaper
    $cached=Join-Path $env:APPDATA 'Microsoft\Windows\Themes\TranscodedWallpaper'
    if($wallpaper -and (Test-Path -LiteralPath $wallpaper)){Copy-Item -LiteralPath $wallpaper -Destination (Join-Path $stateDir 'desktop-before.img')}
    elseif(Test-Path $cached){Copy-Item $cached (Join-Path $stateDir 'desktop-before.img')}
    Save-LockImage (Join-Path $stateDir 'lock-before.img')
-   $tasks=@(foreach($name in @('Matrix Desktop - Instant Rain','A-Shell Session Repair','A-Shell Cursor Session Repair','Codex Early Lively Wallpaper','Lively Wallpaper - Adi')) {
+   $tasks=@(foreach($name in @('Matrix Desktop - Instant Rain','Codex Early Lively Wallpaper','Lively Wallpaper - Adi')) {
     $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
     @{Name=$name;Exists=($null -ne $task);Xml=$(if($task){Export-ScheduledTask -TaskName $name});Running=($task.State -eq 'Running')}
    })
@@ -158,9 +162,9 @@ try {
   Write-AShellSetupStep 2 8 'Hide desktop icons' 'The Explorer desktop view is hidden immediately; Desktop and OneDrive files are not moved.'
   Hide-AShellDesktopIconsNow $root
   Write-AShellSetupStep 3 8 'Prepare integrations' $(if($useFullAppearance){'Checking Windhawk and the bundled A-Shell mod payloads.'}else{'Essentials mode does not install or change Windhawk mods.'})
-  if($useFullAppearance){Ensure-Windhawk $root}
-  elseif($Core){Write-Output 'Essentials mode: skipping Windhawk taskbar/LockApp visual mods.'}
-  else {Write-Output 'Windows 10 compatibility profile: applying supported A-Shell features; Windows 11-only Windhawk styling is skipped.'}
+  if($useFullAppearance -or $useSignInAppearance){Ensure-Windhawk $root}
+  elseif($Core){Write-Output 'Essentials mode: skipping Windhawk visual mods.'}
+  else {Write-Output 'Compatibility profile: applying supported A-Shell features.'}
   Write-AShellSetupStep 4 8 'Apply Windows appearance' 'Applying theme preferences, temporarily overriding consented lock-screen personalization blockers, then setting desktop and lock images.'
   Write-AShellLockScreenPolicyHandoffStatus $lockPolicyHandoff -OverridePolicy:$OverrideLockScreenPolicy
   $themeRefreshRequired=$false
@@ -182,28 +186,31 @@ try {
   Set-LockImage $image
   Show-AShellSignInBackgroundStatus
   & (Join-Path $PSScriptRoot 'Color.ps1') -Color default
-  Write-AShellSetupStep 5 8 'Apply icons and screen styling' $(if($useFullAppearance){'Installing automatic taskbar icon matching plus supported LockApp/sign-in styling.'}else{'Skipping Windhawk visual styling in Essentials/Windows 10 compatibility mode.'})
+  Write-AShellSetupStep 5 8 'Apply icons and screen styling' $(if($useFullAppearance){'Installing automatic taskbar icon matching, LockApp styling and the narrow sign-in backdrop hook.'}elseif($useSignInAppearance){'Installing the narrow verified sign-in backdrop hook; Windows 11-only taskbar/LockApp styling stays skipped.'}else{'Skipping Windhawk visual styling in Essentials mode.'})
   if($useFullAppearance) {
-  $payloadUpdateRequired=Test-AShellWindhawkPayloadUpdateRequired $root
-  if($payloadUpdateRequired){Prepare-AShellWindhawkForFileUpdate $root}
-  else {Write-Output '[SKIP] Windhawk binary payloads already match this build; keeping the live taskbar module loaded.'}
-  foreach($path in @($modDestination,$sourceDestination)){New-Item -ItemType Directory -Path (Split-Path $path) -Force | Out-Null}
-  # Avoid replacing a loaded DLL when this exact version already exists.
-  $payload=Join-Path $root ('assets\windhawk\'+$meta.LibraryFileName)
-  if(!(Test-Path $modDestination) -or (Get-FileHash $payload).Hash -ne (Get-FileHash $modDestination).Hash){Copy-AShellWindhawkPayload -Source $payload -Destination $modDestination}
-  Copy-Item (Join-Path $root 'assets\windhawk\windows-11-taskbar-styler.wh.cpp') $sourceDestination -Force
-  foreach($entry in @{LibraryFileName=$meta.LibraryFileName;Version=$meta.Version;Include='explorer.exe';Exclude='';Architecture='x86-64'}.GetEnumerator()) {
-   Write-RegistryValue @{Path=$modKey;Name=$entry.Key;Kind='String';Value=$entry.Value;Exists=$true}
+   $payloadUpdateRequired=Test-AShellWindhawkPayloadUpdateRequired $root
+   if($payloadUpdateRequired){Prepare-AShellWindhawkForFileUpdate $root}
+   else {Write-Output '[SKIP] Windhawk binary payloads already match this build; keeping the live taskbar module loaded.'}
+   foreach($path in @($modDestination,$sourceDestination)){New-Item -ItemType Directory -Path (Split-Path $path) -Force | Out-Null}
+   # Avoid replacing a loaded DLL when this exact version already exists.
+   $payload=Join-Path $root ('assets\windhawk\'+$meta.LibraryFileName)
+   if(!(Test-Path $modDestination) -or (Get-FileHash $payload).Hash -ne (Get-FileHash $modDestination).Hash){Copy-AShellWindhawkPayload -Source $payload -Destination $modDestination}
+   Copy-Item (Join-Path $root 'assets\windhawk\windows-11-taskbar-styler.wh.cpp') $sourceDestination -Force
+   foreach($entry in @{LibraryFileName=$meta.LibraryFileName;Version=$meta.Version;Include='explorer.exe';Exclude='';Architecture='x86-64'}.GetEnumerator()) {
+    Write-RegistryValue @{Path=$modKey;Name=$entry.Key;Kind='String';Value=$entry.Value;Exists=$true}
+   }
+   Write-RegistryValue @{Path=$modKey;Name='Disabled';Kind='DWord';Value=0;Exists=$true}
+   . (Join-Path $PSScriptRoot 'Icon.Selection.ps1')
+   Add-AShellAutomaticIcons $root
+   Update-AShellIcons $root
+   Ensure-AShellTaskbarRuntimeLoaded $root
   }
-  Write-RegistryValue @{Path=$modKey;Name='Disabled';Kind='DWord';Value=0;Exists=$true}
-  . (Join-Path $PSScriptRoot 'Icon.Selection.ps1')
-  Add-AShellAutomaticIcons $root
-  Update-AShellIcons $root
-  & (Join-Path $PSScriptRoot 'SignIn-Backdrop.ps1') -Action Apply -NoRestart
-  Ensure-AShellTaskbarRuntimeLoaded $root
-  }
+  if($useSignInAppearance){& (Join-Path $PSScriptRoot 'SignIn-Backdrop.ps1') -Action Apply -NoRestart}
+  # Commit the intended runtime switches before Matrix starts. Setup verification and
+  # `ashell rain status` now observe the same state from the first live frame onward.
+  Save-AShellFeatureConfig $root ([pscustomobject]@{version=4;screens=$true;signInHook=[bool]$useSignInAppearance;taskbarTransparency=[bool]$useFullAppearance;icons=[bool]$useFullAppearance;rain=$true})
   Write-AShellSetupStep 6 8 'Install Matrix and commands' 'Installing instant rain startup plus the A-Shell terminal commands.'
-  & (Join-Path $PSScriptRoot 'Manage.ps1') -Action Install
+  & (Join-Path $PSScriptRoot 'Manage.ps1') -Action Install -StartNow
   & (Join-Path $PSScriptRoot 'Terminal.ps1') -Action Install
   # The real Windows theme transition already happened in step 4. Do not send a
   # second WM_THEMECHANGED after Matrix starts: the taskbar is already correct and
@@ -211,7 +218,7 @@ try {
   Write-AShellSetupStep 7 8 'Apply cursor pack' 'Applying the cursor scheme last without replaying the Windows theme.'
   & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action Apply
   Write-AShellSetupStep 8 8 'Verify installation' 'Checking required appearance settings, desktop visibility, selected mod payloads, cursor selection and Matrix startup.'
-  Assert-AShellInstalled $root $desired -Core:(!$useFullAppearance) -PolicyOverride:$OverrideLockScreenPolicy
+  Assert-AShellInstalled $root $desired -Core:$Core -PolicyOverride:$OverrideLockScreenPolicy
   # Taskbar/icon settings were committed live before rain started. Avoid an
   # unconditional Windhawk restart here; it unloads/reloads an already-correct mod.
   Set-Content (Join-Path $stateDir 'applied.txt') (Get-Date -Format o)
@@ -219,7 +226,6 @@ try {
   elseif($DoNotOverrideLockScreenPolicy){Remove-Item -LiteralPath (Get-AShellLockScreenOverrideConsentPath $root) -Force -ErrorAction SilentlyContinue}
   # Setup is the one-time install/repair transaction. Runtime start/stop reuses
   # these installed assets and backups without rebuilding or recopying them.
-  Save-AShellFeatureConfig $root ([pscustomobject]@{version=2;screens=$true;taskbarTransparency=[bool]$useFullAppearance;icons=[bool]$useFullAppearance})
   Set-AShellDesiredBackground $root $image
   if(!(Test-Path -LiteralPath (Join-Path $stateDir 'desired-accent.txt'))){Set-AShellDesiredAccent $root 'D65A00'}
   Set-AShellRuntimeState $root $true 'Setup EXE completed'
@@ -245,8 +251,9 @@ try {
   elseif($before.Wallpaper -and (Test-Path -LiteralPath $before.Wallpaper)){Set-DesktopImage $before.Wallpaper}
   elseif(Test-Path (Join-Path $stateDir 'desktop-before.img')){Set-DesktopImage (Join-Path $stateDir 'desktop-before.img')}
   else {Set-DesktopImage ''}
-  # A-Shell may currently be forcing its image through LockScreenImage policy.
-  # Release active blockers before asking the supported API to restore the old image.
+  # Migrate any old machine image pin, then release active blockers before
+  # asking the supported per-user API to restore the old image.
+  [void](Restore-AShellLegacyMachineLockScreenPin $root)
   [void](Release-AShellLockScreenPolicyBlockers)
   $baselineLock=Join-Path $stateDir 'baseline\lock.img'
   if(Test-Path -LiteralPath $baselineLock){Set-LockImage $baselineLock}else{Set-LockImage (Join-Path $stateDir 'lock-before.img')}
@@ -262,6 +269,11 @@ try {
   if(Test-Path $modKey){Remove-Item -LiteralPath $modKey -Recurse -Force}
   if($before.HadMod){ & reg.exe import (Join-Path $stateDir 'taskbar-before.reg') | Out-Null; if($LASTEXITCODE){throw 'Taskbar restore failed.'} }
   foreach($task in $before.Tasks) {
+   if($task.Name -in @('A-Shell Session Repair','A-Shell Cursor Session Repair','A-Shell Cursor Session Guard')){
+    $owned=Get-ScheduledTask -TaskName $task.Name -ErrorAction SilentlyContinue
+    if($owned){Unregister-ScheduledTask -TaskName $task.Name -Confirm:$false}
+    continue
+   }
    if($task.Exists){Register-ScheduledTask -TaskName $task.Name -Xml $task.Xml -Force | Out-Null; if($task.Running){Start-ScheduledTask -TaskName $task.Name}}
    elseif(Get-ScheduledTask -TaskName $task.Name -ErrorAction SilentlyContinue){Unregister-ScheduledTask -TaskName $task.Name -Confirm:$false}
   }
@@ -273,7 +285,6 @@ try {
   & (Join-Path $PSScriptRoot 'Terminal.ps1') -Action Restore
   Restore-AShellDesktop $root
   Send-AShellThemeChange
-  & (Join-Path $PSScriptRoot 'Cursors.ps1') -Action SessionApply
   Write-AShellSetupStep 6 6 'Finish restore' 'Refreshing Explorer-facing appearance and restarting Windhawk when no deferred DLL replacement is waiting for reboot.'
   if((Test-Path $windhawk) -and !$script:AShellWindhawkRestorePendingReboot){Start-Process $windhawk -ArgumentList '-restart','-tray-only' -WindowStyle Hidden}
   if($script:AShellWindhawkRestorePendingReboot){Write-Warning 'One or more previous Windhawk DLLs were still locked after unload/retry. Their exact replacements are queued for the next reboot; A-Shell restore otherwise completed.'}

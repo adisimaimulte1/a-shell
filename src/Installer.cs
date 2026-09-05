@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -11,23 +13,25 @@ using System.Security.Principal;
 using System.Web.Script.Serialization;
 [assembly: AssemblyTitle("A-Shell Setup")]
 [assembly: AssemblyProduct("A-Shell")]
-[assembly: AssemblyVersion("1.9.3.0")]
-[assembly: AssemblyFileVersion("1.9.3.0")]
-[assembly: AssemblyInformationalVersion("1.9.3")]
+[assembly: AssemblyVersion("__ASHELL_ASSEMBLY_VERSION__")]
+[assembly: AssemblyFileVersion("__ASHELL_ASSEMBLY_VERSION__")]
+[assembly: AssemblyInformationalVersion("__ASHELL_VERSION__")]
 class Installer {
  const string ExpectedHash="__PAYLOAD_SHA256__";
- const string Version="1.9.3";
+ const string Version="__ASHELL_VERSION__";
+ const string BuildId="__ASHELL_BUILD_ID__";
  const int STD_OUTPUT_HANDLE=-11, ENABLE_VIRTUAL_TERMINAL_PROCESSING=0x0004;
  [DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int nStdHandle);
  [DllImport("kernel32.dll")] static extern bool GetConsoleMode(IntPtr h, out int mode);
  [DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h, int mode);
  [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern int SetCurrentProcessExplicitAppUserModelID(string appId);
  [DllImport("kernel32.dll")] static extern IntPtr GetConsoleWindow();
+ [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
  [DllImport("user32.dll",CharSet=CharSet.Auto)] static extern IntPtr SendMessage(IntPtr hWnd,uint msg,IntPtr wParam,IntPtr lParam);
  const uint WM_SETICON=0x0080;
  const int ICON_SMALL=0, ICON_BIG=1;
  static bool Vt;
- static IntPtr MonochromeWindowIcon=IntPtr.Zero;
+ static IntPtr MonochromeWindowIcon=IntPtr.Zero, NormalWindowIcon=IntPtr.Zero;
  static void SetShellIdentity(){try{SetCurrentProcessExplicitAppUserModelID("A-Shell.Setup");}catch{}}
  static bool ReadJsonBool(string path,string name,bool fallback) {
   try {
@@ -47,33 +51,105 @@ class Installer {
   if(String.IsNullOrEmpty(root)||!Directory.Exists(root)||!RuntimeIsActive(root))return false;
   return ReadJsonBool(Path.Combine(root,@"state\features.json"),"icons",true);
  }
- static void ApplyMonochromeWindowIcon() {
+ static void ApplyWindowIcon(IntPtr icon) {
   try {
-   IntPtr window=GetConsoleWindow();if(window==IntPtr.Zero)return;
-   if(MonochromeWindowIcon==IntPtr.Zero) {
-    using(Stream stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("AShell.Monochrome.png")) {
-     if(stream==null)return;
-     using(Bitmap source=new Bitmap(stream))
-     using(Bitmap bitmap=new Bitmap(source,256,256))MonochromeWindowIcon=bitmap.GetHicon();
-    }
-   }
-   if(MonochromeWindowIcon==IntPtr.Zero)return;
-   // A console application's taskbar button follows its top-level window icon,
-   // not the AppUserModelID-only XAML selector used for normal app taskbar buttons.
-   SendMessage(window,WM_SETICON,(IntPtr)ICON_BIG,MonochromeWindowIcon);
-   SendMessage(window,WM_SETICON,(IntPtr)ICON_SMALL,MonochromeWindowIcon);
+   IntPtr window=GetConsoleWindow();if(window==IntPtr.Zero||icon==IntPtr.Zero)return;
+   SendMessage(window,WM_SETICON,(IntPtr)ICON_BIG,icon);
+   SendMessage(window,WM_SETICON,(IntPtr)ICON_SMALL,icon);
   } catch {}
  }
- static void ApplyConfiguredSetupIcon(string root) {if(MonochromeIconsAreActive(root))ApplyMonochromeWindowIcon();}
+ static IntPtr LoadWindowIconResource(string resourceName) {
+  using(Stream stream=Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)) {
+   if(stream==null)return IntPtr.Zero;
+   using(Bitmap source=new Bitmap(stream))
+   using(Bitmap bitmap=new Bitmap(256,256,PixelFormat.Format32bppArgb))
+   using(Graphics g=Graphics.FromImage(bitmap)) {
+    g.Clear(Color.Transparent);
+    g.CompositingMode=CompositingMode.SourceCopy;
+    g.CompositingQuality=CompositingQuality.HighQuality;
+    g.InterpolationMode=InterpolationMode.HighQualityBicubic;
+    g.SmoothingMode=SmoothingMode.HighQuality;
+    g.PixelOffsetMode=PixelOffsetMode.HighQuality;
+    int left=source.Width,top=source.Height,right=-1,bottom=-1;
+    for(int y=0;y<source.Height;y++)for(int x=0;x<source.Width;x++)
+     if(source.GetPixel(x,y).A>8){left=Math.Min(left,x);top=Math.Min(top,y);right=Math.Max(right,x);bottom=Math.Max(bottom,y);}
+    if(right<left)return IntPtr.Zero;
+    Rectangle ink=new Rectangle(left,top,right-left+1,bottom-top+1);
+    // Full-size orange; monochrome matches the former orange footprint.
+    float extent=resourceName=="AShell.Monochrome.png"?187f:256f;
+    float scale=Math.Min(extent/ink.Width,extent/ink.Height);
+    int width=Math.Max(1,(int)Math.Round(ink.Width*scale));
+    int height=Math.Max(1,(int)Math.Round(ink.Height*scale));
+    g.DrawImage(source,new Rectangle((256-width)/2,(256-height)/2,width,height),ink,GraphicsUnit.Pixel);
+    return bitmap.GetHicon();
+   }
+  }
+ }
+ static void ApplyMonochromeWindowIcon() {
+  try {if(MonochromeWindowIcon==IntPtr.Zero)MonochromeWindowIcon=LoadWindowIconResource("AShell.Monochrome.png");ApplyWindowIcon(MonochromeWindowIcon);}catch{}
+ }
+ static void ApplyNormalWindowIcon() {
+  try {if(NormalWindowIcon==IntPtr.Zero)NormalWindowIcon=LoadWindowIconResource("AShell.Normal.png");ApplyWindowIcon(NormalWindowIcon);}catch{}
+ }
+ static void ApplyConfiguredSetupIcon(string root) {
+  if(MonochromeIconsAreActive(root))ApplyMonochromeWindowIcon();else ApplyNormalWindowIcon();
+ }
+ static void ReassertConfiguredSetupIcon(string root) {
+  // Windows Terminal/classic-conhost handoff and UAC can finish initializing the
+  // visible console after Main begins, which can overwrite WM_SETICON once. Reapply
+  // the same icon a few times during that short initialization window; no polling
+  // continues after startup and no extra console/taskbar refresh is triggered.
+  try {
+   var thread=new System.Threading.Thread(delegate() {
+    int[] waits=new int[]{120,350,800,1600};
+    foreach(int wait in waits){
+     System.Threading.Thread.Sleep(wait);
+     ApplyConfiguredSetupIcon(root);
+    }
+   });
+   thread.IsBackground=true;
+   thread.Name="A-Shell Setup icon";
+   thread.Start();
+  } catch {}
+ }
+ static bool SupportsConsoleHostHandoffControl(){
+  try {
+   string conhost=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"conhost.exe");
+   return FileVersionInfo.GetVersionInfo(conhost).FileBuildPart>=22000;
+  } catch {return false;}
+ }
+ static bool NeedsClassicConsoleHost() {
+  try {
+   if(!SupportsConsoleHostHandoffControl())return false;
+   IntPtr window=GetConsoleWindow();
+   return !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("WT_SESSION"))||window==IntPtr.Zero||!IsWindowVisible(window);
+  } catch {return false;}
+ }
+ static int RelaunchInClassicConsole(string[] args) {
+  string conhost=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"conhost.exe");
+  string exe=Assembly.GetExecutingAssembly().Location;
+  var command="-ForceNoHandoff -- "+QuoteArgument(exe)+" --ashell-console-hosted";
+  foreach(string arg in args)command+=" "+QuoteArgument(arg);
+  var psi=new ProcessStartInfo(conhost,command){UseShellExecute=false,WorkingDirectory=Environment.CurrentDirectory};
+  using(var p=Process.Start(psi)){if(p==null)throw new Exception("Windows did not start the A-Shell console host.");}
+  return 0;
+ }
  static bool IsAdministrator() {
   try {using(var id=WindowsIdentity.GetCurrent())return new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator);}catch{return false;}
  }
  static string QuoteArgument(string value) {return "\""+(value??"").Replace("\"","\\\"")+"\"";}
  static int RelaunchElevated(string target,string sid) {
   string exe=Assembly.GetExecutingAssembly().Location;
-  var psi=new ProcessStartInfo(exe);
+  ProcessStartInfo psi;
+  if(SupportsConsoleHostHandoffControl()) {
+   string conhost=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"conhost.exe");
+   psi=new ProcessStartInfo(conhost);
+   psi.Arguments="-ForceNoHandoff -- "+QuoteArgument(exe)+" --ashell-console-hosted --ashell-elevated "+QuoteArgument(target)+" "+QuoteArgument(sid);
+  } else {
+   psi=new ProcessStartInfo(exe);
+   psi.Arguments="--ashell-elevated "+QuoteArgument(target)+" "+QuoteArgument(sid);
+  }
   psi.UseShellExecute=true;psi.Verb="runas";psi.WorkingDirectory=Environment.CurrentDirectory;
-  psi.Arguments="--ashell-elevated "+QuoteArgument(target)+" "+QuoteArgument(sid);
   try {
    using(var p=Process.Start(psi)){if(p==null)throw new Exception("Windows did not start the elevated installer.");return 0;}
   } catch(System.ComponentModel.Win32Exception e) {
@@ -87,18 +163,15 @@ class Installer {
  static void Rule() {Line("------------------------------------------------------------",ConsoleColor.DarkGray);}
  static void Section(string title) {Console.WriteLine();Orange("  "+title);Rule();}
  static void Stage(int step,int total,string title,string detail) {
-  Console.WriteLine();
-  Orange("  ================================================================");
-  Orange("  >>> STEP "+step+" OF "+total+"  |  ",false);Console.WriteLine(title);
-  Orange("  ================================================================");
-  if(!String.IsNullOrEmpty(detail))Line(detail,ConsoleColor.Gray);
+  Console.WriteLine();Orange("  ["+step+"/"+total+"] "+title);
+  if(!String.IsNullOrEmpty(detail))Line("    "+detail,ConsoleColor.DarkGray);
  }
  static void Option(string key,string title,string detail) {
-  Console.ForegroundColor=ConsoleColor.Cyan;Console.Write("  ["+key+"] ");Console.ResetColor();Console.WriteLine(title);
+  Orange("  ["+key+"] ",false);Console.WriteLine(title);
   if(!String.IsNullOrEmpty(detail))Line("    "+detail,ConsoleColor.DarkGray);
  }
  static void Field(string name,string value) {
-  Console.ForegroundColor=ConsoleColor.Gray;Console.Write("  "+name.PadRight(12)+": ");Console.ResetColor();Console.WriteLine(value);
+  Orange("  "+name+": ",false);Console.WriteLine(value);
  }
  static string Hash(Stream s) {using(var h=SHA256.Create())return BitConverter.ToString(h.ComputeHash(s)).Replace("-","");}
  static void SafeParents(string path) {
@@ -108,6 +181,11 @@ class Installer {
  static Dictionary<string,string> Validate(ZipArchive archive) {
   var manifest=archive.GetEntry("A-Shell/assets/package-manifest.json");
   if(manifest==null)throw new Exception("Package manifest missing.");
+  var buildEntry=archive.GetEntry("A-Shell/assets/build-id.txt");
+  if(buildEntry==null)throw new Exception("Package build identifier missing.");
+  string packagedBuild;
+  using(var buildReader=new StreamReader(buildEntry.Open()))packagedBuild=buildReader.ReadToEnd().Trim();
+  if(!String.Equals(packagedBuild,BuildId,StringComparison.Ordinal))throw new Exception("Installer/payload build mismatch. Rebuild Setup from a clean source folder.");
   Dictionary<string,object> data;
   using(var r=new StreamReader(manifest.Open()))data=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(r.ReadToEnd());
   var hashes=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
@@ -127,21 +205,41 @@ class Installer {
  static bool IsARecognizedInstall(string target) {
   return Directory.Exists(target) && File.Exists(Path.Combine(target,"ashell.cmd")) && File.Exists(Path.Combine(target,@"scripts\Setup.ps1"));
  }
- static void StopExistingMatrix(string target) {
-  string exe=Path.Combine(target,@"bin\MatrixDesktop.exe");
-  if(File.Exists(exe)) {
-   try {using(var p=Process.Start(new ProcessStartInfo(exe,"--stop"){UseShellExecute=false,CreateNoWindow=true})){if(p!=null)p.WaitForExit(5000);}} catch {}
-  }
-  var deadline=DateTime.UtcNow.AddSeconds(6);
-  for(;;) {
-   bool ours=false;
-   foreach(var p in Process.GetProcessesByName("MatrixDesktop"))using(p) {
-    try {if(String.Equals(p.MainModule.FileName,exe,StringComparison.OrdinalIgnoreCase)){ours=true;break;}} catch {}
+ static string ReadInstalledVersion(string target) {
+  try {
+   string versionFile=Path.Combine(target,"VERSION");
+   if(File.Exists(versionFile)) {
+    string value=File.ReadAllText(versionFile).Trim();System.Version parsed;
+    if(System.Version.TryParse(value,out parsed))return value;
    }
-   if(!ours)return;
-   if(DateTime.UtcNow>=deadline)throw new Exception("The existing A-Shell rain process did not stop. Run 'ashell rain stop', wait for it to close, then retry the upgrade.");
-   System.Threading.Thread.Sleep(150);
-  }
+   string manifest=Path.Combine(target,@"assets\package-manifest.json");
+   if(File.Exists(manifest)) {
+    var data=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(File.ReadAllText(manifest));
+    object value;if(data.TryGetValue("version",out value)) {
+     string text=Convert.ToString(value);System.Version parsed;
+     if(System.Version.TryParse(text,out parsed))return text;
+    }
+   }
+  } catch {}
+  return null;
+ }
+ static int CompareProductVersions(string installed) {
+  System.Version installedVersion,currentVersion;
+  if(!System.Version.TryParse(installed,out installedVersion)||!System.Version.TryParse(Version,out currentVersion))return 0;
+  return installedVersion.CompareTo(currentVersion);
+ }
+ static HashSet<string> ReadInstalledManifestPaths(string target) {
+  var result=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+  try {
+   string manifest=Path.Combine(target,@"assets\package-manifest.json");
+   if(!File.Exists(manifest))return result;
+   var data=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(File.ReadAllText(manifest));
+   foreach(object item in (System.Collections.IEnumerable)data["files"]) {
+    var file=item as Dictionary<string,object>;if(file==null)continue;
+    object path;if(file.TryGetValue("path",out path))result.Add(Convert.ToString(path).Replace('\\','/'));
+   }
+  } catch {result.Clear();}
+  return result;
  }
  static void CheckOtherMatrixCopies(string target) {
   string wanted=Path.Combine(target,@"bin\MatrixDesktop.exe");
@@ -168,6 +266,91 @@ class Installer {
   foreach(var p in Process.GetProcessesByName("MatrixDesktop"))using(p){try{if(String.Equals(Path.GetFullPath(p.MainModule.FileName),exe,StringComparison.OrdinalIgnoreCase))return true;}catch{}}
   return false;
  }
+ static bool CursorGuardRunningFrom(string target) {
+  string exe=Path.GetFullPath(Path.Combine(target,@"bin\CursorSessionGuard.exe"));
+  foreach(var p in Process.GetProcessesByName("CursorSessionGuard"))using(p){
+   try {if(String.Equals(Path.GetFullPath(p.MainModule.FileName),exe,StringComparison.OrdinalIgnoreCase))return true;} catch {}
+  }
+  return false;
+ }
+ static bool StopExistingCursorGuard(string target) {
+  string exe=Path.GetFullPath(Path.Combine(target,@"bin\CursorSessionGuard.exe"));
+  bool found=false;
+  foreach(var p in Process.GetProcessesByName("CursorSessionGuard"))using(p) {
+   try {
+    if(!String.Equals(Path.GetFullPath(p.MainModule.FileName),exe,StringComparison.OrdinalIgnoreCase))continue;
+    found=true;
+    p.Kill();
+    if(!p.WaitForExit(5000))throw new Exception("The active A-Shell cursor guard did not stop in time.");
+   } catch(System.ComponentModel.Win32Exception e) {
+    throw new Exception("Could not pause the active A-Shell cursor guard for the update. "+e.Message);
+   } catch(InvalidOperationException) {}
+  }
+  if(found){
+   var deadline=DateTime.UtcNow.AddSeconds(3);
+   while(CursorGuardRunningFrom(target)) {
+    if(DateTime.UtcNow>=deadline)throw new Exception("CursorSessionGuard.exe is still running and cannot be updated safely.");
+    System.Threading.Thread.Sleep(75);
+   }
+  }
+  return found;
+ }
+ static void StartCursorGuardIfActive(string target) {
+  if(!RuntimeIsActive(target)||CursorGuardRunningFrom(target))return;
+  string exe=Path.Combine(target,@"bin\CursorSessionGuard.exe");
+  if(!File.Exists(exe))return;
+  var psi=new ProcessStartInfo(exe,"--guard") {
+   UseShellExecute=false,CreateNoWindow=true,WorkingDirectory=Path.GetDirectoryName(exe)
+  };
+  using(var p=Process.Start(psi)){if(p==null)throw new Exception("Windows did not restart the A-Shell cursor guard after the update.");}
+  var deadline=DateTime.UtcNow.AddSeconds(2);
+  while(!CursorGuardRunningFrom(target) && DateTime.UtcNow<deadline)System.Threading.Thread.Sleep(50);
+  if(!CursorGuardRunningFrom(target))throw new Exception("The updated CursorSessionGuard.exe did not stay running.");
+ }
+ static void ValidateStagedPowerShell(string staging) {
+  string scripts=Path.Combine(staging,"scripts");
+  if(!Directory.Exists(scripts))throw new Exception("Staged package is missing the scripts folder.");
+  string validator=Path.Combine(Path.GetTempPath(),"ashell-ps-validate-"+Guid.NewGuid().ToString("N")+".ps1");
+  string body=@"param([string]$Scripts)
+$bad=New-Object System.Collections.Generic.List[string]
+foreach($file in Get-ChildItem -LiteralPath $Scripts -Filter '*.ps1' -File){
+ $tokens=$null;$errors=$null
+ [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+ foreach($e in @($errors)){[void]$bad.Add(('{0}:{1}:{2}: {3}' -f $file.Name,$e.Extent.StartLineNumber,$e.Extent.StartColumnNumber,$e.Message))}
+}
+if($bad.Count){$bad | ForEach-Object {Write-Output $_};exit 41}
+exit 0
+";
+  File.WriteAllText(validator,body);
+  try {
+   string powershell=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),@"WindowsPowerShell\v1.0\powershell.exe");
+   var psi=new ProcessStartInfo(powershell) {UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+   psi.Arguments="-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "+QuoteArgument(validator)+" -Scripts "+QuoteArgument(scripts);
+   using(var process=Process.Start(psi)) {
+    if(process==null)throw new Exception("Windows PowerShell did not start for package syntax validation.");
+    string output=process.StandardOutput.ReadToEnd();
+    string error=process.StandardError.ReadToEnd();
+    process.WaitForExit();
+    if(process.ExitCode!=0) {
+     string details=(output+Environment.NewLine+error).Trim();
+     if(details.Length>1800)details=details.Substring(0,1800)+"...";
+     throw new Exception("Bundled PowerShell syntax validation failed before installation. "+details);
+    }
+   }
+  } finally {try{File.Delete(validator);}catch{}}
+ }
+ static void CopyFileReplace(string source,string destination) {
+  IOException last=null;
+  for(int attempt=0;attempt<24;attempt++) {
+   try {File.Copy(source,destination,true);return;}
+   catch(IOException e) {
+    last=e;
+    if(attempt==23)break;
+    System.Threading.Thread.Sleep(100);
+   }
+  }
+  throw new IOException("Could not replace "+destination+" after waiting for a transient file lock to clear.",last);
+ }
  static void CopyHotUpgrade(string staging,string target,bool skipMatrix) {
   foreach(string dir in Directory.GetDirectories(staging,"*",SearchOption.AllDirectories)) {
    string rel=dir.Substring(staging.Length).TrimStart(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
@@ -176,17 +359,18 @@ class Installer {
   foreach(string file in Directory.GetFiles(staging,"*",SearchOption.AllDirectories)) {
    string rel=file.Substring(staging.Length).TrimStart(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
    if(skipMatrix && rel.Equals(@"bin\MatrixDesktop.exe",StringComparison.OrdinalIgnoreCase))continue;
-   string dest=Path.Combine(target,rel);Directory.CreateDirectory(Path.GetDirectoryName(dest));File.Copy(file,dest,true);
+   string dest=Path.Combine(target,rel);Directory.CreateDirectory(Path.GetDirectoryName(dest));CopyFileReplace(file,dest);
   }
  }
  static void RemoveStaleProgramFiles(string staging,string target,bool matrixRunning) {
   if(!Directory.Exists(target))return;
+  var previouslyPackaged=ReadInstalledManifestPaths(target);
   foreach(string file in Directory.GetFiles(target,"*",SearchOption.AllDirectories)) {
    string rel=file.Substring(target.Length).TrimStart(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
    if(rel.StartsWith("state"+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) ||
       rel.StartsWith("backup"+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) ||
       rel.Equals(@"assets\icon-map.json",StringComparison.OrdinalIgnoreCase))continue;
-   if(rel.StartsWith(@"assets\icons\",StringComparison.OrdinalIgnoreCase) && !File.Exists(Path.Combine(staging,rel)))continue;
+   if(rel.StartsWith(@"assets\icons\",StringComparison.OrdinalIgnoreCase) && !File.Exists(Path.Combine(staging,rel)) && !previouslyPackaged.Contains(rel.Replace('\\','/')))continue;
    if(matrixRunning && rel.Equals(@"bin\MatrixDesktop.exe",StringComparison.OrdinalIgnoreCase))continue;
    if(!File.Exists(Path.Combine(staging,rel))) {
     try {File.Delete(file);} catch(Exception e) {throw new Exception("Could not remove stale A-Shell program file: "+rel+". "+e.Message);}
@@ -199,8 +383,11 @@ class Installer {
   string oldMap=Path.Combine(oldRoot,@"assets\icon-map.json"),newMap=Path.Combine(newRoot,@"assets\icon-map.json");
   if(File.Exists(oldMap)){Directory.CreateDirectory(Path.GetDirectoryName(newMap));File.Copy(oldMap,newMap,true);}
   string oldIcons=Path.Combine(oldRoot,@"assets\icons"),newIcons=Path.Combine(newRoot,@"assets\icons");
+  var previouslyPackaged=ReadInstalledManifestPaths(oldRoot);
   if(Directory.Exists(oldIcons))foreach(string file in Directory.GetFiles(oldIcons,"*",SearchOption.AllDirectories)) {
    string rel=file.Substring(oldIcons.Length).TrimStart(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
+   string packagePath=("assets/icons/"+rel.Replace('\\','/'));
+   if(previouslyPackaged.Contains(packagePath))continue;
    string dest=Path.Combine(newIcons,rel);
    Directory.CreateDirectory(Path.GetDirectoryName(dest));if(!File.Exists(dest))File.Copy(file,dest,false);
   }
@@ -224,28 +411,50 @@ class Installer {
     using(var from=e.Open())using(var to=new FileStream(file,FileMode.CreateNew,FileAccess.Write))from.CopyTo(to);
     if(++n%75==0)Line("Files copied: "+n+" / "+archive.Entries.Count,ConsoleColor.DarkGray);
    }
+   // Hash verification proves the bytes are authentic; parse every PowerShell
+   // script as well before a fresh install or update is allowed to touch the
+   // current A-Shell directory. This catches packaging-time syntax mistakes.
+   ValidateStagedPowerShell(staging);
+   Line("[OK] Bundled PowerShell scripts passed Windows PowerShell syntax validation.",ConsoleColor.Green);
    SafeParents(parent);
    if(upgrading) {
     bool matrixRunning=MatrixRunningFrom(target);
+    bool cursorGuardWasRunning=CursorGuardRunningFrom(target);
     string currentMatrix=Path.Combine(target,@"bin\MatrixDesktop.exe"),newMatrix=Path.Combine(staging,@"bin\MatrixDesktop.exe");
     bool sameMatrix=File.Exists(currentMatrix) && File.Exists(newMatrix) && String.Equals(FileHash(currentMatrix),FileHash(newMatrix),StringComparison.OrdinalIgnoreCase);
     previous=Path.Combine(parent,".ashell-previous-"+Guid.NewGuid().ToString("N"));
+    // Snapshot the old installation before pausing anything. Windows permits the
+    // running guard executable to be read, just not overwritten/deleted.
     CopyDirectory(target,previous);
     try {
-     // An update replaces program/code files only. Runtime state, recovery data and
-     // the live Matrix process are preserved exactly as they were before Setup ran.
+     if(cursorGuardWasRunning) {
+      Line("Pausing the windowless cursor guard while its executable is replaced...",ConsoleColor.DarkGray);
+      StopExistingCursorGuard(target);
+     }
+     // An update replaces program/code files only. Matrix rain, saved state and
+     // recovery data stay live. CursorSessionGuard is the one executable that
+     // continuously maps itself from the install folder, so it is paused for the
+     // copy and restarted after startup-task migration. Stopping it does not alter
+     // the currently displayed cursor.
      RemoveStaleProgramFiles(staging,target,matrixRunning);
      CopyHotUpgrade(staging,target,matrixRunning);
      if(matrixRunning && !sameMatrix){
       string pending=Path.Combine(target,@"bin\MatrixDesktop.exe.pending");
-      File.Copy(newMatrix,pending,true);
+      CopyFileReplace(newMatrix,pending);
       Line("[OK] New Matrix executable staged; it will replace the live one next time A-Shell starts from a stopped state.",ConsoleColor.Green);
      }
      PreserveUserFiles(previous,target);
      Directory.Delete(staging,true);
      previous="HOT|"+previous;
      Line(matrixRunning?"[OK] Program files updated; current Matrix rain was left untouched.":"[OK] Program files updated; A-Shell remained stopped.",ConsoleColor.Green);
-    } catch {try {CopyHotUpgrade(previous,target,matrixRunning);}catch{};throw;}
+    } catch {
+     try {
+      CopyHotUpgrade(previous,target,matrixRunning);
+      RemoveStaleProgramFiles(previous,target,matrixRunning);
+     } catch {}
+     try {if(cursorGuardWasRunning)StartCursorGuardIfActive(target);}catch{}
+     throw;
+    }
    } else Directory.Move(staging,target);
    return previous;
   } catch {
@@ -265,15 +474,20 @@ class Installer {
   bool hot=previous.StartsWith("HOT|",StringComparison.Ordinal);if(hot)previous=previous.Substring(4);
   if(!Directory.Exists(previous))return false;
   string failed=Path.Combine(Path.GetDirectoryName(target),".ashell-failed-"+Guid.NewGuid().ToString("N"));
+  bool restartCursorGuard=RuntimeIsActive(target);
   try {
+   StopExistingCursorGuard(target);
    if(hot) {
-    // MatrixDesktop.exe is byte-identical in hot mode and may still be mapped;
-    // restore every surrounding file without disturbing that live process.
+    // MatrixDesktop.exe may still be mapped, so leave it live. The cursor guard
+    // is windowless and safe to pause, which guarantees its EXE can roll back.
     CopyHotUpgrade(previous,target,true);
-    Line("[OK] Previous A-Shell program files were restored in place; Matrix rain was left untouched.",ConsoleColor.Green);
+    RemoveStaleProgramFiles(previous,target,true);
+    if(restartCursorGuard)StartCursorGuardIfActive(target);
+    Line("[OK] Previous A-Shell program files were restored in place; live Matrix rain was left untouched.",ConsoleColor.Green);
    } else {
     if(Directory.Exists(target))Directory.Move(target,failed);
     Directory.Move(previous,target);
+    if(restartCursorGuard)StartCursorGuardIfActive(target);
     Line("[OK] Previous A-Shell program files were put back after the failed upgrade.",ConsoleColor.Green);
     if(Directory.Exists(failed))Line("Failed new build retained for logs/inspection at: "+failed,ConsoleColor.Yellow);
    }
@@ -298,7 +512,12 @@ class Installer {
   using(var p=Process.Start(start)){p.WaitForExit();return p.ExitCode;}
  }
  static int Main(string[] args) {
+  var normalizedArgs=new List<string>(args);
+  bool consoleHosted=normalizedArgs.Remove("--ashell-console-hosted");
+  args=normalizedArgs.ToArray();
   bool elevatedInteractive=args.Length==3&&args[0]=="--ashell-elevated";
+  bool wantsInteractive=args.Length==0||elevatedInteractive;
+  if(wantsInteractive&&!consoleHosted&&NeedsClassicConsoleHost())return RelaunchInClassicConsole(args);
   bool interactive=args.Length==0||elevatedInteractive;
   bool suppressPause=false;
   string target=null;
@@ -307,7 +526,7 @@ class Installer {
   try {
    string defaultTarget=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","A-Shell");
    string iconStateRoot=elevatedInteractive?Path.GetFullPath(args[1]):defaultTarget;
-   SetShellIdentity();Console.Title="A-Shell Setup "+Version;InitColor();ApplyConfiguredSetupIcon(iconStateRoot);
+   SetShellIdentity();Console.Title="A-Shell Setup "+Version;InitColor();ApplyConfiguredSetupIcon(iconStateRoot);ReassertConfiguredSetupIcon(iconStateRoot);
    Console.WriteLine();Orange("  A - S H E L L   "+Version);
    Line("YOUR DESKTOP. A LITTLE ORANGE RAIN.",ConsoleColor.White);
    Rule();
@@ -328,16 +547,21 @@ class Installer {
    bool essentials=false,overridePolicy=false;
    target=extract?Path.GetFullPath(args[1]):(elevatedInteractive?Path.GetFullPath(args[1]):defaultTarget);
    bool upgradingTarget=!extract && Directory.Exists(target);
+   string installedVersion=upgradingTarget?ReadInstalledVersion(target):null;
    if(interactive) {
     if(upgradingTarget) {
      if(!IsARecognizedInstall(target))throw new Exception("The existing install folder is not a recognizable A-Shell installation: "+target);
      CheckOtherMatrixCopies(target);
      Section("UPDATE A-SHELL");
-     Field("Version",Version);
+     int versionOrder=CompareProductVersions(installedVersion);
+     string updateKind=String.IsNullOrEmpty(installedVersion)?"Repair":(versionOrder<0?"Upgrade":(versionOrder==0?"Same-version reinstall / repair":"Downgrade / repair"));
+     Field("Installed version",String.IsNullOrEmpty(installedVersion)?"Unknown or damaged":installedVersion);
+     Field("Installer version",Version);
+     Field("Action",updateKind);
      Field("Program files","Replace installed code/files");
      Field("Saved data","Keep state/, backup/, mappings and custom icons");
      Field("Runtime","Keep the current started/stopped state and live rain");
-     Console.Write("\n  Update this installation? [Y/N]: ");
+     Console.Write("\n  Continue with this "+updateKind.ToLowerInvariant()+"? [Y/N]: ");
      if(!string.Equals(Console.ReadLine(),"Y",StringComparison.OrdinalIgnoreCase))return 0;
     } else {
      Section("CHOOSE INSTALLATION");
@@ -385,7 +609,15 @@ class Installer {
    if(upgradingTarget){
     Line("[WORKING] Migrating obsolete sign-in startup tasks without touching the current desktop/rain state...",ConsoleColor.DarkGray);
     int migrationExit=MigrateStartupTasks(target,expectedSid);
-    if(migrationExit!=0)throw new Exception("Program files were updated, but startup-task migration failed (exit "+migrationExit+"). Rerun Setup so the obsolete sign-in appearance replay can be removed.");
+    if(migrationExit!=0) {
+     bool rolledBack=RollbackUpgrade(previousInstall,target);
+     if(rolledBack)previousInstall=null;
+     throw new Exception("Startup-task migration failed (exit "+migrationExit+"). The previous A-Shell program files were "+(rolledBack?"restored.":"kept for manual recovery."));
+    }
+    // Migrate normally starts the guard for an active A-Shell session. Keep this
+    // direct safety net so a damaged/missing scheduled task cannot leave an update
+    // without cursor protection until the next sign-in.
+    StartCursorGuardIfActive(target);
     CleanupPrevious(previousInstall);previousInstall=null;
     Stage(3,3,"UPDATE COMPLETE","Program files and startup tasks are current. Saved user data and the existing started/stopped state were not changed.");
     Field("Next","Run: ashell version");
@@ -400,13 +632,13 @@ class Installer {
    CleanupPrevious(previousInstall);
    // On a fresh Complete install, icons become active while this Setup window is
    // still open. Re-read the saved component state so the live icon switches now.
-   ApplyConfiguredSetupIcon(target);
+   ApplyConfiguredSetupIcon(target);ReassertConfiguredSetupIcon(target);
    Stage(4,4,"COMPLETE","Installation and required A-Shell verification finished successfully.");
    Line("[OK] A-Shell is installed and the current program files are up to date.",ConsoleColor.Green);
    Field("Next","Open a new terminal and run: ashell help");
    Field("Start","ashell start");
    Field("Stop","ashell stop");
-   Field("Switches","ashell screen | taskbar | icons  on/off");
+   Field("Switches","ashell lockscreen | taskbar | icons  on/off");
    Field("Remove","ashell uninstall");
    return 0;
   } catch(Exception e){

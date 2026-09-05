@@ -59,7 +59,7 @@ ashell help
 
 Run the new Setup EXE normally.
 
-Updates replace program files while preserving $\color{#D65A00}{\textsf{state, backups, icon mappings, custom icons}}$ and your current started / stopped state.
+Setup reads the installed version and identifies an upgrade, same-version reinstall/repair, or downgrade/repair before it changes files. Updates replace all packaged program files, remove files and bundled icons retired by the new release, and preserve $\color{#D65A00}{\textsf{state, backups, icon mappings, genuinely custom icons}}$ plus the current started/stopped state.
 
 ---
 
@@ -82,13 +82,13 @@ Updates replace program files while preserving $\color{#D65A00}{\textsf{state, b
 
 | Command                 | What it does                           |
 | ----------------------- | -------------------------------------- |
-| `ashell screen on/off`  | Toggle A-Shell lock + sign-in styling. |
+| `ashell lockscreen on/off`  | Toggle A-Shell lock + sign-in styling. |
 | `ashell taskbar on/off` | Toggle taskbar styling.                |
 | `ashell icons on/off`   | Toggle monochrome app icons.           |
 | `ashell color D65A00`   | Change the shared accent color.        |
 | `ashell color default`  | Restore A-Shell orange.                |
 
-Appearance commands only modify settings while A-Shell is running. Otherwise they return $\color{#D65A00}{\textsf{[SKIP]}}$ and change nothing.
+Appearance commands only modify settings while A-Shell is running. Otherwise they return $\color{#D65A00}{\textsf{[SKIP]}}$ and change nothing. Lockscreen, taskbar, icon and rain switches are saved immediately, so signing out or rebooting restores the exact combination you left enabled. A-Shell uses Windows' supported clear-logon policy plus its LockApp/LogonUI visual guard without changing your global Transparency Effects preference.
 
 ---
 
@@ -111,36 +111,30 @@ The selected accent is shared between Windows styling and Matrix rain.
 Use your own wallpaper:
 
 ```text
-ashell bg "C:\Pictures\wallpaper.png"
+ashell background "C:\Pictures\wallpaper.png"
 ```
 
 Or switch between:
 
 ```text
-ashell bg default
-ashell bg original
+ashell background default
+ashell background original
 ```
 
-A-Shell supports $\color{#D65A00}{\textsf{PNG, JPEG and BMP}}$. When screen styling is enabled, the desktop, lock screen and sign-in screen share the selected background where Windows allows it.
+A-Shell supports $\color{#D65A00}{\textsf{PNG, JPEG and BMP}}$. When screen styling is enabled, the desktop, lock screen and sign-in screen share the selected background; LockApp/LogonUI dimming is removed and Windows' static-image policy prevents the lock-to-sign-in photo zoom on supported Windows 11 builds.
 
 ---
 
 ## Matrix rain
 
 ```text
-ashell rain start
-ashell rain stop
+ashell rain on
+ashell rain off
 ashell rain status
 ```
 
-Rain starts without clearing existing trails, while stopping it lets the remaining streams $\color{#D65A00}{\textsf{fade naturally}}$.
+Rain starts without clearing existing trails, while stopping it lets the remaining streams $\color{#D65A00}{\textsf{fade naturally}}$. The rain switch is persistent: if rain is off when you shut down or sign out, it stays off at the next sign-in.
 
-Automatic startup can be controlled with:
-
-```text
-ashell startup install
-ashell startup remove
-```
 
 In Task Manager, the renderer appears as `A-Shell Matrix Rain`.
 
@@ -212,7 +206,7 @@ Remove everything:
 ashell uninstall
 ```
 
-A-Shell restores Windows first, then removes its startup entries and program files.
+A-Shell restores Windows first, reconciles and removes any legacy `original_desktop` archive without overwriting Desktop conflicts, then removes its startup entries and program files. If A-Shell is already stopped, uninstall skips the redundant appearance replay and performs only the recovery check and cleanup.
 
 The original recovery baseline stays in $\color{#D65A00}{\textsf{state/}}$ while A-Shell is installed.
 
@@ -239,6 +233,8 @@ From **64-bit Windows PowerShell 5.1**:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Build-Installer.ps1
 ```
+
+`VERSION` is the single source of truth for the public software version. The build reads it for CLI output, package metadata, Setup assembly metadata, native executable resources, and the versioned Setup filename. `assets/build-id.txt` is an internal package-integrity marker only; it is not part of the A-Shell product version.
 
 The script verifies the package, builds the native components and creates the $\color{#D65A00}{\textsf{versioned Setup EXE}}$.
 

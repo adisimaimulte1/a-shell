@@ -22,14 +22,17 @@ public static class AShellBranding {
   }
  }
 
- static byte[] Version(string file,string description){
+ static byte[] Version(string file,string description,string productVersion){
+  var parsed=new System.Version(productVersion);
   var names=new string[]{"CompanyName","FileDescription","FileVersion","InternalName","OriginalFilename","ProductName","ProductVersion","LegalCopyright"};
-  var values=new string[]{"Adrian Contras",description,"1.9.3.0",Path.GetFileNameWithoutExtension(file),Path.GetFileName(file),"A-Shell","1.9.3.0","GPL-3.0; artwork retains its original terms"};
+  var values=new string[]{"Adrian Contras",description,productVersion,Path.GetFileNameWithoutExtension(file),Path.GetFileName(file),"A-Shell",productVersion,"GPL-3.0; artwork retains its original terms"};
   var strings=new byte[names.Length][];
   for(int i=0;i<names.Length;i++)strings[i]=Block(names[i],Encoding.Unicode.GetBytes(values[i]+"\0"),true);
   byte[] fixedInfo;
   using(var m=new MemoryStream())using(var w=new BinaryWriter(m)){
-   foreach(uint v in new uint[]{0xFEEF04BD,0x10000,0x10001,0,0x10001,0,0x3f,0,0x40004,1,0,0,0})w.Write(v);
+   uint versionMS=((uint)parsed.Major<<16)|(uint)parsed.Minor;
+   uint versionLS=((uint)parsed.Build<<16)|(uint)Math.Max(0,parsed.Revision);
+   foreach(uint v in new uint[]{0xFEEF04BD,0x10000,versionMS,versionLS,versionMS,versionLS,0x3f,0,0x40004,1,0,0,0})w.Write(v);
    fixedInfo=m.ToArray();
   }
   return Block("VS_VERSION_INFO",fixedInfo,false,
@@ -37,11 +40,16 @@ public static class AShellBranding {
    Block("VarFileInfo",new byte[0],true,Block("Translation",new byte[]{9,4,176,4},false)));
  }
 
- public static void Apply(string exe,string png,string ico,string description){
+ public static void Apply(string exe,string png,string ico,string description,string productVersion){
   var sizes=new int[]{16,24,32,48,64,128,256};
   var images=new byte[sizes.Length][];
 
-  using(var original=Image.FromFile(png)){
+  using(var original=new Bitmap(png)){
+   int left=original.Width,top=original.Height,right=-1,bottom=-1;
+   for(int y=0;y<original.Height;y++)for(int x=0;x<original.Width;x++)
+    if(original.GetPixel(x,y).A>8){left=Math.Min(left,x);top=Math.Min(top,y);right=Math.Max(right,x);bottom=Math.Max(bottom,y);}
+   if(right<left)throw new InvalidDataException("The logo is fully transparent.");
+   var ink=new Rectangle(left,top,right-left+1,bottom-top+1);
    for(int i=0;i<sizes.Length;i++){
     int size=sizes[i];
     using(var bitmap=new Bitmap(size,size,PixelFormat.Format32bppArgb)){
@@ -53,16 +61,16 @@ public static class AShellBranding {
       g.SmoothingMode=SmoothingMode.HighQuality;
       g.PixelOffsetMode=PixelOffsetMode.HighQuality;
 
-      float scale=Math.Min(size/(float)original.Width,size/(float)original.Height);
-      int width=Math.Max(1,(int)Math.Round(original.Width*scale));
-      int height=Math.Max(1,(int)Math.Round(original.Height*scale));
+      float scale=Math.Min(size/(float)ink.Width,size/(float)ink.Height);
+      int width=Math.Max(1,(int)Math.Round(ink.Width*scale));
+      int height=Math.Max(1,(int)Math.Round(ink.Height*scale));
       int x=(size-width)/2;
       int y=(size-height)/2;
 
       // Deliberately use the simple Rectangle overload. It is available in the
       // .NET Framework compiler used by Windows PowerShell 5.1 and still honors
       // the high-quality interpolation settings above.
-      g.DrawImage(original,new Rectangle(x,y,width,height));
+      g.DrawImage(original,new Rectangle(x,y,width,height),ink,GraphicsUnit.Pixel);
      }
      using(var m=new MemoryStream()){
       bitmap.Save(m,ImageFormat.Png);
@@ -98,7 +106,7 @@ public static class AShellBranding {
     byte[] b=m.ToArray();
     if(!UpdateResource(handle,(IntPtr)14,(IntPtr)1,0,b,(uint)b.Length))throw new IOException("Icon group failed");
    }
-   byte[] v=Version(exe,description);
+   byte[] v=Version(exe,description,productVersion);
    if(!UpdateResource(handle,(IntPtr)16,(IntPtr)1,0,v,(uint)v.Length))throw new IOException("Version resource failed");
    done=EndUpdateResource(handle,false);
    if(!done)throw new IOException("Saving resources failed");
