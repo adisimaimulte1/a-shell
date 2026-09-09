@@ -1,5 +1,5 @@
 {
-    "version":  "1.9.19",
+    "version":  "1.9.20",
     "files":  [
                   {
                       "sha256":  "A01DED7129DF008FED91E4437BEAAD1635BCCC2739C3EE2432B9839729A685CF",
@@ -98,7 +98,7 @@
                       "path":  "Use Original Profile PNG.cmd"
                   },
                   {
-                      "sha256":  "1B80642E25E1C80B31642BA8B9F5D30B5E26147F2EF7736D987C15656D9AB003",
+                      "sha256":  "9ED142234CF1FC4CEC5C539E6DE326BC2819EA7C60BD8C83BB3547515EBDDF2B",
                       "path":  "VERSION"
                   },
                   {
@@ -1502,7 +1502,7 @@
                       "path":  "assets/profile/personal-icon.png"
                   },
                   {
-                      "sha256":  "D096C77E28D826BFFC65FD2627960FD8C172B7E35710BD0B17486C9EFD1293D5",
+                      "sha256":  "121F2EA521F0BCBF7D21A0E708713C554C01CB740EC349130D5C9568EB91EC74",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.build.json"
                   },
                   {
@@ -1510,15 +1510,15 @@
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.wh.cpp"
                   },
                   {
-                      "sha256":  "DEB176853B3BA6270ABF660EB5B8D53EA51138E179A0FECBABE0856A87501233",
+                      "sha256":  "DD69360277D4F0ACA1E7B881C1095C445C696604E95EDFF0CBCA9B27C3A86F5D",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background_1.7.dll"
                   },
                   {
-                      "sha256":  "FC918D0678ED3A62B0F69C04F9256D008A1CD946C8A9914CDD259B266DA97243",
+                      "sha256":  "A9CC9C4439A8BAA88298C2048488267B351296CFC2BE90918C52C822B0EF8833",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.build.json"
                   },
                   {
-                      "sha256":  "EC547EE7080B21CCA0346FF108EE8FBA43700B0E71A75D7C5B33BD6DEBC3241A",
+                      "sha256":  "565220058D75AB9E37E25AF1B34F511FFBF69ED010B00176F3A6D07413C4D952",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.dll"
                   },
                   {
@@ -1538,19 +1538,19 @@
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_764291.dll"
                   },
                   {
-                      "sha256":  "A1AE02E6E6792B0583DF0403825823707F318B2F734AB5209FB01C6069AA08F8",
+                      "sha256":  "4339B0BC036294476BAB7C227410FDBF736D87FD0F028BEAB5C20CDF92ADBD49",
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_ashell_identity1.dll"
                   },
                   {
-                      "sha256":  "8B8DE544CB13AEFA99660B77CEE251034EB6DAB36420FD586D11E2C27E2342D7",
+                      "sha256":  "2CD0338EC86C0298D4414A141AEFA3A696227A50E9BC7BB60F7B81E9132884AF",
                       "path":  "bin/CursorSessionGuard.exe"
                   },
                   {
-                      "sha256":  "B2E17E498F4560C2AB5398E97EEC0A42A32B5B6820E01DB9D65DE989050FD476",
+                      "sha256":  "D87C50D8BD63FE9D888852B9D24CB7627F67D4CED31B23E7BC6738264C21F1A3",
                       "path":  "bin/DesktopLayout.exe"
                   },
                   {
-                      "sha256":  "80A341ED15523E71C8D884766DABEDE3E0B8A34E6533BD170458AE643A12045D",
+                      "sha256":  "FCE10F982BA183AF16579968E81019B9380C49A90D6C6419CAF1B31E68F2B3DC",
                       "path":  "bin/MatrixDesktop.exe"
                   },
                   {
@@ -1566,7 +1566,7 @@
                       "path":  "docs/Publishing.md"
                   },
                   {
-                      "sha256":  "A1FC48DC18ED00C2B8433D010AD7A16D2F3906EF2326807D3908FEB12E426685",
+                      "sha256":  "FB895FF6B8E0BFDAC04E1DD3FEEF0B39F8208B51E49644E0ED2B179D7F49E70A",
                       "path":  "docs/Screen-Patch-Targets.md"
                   },
                   {
@@ -1622,7 +1622,7 @@
                       "path":  "scripts/Build-Branding.ps1"
                   },
                   {
-                      "sha256":  "D198FFAEB9703F7FBD5DB6E182C27AF0FE1A68D36DB9B707CF203A0CE0DF1F8F",
+                      "sha256":  "197D9CA3E43A69C09B9FD3E29FD04ADA24390318179F2628C453F2B01B1B2DF0",
                       "path":  "scripts/Build-Installer.ps1"
                   },
                   {
@@ -1714,11 +1714,11 @@
                       "path":  "scripts/Setup.ps1"
                   },
                   {
-                      "sha256":  "52D8D1E8EDA9351CDFB2BD14EA763FBDC5870E54761B16CA9C57FC64D33FD75C",
+                      "sha256":  "4A81767D9261DA39AE55016606BC7CD0CBEFB75B6A2B339F48AA69378DBFD0D0",
                       "path":  "scripts/Setup.Support.ps1"
                   },
                   {
-                      "sha256":  "E579C0F9107D4A736B797704DDC56A1F1084D113901AEF748EE89EF9977EAB17",
+                      "sha256":  "B7FA39B6FFABED5A0E18FD7EDCC599FD58A8FFBF960C46A2188BBBA64EF8037A",
                       "path":  "scripts/SignIn-Backdrop.ps1"
                   },
                   {
@@ -1750,7 +1750,7 @@
                       "path":  "src/MatrixDesktop.cpp"
                   },
                   {
-                      "sha256":  "0202013B0433AD43D55379B3113BAA179D02FDA955A5855BDE18270ABA888A20",
+                      "sha256":  "9CE83835BD56FEB93C845D9864FF3E8142911FE3E7738218036546E953127917",
                       "path":  "src/signin-clear-background.wh.cpp"
                   },
                   {
@@ -1790,7 +1790,7 @@
                       "path":  "tests/Test-Compatibility.ps1"
                   },
                   {
-                      "sha256":  "EBED96F7F94E6E180AFA5EBF48D3234323CC04533C67E56E2747AAF0C2AF60C4",
+                      "sha256":  "F23C0601AC30E499A5C058861B6A51C9C40AEE7B78A368244865B971C4AA6515",
                       "path":  "tests/Test-CursorAndLockScreenStability.ps1"
                   },
                   {
@@ -1886,7 +1886,7 @@
                       "path":  "tests/Test-SetupMonochromeIcon.ps1"
                   },
                   {
-                      "sha256":  "DB9BF4A051B15B155F82E7FA10E8F253C652171EED3F03626EB6A4659F79ADAE",
+                      "sha256":  "998FB6EF9887740A6940F79F1A2DB8AF7B38046728BEABA21589A8D07B38326F",
                       "path":  "tests/Test-SignInHookTargets.ps1"
                   },
                   {

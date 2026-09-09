@@ -20,7 +20,7 @@ if($guard -notmatch 'expectedArrow NEVER gets replaced'){throw 'Guard can still 
 if($background -match 'Set-AShellMachineLockScreenImage|Suspend-AShellMachineLockScreenGuard|Wait-AShellMachineLockScreenReady'){throw 'Retired machine/CSP lock-image forcing is still present.'}
 if($background -notmatch 'Restore-AShellLegacyMachineLockScreenPin'){throw 'Legacy machine-image migration cleanup is missing.'}
 if($signin -match 'LogonBackgroundBrush:=|LogonBackgroundBackdrop:='){throw 'Retired guessed LogonUI resource overrides are still configured.'}
-foreach($needle in @('0x94140','0x64970','ZoomHookInstalled','ZoomDisabled','0x170','0.45')) {
+foreach($needle in @('HookSymbols','noUndecoratedSymbols','ZoomHookInstalled','ZoomDisabled','QueryInterface','0.45')) {
  if($signInNative -notmatch [regex]::Escape($needle)){throw "Sign-in backdrop narrow guard is missing: $needle"}
 }
 

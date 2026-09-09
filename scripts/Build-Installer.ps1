@@ -9,7 +9,14 @@ $installerSource=Get-Content -LiteralPath (Join-Path $root 'src\Installer.cs') -
 if($installerSource -notmatch '__ASHELL_VERSION__' -or $installerSource -notmatch '__ASHELL_BUILD_ID__'){throw 'Installer.cs is missing generated version/build placeholders.'}
 if(!$Output){$Output=Join-Path (Split-Path $root) ('A-Shell-Setup-'+$version+'.exe')}
 $Output=[IO.Path]::GetFullPath($Output)
+# Accept an output directory as well as an explicit executable filename.
+# Never pass a trailing backslash to csc's quoted /out argument.
+if((Test-Path -LiteralPath $Output -PathType Container) -or $Output.EndsWith('\') -or $Output.EndsWith('/')){
+ $Output=Join-Path $Output ('A-Shell-Setup-'+$version+'.exe')
+}
+if([IO.Path]::GetExtension($Output) -ne '.exe'){throw 'Output must be an .exe filename or a directory (ending in a slash if it does not exist).'}
 if($Output.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Build the installer outside the source folder.'}
+New-Item -ItemType Directory -Path (Split-Path $Output -Parent) -Force|Out-Null
 $build=Join-Path $root ('state\installer-build\'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $build -Force|Out-Null
 $zip=Join-Path ([IO.Path]::GetTempPath()) ('AShell-payload-'+[guid]::NewGuid().ToString('N')+'.zip')

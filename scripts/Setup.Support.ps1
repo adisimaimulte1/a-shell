@@ -3,7 +3,7 @@
 function Get-AShellCapabilities([int]$Build=[Environment]::OSVersion.Version.Build,[string]$Architecture=[Environment]::GetEnvironmentVariable('PROCESSOR_ARCHITECTURE','Machine')) {
  # A-Shell's current native helpers are x64, so the package baseline remains
  # Windows 10 22H2+ / Windows 11 x64. The sign-in overlay hook deliberately
- # fails closed unless Windows.UI.Logon.dll matches the verified known-good build.
+ # resolves the installed Windows.UI.Logon.dll through matching Microsoft symbols.
  $core=($Build -ge 19045 -and $Architecture -eq 'AMD64' -and [Environment]::Is64BitProcess)
  $windows11=($core -and $Build -ge 22000)
  $signInOverlay=$core

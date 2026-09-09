@@ -26,6 +26,8 @@ if($Action -eq 'Check') {
  $motion=Read-RegistryValue 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization' 'AnimateLockScreenBackground'
  $signInConfig=Get-ItemProperty -LiteralPath $signInKey -ErrorAction SilentlyContinue
  $signInStorage='HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\ashell-signin-clear-background\LocalStorage'
+ $compatibility=Read-RegistryValue $signInStorage 'CompatibilityError'
+ if($compatibility.Exists -and $compatibility.Value){Write-Output ('[WARN] '+$compatibility.Value)}
  $removed=Read-RegistryValue $signInStorage 'OverlayRemoved'
  $hookInstalled=Read-RegistryValue $signInStorage 'HookInstalled'
  $zoomHookInstalled=Read-RegistryValue $signInStorage 'ZoomHookInstalled'
@@ -38,7 +40,7 @@ if($Action -eq 'Check') {
   if($hookInstalled.Exists -and [int]$hookInstalled.Value -eq 1){Write-Output '[OK] Verified sign-in backdrop hook initialized inside LogonUI.'}
   if($zoomHookInstalled.Exists -and [int]$zoomHookInstalled.Value -eq 1){Write-Output '[OK] Verified sign-in framing hook initialized inside LogonUI.'}
   if($zoomDisabled.Exists -and [int]$zoomDisabled.Value -eq 1){Write-Output '[OK] Sign-in background zoom: disabled.'}else{Write-Output '[INFO] Sign-in zoom suppression has not yet been observed.'}
-  if($removed.Exists -and [int]$removed.Value -eq 1){Write-Output '[OK] 45% black sign-in backdrop: removed.'}else{Write-Output '[INFO] Backdrop removal has not been observed; this Windows.UI.Logon.dll may not match the verified build.'}
+  if($removed.Exists -and [int]$removed.Value -eq 1){Write-Output '[OK] Black sign-in backdrop: removed.'}else{Write-Output '[INFO] Backdrop removal has not been observed; matching Microsoft symbols may still be unavailable.'}
  } else {Write-Output '[INFO] Sign-in backdrop hook is unavailable on this unsupported A-Shell platform.'}
  if($lockSupported){
   $lockConfig=Get-ItemProperty -LiteralPath $lockKey -ErrorAction SilentlyContinue

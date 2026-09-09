@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id              ashell-signin-clear-background
 // @name            A-Shell clear sign-in background
-// @description     Removes the sign-in dimmer and disables its background zoom on the verified Windows build.
+// @description     Removes the sign-in dimmer using matching Microsoft symbols across Windows updates.
 // @version         1.0
 // @author          A-Shell
 // @include         LogonUI.exe
@@ -19,31 +19,11 @@
 #include <cstdio>
 #ifndef ASHELL_TEST
 #include <windhawk_api.h>
+#ifndef WH_MOD_ID
+#define WH_MOD_ID L"ashell-signin-clear-background"
 #endif
-
-// Only this exact, inspected binary is supported. Updates fail closed.
-static constexpr char kHash[] = "51b3aa2b50944111f039c0de035f9c8951a3fd7a65eda7380ad30ece5c2565bf";
-static bool VerifiedFile(PCWSTR path) {
-    HANDLE f = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE,
-                          nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (f == INVALID_HANDLE_VALUE) return false;
-    HCRYPTPROV provider = 0; HCRYPTHASH hash = 0;
-    bool ok = CryptAcquireContextW(&provider, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)
-        && CryptCreateHash(provider, CALG_SHA_256, 0, 0, &hash);
-    BYTE buffer[32768]; DWORD count = 0;
-    while (ok) {
-        if (!ReadFile(f, buffer, sizeof(buffer), &count, nullptr)) { ok = false; break; }
-        if (!count) break;
-        ok = !!CryptHashData(hash, buffer, count, 0);
-    }
-    BYTE digest[32]; DWORD size = sizeof(digest); char hex[65]{};
-    if (ok) ok = !!CryptGetHashParam(hash, HP_HASHVAL, digest, &size, 0);
-    if (ok) for (unsigned i = 0; i < 32; ++i) sprintf_s(hex + i * 2, 3, "%02x", digest[i]);
-    if (hash) CryptDestroyHash(hash);
-    if (provider) CryptReleaseContext(provider, 0);
-    CloseHandle(f);
-    return ok && !strcmp(hex, kHash);
-}
+#include <windhawk_utils.h>
+#endif
 
 // QI avoids relying on the C++/CX class pointer's default interface layout.
 static bool ClearVerifiedBrush(void* raw, bool verifiedMember = false) noexcept {
@@ -75,19 +55,6 @@ static bool ClearVerifiedBrush(void* raw, bool verifiedMember = false) noexcept 
     } catch (...) { return false; }
 }
 
-static bool VerifiedEntryPoints(HMODULE module) {
-    if (!module) return false;
-    const BYTE prologue[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57,0x41,0x56,0x41,0x57};
-    const BYTE zoomPrologue[] = {0x40,0x55,0x53,0x57,0x48,0x8b,0xec,0x48,0x83,0xec,0x40};
-    const BYTE zoomGetterPrologue[] = {0x8a,0x81,0x58,0x01,0x00,0x00,0xc3};
-    const BYTE zoomSetterPrologue[] = {0x88,0x91,0x58,0x01,0x00,0x00,0xc3};
-    auto base = reinterpret_cast<const BYTE*>(module);
-    return !memcmp(base + 0x94140, prologue, sizeof(prologue)) &&
-           !memcmp(base + 0x64970, zoomPrologue, sizeof(zoomPrologue)) &&
-           !memcmp(base + 0xbb260, zoomGetterPrologue, sizeof(zoomGetterPrologue)) &&
-           !memcmp(base + 0xb75d0, zoomSetterPrologue, sizeof(zoomSetterPrologue));
-}
-
 #ifndef ASHELL_TEST
 using Getter = void* (*)(void*);
 using ZoomPolicy = bool (*)(void*);
@@ -101,11 +68,11 @@ static HMODULE logonModule;
 static volatile LONG reported, zoomReported;
 
 static void* BackgroundGetter(void* self) {
-    setZoomDisabled(self, true);
+    if (setZoomDisabled) setZoomDisabled(self, true);
     void* result = originalGetter(self);
-    // Only the known non-acrylic member, never another returned brush.
-    if (result && result == *reinterpret_cast<void**>(static_cast<BYTE*>(self) + 0x170)
-        && ClearVerifiedBrush(result, true) && InterlockedCompareExchange(&reported, 1, 0) == 0) {
+    // The symbol-identified background property owns this brush. Validate its
+    // COM type and black color; never read private object member offsets.
+    if (result && ClearVerifiedBrush(result, true) && InterlockedCompareExchange(&reported, 1, 0) == 0) {
         Wh_SetIntValue(L"OverlayRemoved", 1);
         Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
     }
@@ -116,22 +83,23 @@ static bool ZoomPolicyHook(void* self) {
     // Microsoft PDB: this is ShouldPanLockLogonImage, NOT IsZoomDisabled.
     // Returning true enables image panning and its oversized image surface.
     originalZoomPolicy(self);
-    setZoomDisabled(self, true);
+    if (setZoomDisabled) setZoomDisabled(self, true);
     Wh_SetIntValue(L"PanDisabled", 1);
     return false;
 }
 
 static bool ZoomGetterHook(void* self) {
     // Native property getter: generated XAML bindings bypass the ABI wrapper.
-    setZoomDisabled(self, true);
+    if (setZoomDisabled) setZoomDisabled(self, true);
     if (InterlockedCompareExchange(&zoomReported, 1, 0) == 0) {
         Wh_SetIntValue(L"ZoomDisabled", 1);
         Wh_SetIntValue(L"LastAppliedPid", GetCurrentProcessId());
     }
-    return originalZoomGetter(self);
+    return true;
 }
 
 BOOL Wh_ModInit() {
+    Wh_SetIntValue(L"SymbolResolved", 0);
     Wh_SetIntValue(L"OverlayRemoved", 0);
     Wh_SetIntValue(L"HookInstalled", 0);
     Wh_SetIntValue(L"ZoomHookInstalled", 0);
@@ -140,30 +108,32 @@ BOOL Wh_ModInit() {
     wchar_t path[MAX_PATH];
     if (!GetSystemDirectoryW(path, MAX_PATH)) return FALSE;
     wcscat_s(path, L"\\Windows.UI.Logon.dll");
-    if (!VerifiedFile(path)) { Wh_Log(L"Unsupported Windows binary; no changes made"); return FALSE; }
     DWORD disabled = 0, size = sizeof(disabled);
     if (RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Policies\\Microsoft\\Windows\\System",
         L"DisableAcrylicBackgroundOnLogon", RRF_RT_REG_DWORD, nullptr, &disabled, &size) != ERROR_SUCCESS
         || disabled != 1) return FALSE;
     logonModule = LoadLibraryExW(path, nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!logonModule) return FALSE;
-    BYTE* target = reinterpret_cast<BYTE*>(logonModule) + 0x94140;
-    BYTE* zoomTarget = reinterpret_cast<BYTE*>(logonModule) + 0x64970;
-    setZoomDisabled = reinterpret_cast<ZoomSetter>(reinterpret_cast<BYTE*>(logonModule) + 0xb75d0);
-    if (!VerifiedEntryPoints(logonModule) ||
-        !Wh_SetFunctionHook(target, reinterpret_cast<void*>(BackgroundGetter),
-                          reinterpret_cast<void**>(&originalGetter))) {
-        FreeLibrary(logonModule); logonModule = nullptr; return FALSE;
+    Wh_SetStringValue(L"CompatibilityError", L"");
+    WindhawkUtils::SYMBOL_HOOK hooks[] = {
+        {{L"?get@?QLogonBackgroundBrush@__IRequestCredentialEntryViewModelPublicNonVirtuals@LogonUX@@1RequestCredentialEntryViewModel@3@UE$AAAPE$AAVBrush@Media@Xaml@UI@Windows@@XZ"}, &originalGetter, BackgroundGetter},
+        {{L"?get@?QShouldPanLockLogonImage@__IRequestCredentialEntryViewModelPublicNonVirtuals@LogonUX@@1RequestCredentialEntryViewModel@3@UE$AAA_NXZ"}, &originalZoomPolicy, ZoomPolicyHook, true},
+        {{L"?get@?QIsZoomDisabled@__IRequestCredentialEntryViewModelPublicNonVirtuals@LogonUX@@1RequestCredentialEntryViewModel@3@UE$AAA_NXZ"}, &originalZoomGetter, ZoomGetterHook, true},
+        {{L"?set@?QIsZoomDisabled@__IRequestCredentialEntryViewModelPublicNonVirtuals@LogonUX@@1RequestCredentialEntryViewModel@3@UE$AAAX_N@Z"}, &setZoomDisabled, nullptr, true},
+    };
+    // Windhawk validates PDB identity against this module and caches addresses
+    // per binary version. No fixed hashes, RVAs or object-layout offsets.
+    WH_HOOK_SYMBOLS_OPTIONS options{sizeof(options)};
+    options.noUndecoratedSymbols = TRUE;
+    if (!WindhawkUtils::HookSymbols(logonModule, hooks, ARRAYSIZE(hooks), &options)) {
+        Wh_SetStringValue(L"CompatibilityError", L"Matching Microsoft background symbols unavailable; reconnect and refresh A-Shell screens.");
+        Wh_Log(L"Matching Microsoft background symbols unavailable");
+        return FALSE;
     }
-    if (!Wh_SetFunctionHook(zoomTarget, reinterpret_cast<void*>(ZoomPolicyHook),
-                            reinterpret_cast<void**>(&originalZoomPolicy))) {
-        FreeLibrary(logonModule); logonModule = nullptr; return FALSE;
-    }
-    if (!Wh_SetFunctionHook(reinterpret_cast<BYTE*>(logonModule) + 0xbb260,
-                            reinterpret_cast<void*>(ZoomGetterHook),
-                            reinterpret_cast<void**>(&originalZoomGetter))) return FALSE;
     Wh_SetIntValue(L"HookInstalled", 1);
-    Wh_SetIntValue(L"ZoomHookInstalled", 1);
+    Wh_SetIntValue(L"SymbolResolved", 1);
+    Wh_SetIntValue(L"ResolvedForPid", GetCurrentProcessId());
+    Wh_SetIntValue(L"ZoomHookInstalled", originalZoomGetter && originalZoomPolicy);
     return TRUE;
 }
 
@@ -213,25 +183,7 @@ int main() {
         }
         if (ClearVerifiedBrush(winrt::get_abi(white), true)) return 15;
         if (ClearVerifiedBrush(nullptr)) return 5;
-        if (!VerifiedFile(L"C:\\Windows\\System32\\Windows.UI.Logon.dll")) return 6;
-        if (VerifiedFile(L"C:\\Windows\\System32\\kernel32.dll")) return 7;
-        auto module = LoadLibraryExW(L"C:\\Windows\\System32\\Windows.UI.Logon.dll", nullptr, DONT_RESOLVE_DLL_REFERENCES);
-        bool entriesMatch = VerifiedEntryPoints(module);
-        if (entriesMatch) {
-            // Exercise the exact native property pair used by _ChangeLayout's
-            // vtable call, on isolated storage rather than a credential object.
-            alignas(void*) BYTE model[0x200]{};
-            auto setter = reinterpret_cast<void (*)(void*, bool)>(reinterpret_cast<BYTE*>(module) + 0xb75d0);
-            auto getter = reinterpret_cast<bool (*)(void*)>(reinterpret_cast<BYTE*>(module) + 0xbb260);
-            setter(model, false);
-            if (getter(model)) return 10;
-            setter(model, true);
-            if (!getter(model) || model[0x158] != 1) return 11;
-            puts("PASS: native IsZoomDisabled property round-trip used by layout.");
-        }
-        if (module) FreeLibrary(module);
-        if (!entriesMatch) return 9;
-        puts("PASS: correct brush cleared; unrelated brushes unchanged; binary guard passed.");
+        puts("PASS: exact brush type/color validation, fade values, and unrelated brushes preserved.");
         return 0;
     } catch (winrt::hresult_error const& e) { printf("XAML test failed: %08x\n", unsigned(e.code().value)); return 8; }
 }
