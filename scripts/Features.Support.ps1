@@ -67,7 +67,7 @@ function Set-AShellDesiredBackground([string]$Root,[string]$Value) {
 }
 function Get-AShellDesiredAccent([string]$Root) {
  $path=Join-Path $Root 'state\desired-accent.txt'
- if(Test-Path -LiteralPath $path){$value=(Get-Content -LiteralPath $path -Raw).Trim();if($value -match '^[0-9A-Fa-f]{6}$'){return $value.ToUpperInvariant()}}
+ if(Test-Path -LiteralPath $path){$value=(Get-Content -LiteralPath $path -Raw).Trim();if($value -match '^[0-9A-Fa-f]{6}$' -or $value -eq 'RAINBOW'){return $value.ToUpperInvariant()}}
  return 'D65A00'
 }
 function Set-AShellDesiredAccent([string]$Root,[string]$Value) {

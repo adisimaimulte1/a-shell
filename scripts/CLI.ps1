@@ -53,7 +53,8 @@ try {
   if($Value -eq 'restore'){$Value='original'};& "$PSScriptRoot\Background.ps1" -Image $Value
  }
  'color' {
-  if(!$Value){throw 'Use: ashell color 00AAFF | default'}
+  if(!$Value){throw 'Use: ashell color <preset> | 00AAFF | list'}
+  if($Value -eq 'list'){& "$PSScriptRoot\Color.ps1" -Color list;break}
   if(Skip-AShellWhenStopped 'accent/rain color'){break}
   & "$PSScriptRoot\Color.ps1" -Color $Value
  }
@@ -114,7 +115,8 @@ try {
   Write-AShellCommand 'ashell icons on | off' 'Monochrome app icons.'
   Write-AShellCommand 'ashell background "C:\image.png"' 'Set desktop + lock/sign-in image.'
   Write-AShellCommand 'ashell background default | original' 'Use bundled or original image.'
-  Write-AShellCommand 'ashell color 00AAFF | default' 'Set accent + rain color.'
+  Write-AShellCommand 'ashell color <preset> | 00AAFF' 'Set accent + rain color.'
+  Write-AShellCommand 'ashell color list' 'Show every included color preset.'
   Write-AShellCommand 'ashell rain on | off | status' 'Control Matrix rain.'
 
   Write-AShellSection 'Icon mappings'

@@ -81,6 +81,7 @@ static std::vector<uint32_t> activePixels;
 static std::vector<std::vector<unsigned char>> masks;
 static uint32_t rng=1;
 static uint32_t accent=0xD65A00;
+static bool rainbow=false;
 static UINT accentMessage=0;
 static bool ParseAccent(const wchar_t* text,uint32_t& result) {
  if(!text || wcslen(text)!=6)return false;
@@ -97,22 +98,39 @@ static bool ParseAccent(const wchar_t* text,uint32_t& result) {
 }
 static void Log(const wchar_t* message);
 #include "Wallpaper.h"
+static uint32_t RainbowColor(size_t column,int row) {
+ // Give every glyph its own hue. The small per-cell step produces one smooth
+ // spectrum down a stream, while the column offset prevents flat color bands.
+ const int wrappedRow=row<0?0:row;
+ const unsigned phase=static_cast<unsigned>((wrappedRow*21+column*7)%1530);
+ const unsigned segment=phase/255, step=phase%255;
+ switch(segment) {
+  case 0:return (255u<<16)|(step<<8);
+  case 1:return ((255-step)<<16)|(255u<<8);
+  case 2:return (255u<<8)|step;
+  case 3:return ((255-step)<<8)|255u;
+  case 4:return (step<<16)|255u;
+  default:return (255u<<16)|(255-step);
+ }
+}
 static void ReadAccent() {
  wchar_t path[MAX_PATH]{};GetModuleFileNameW(nullptr,path,MAX_PATH);
  auto slash=wcsrchr(path,L'\\');if(slash)wcscpy(slash+1,L"..\\state\\accent-color.txt");
- uint32_t next=0xD65A00;
+ uint32_t next=0xD65A00;bool nextRainbow=false;
  FILE* file=_wfopen(path,L"rb");
  if(file) {
   char bytes[8]{};size_t count=fread(bytes,1,sizeof(bytes),file);fclose(file);
-  if(count==6){wchar_t value[7]{};for(int i=0;i<6;i++)value[i]=static_cast<unsigned char>(bytes[i]);ParseAccent(value,next);}
+  if(count==7 && !memcmp(bytes,"RAINBOW",7)){next=0xFFFFFF;nextRainbow=true;}
+  else if(count==6){wchar_t value[7]{};for(int i=0;i<6;i++)value[i]=static_cast<unsigned char>(bytes[i]);ParseAccent(value,next);}
  }
- if(next==accent)return;
- accent=next;GdiFlush();
- wchar_t report[64];swprintf(report,64,L"Live accent: #%06X",accent);Log(report);
+ if(next==accent && nextRainbow==rainbow)return;
+ accent=next;rainbow=nextRainbow;GdiFlush();
+ wchar_t report[64];if(rainbow)wcscpy(report,L"Live accent: RAINBOW");else swprintf(report,64,L"Live accent: #%06X",accent);Log(report);
  // Recolor existing trails without changing stream positions or their opacity.
  for(auto index:activePixels) {
   unsigned a=pixels[index]>>24;
-  pixels[index]=(a<<24)|((((accent>>16)&255)*a/255)<<16)|((((accent>>8)&255)*a/255)<<8)|((accent&255)*a/255);
+  uint32_t color=rainbow?RainbowColor((index%width)/std::max(1,cell),static_cast<int>(index/width)/std::max(1,cell)):accent;
+  pixels[index]=(a<<24)|((((color>>16)&255)*a/255)<<16)|((((color>>8)&255)*a/255)<<8)|((color&255)*a/255);
  }
  CompositeRain(true); if(IsWindow(wall)){InvalidateRect(wall,nullptr,FALSE);UpdateWindow(wall);}
 }
@@ -218,7 +236,7 @@ static void Advance(double elapsedMs) {
  // Original frame loop: fade once, draw, increment, then random reset.
  // Rebuild color tables only when the accent changes, not every frame.
  static uint32_t cachedAccent=~uint32_t(0), fade[256], ink[256];
- if(cachedAccent!=accent) {
+ if(!rainbow && cachedAccent!=accent) {
   for(unsigned i=0;i<256;++i) {
    ink[i]=(i<<24)|((((accent>>16)&255)*i/255)<<16)|
           ((((accent>>8)&255)*i/255)<<8)|((accent&255)*i/255);
@@ -231,7 +249,13 @@ static void Advance(double elapsedMs) {
  size_t kept=0;
  for(uint32_t index:activePixels) {
   uint32_t p=pixels[index];
-  pixels[index]=fade[p>>24];
+  if(rainbow){
+   unsigned a=p>>24, nextA=static_cast<unsigned>(a*0.95);
+   const unsigned nextR=static_cast<unsigned>(((p>>16)&255)*0.95);
+   const unsigned nextG=static_cast<unsigned>(((p>>8)&255)*0.95);
+   const unsigned nextB=static_cast<unsigned>((p&255)*0.95);
+   pixels[index]=nextA<3?0:((nextA<<24)|(nextR<<16)|(nextG<<8)|nextB);
+  } else pixels[index]=fade[p>>24];
   if(pixels[index])activePixels[kept++]=index;
   else if(displayPixels)displayPixels[index]=WallpaperPixel(index);
  }
@@ -251,15 +275,16 @@ static void Advance(double elapsedMs) {
   int y=(row-1)*cell;
   if(y>=0 && y<height) {
 
+   const uint32_t streamColor=rainbow?RainbowColor(col,row-1):accent;
    for(int yy=0;yy<cell && y+yy<height;yy++) for(int xx=0;xx<cell && x+xx<width;xx++) {
     unsigned a=mask[yy*cell+xx]; if(!a)continue;
     const uint32_t index=uint32_t(size_t(y+yy)*width+x+xx);
     auto& p=pixels[index]; unsigned inv=255-a;
-    if(!p){activePixels.push_back(index);p=ink[a];continue;}
+    if(!p){activePixels.push_back(index);p=rainbow?((a<<24)|((((streamColor>>16)&255)*a/255)<<16)|((((streamColor>>8)&255)*a/255)<<8)|((streamColor&255)*a/255)):ink[a];continue;}
     unsigned oa=a+((p>>24)*inv)/255;
-    unsigned r=(((accent>>16)&255)*a+((p>>16)&255)*inv)/255;
-    unsigned g=(((accent>>8)&255)*a+((p>>8)&255)*inv)/255;
-    unsigned b=((accent&255)*a+(p&255)*inv)/255;
+    unsigned r=(((streamColor>>16)&255)*a+((p>>16)&255)*inv)/255;
+    unsigned g=(((streamColor>>8)&255)*a+((p>>8)&255)*inv)/255;
+    unsigned b=((streamColor&255)*a+(p&255)*inv)/255;
     p=(oa<<24)|(r<<16)|(g<<8)|b;
    }
   }

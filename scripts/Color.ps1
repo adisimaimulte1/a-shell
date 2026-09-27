@@ -8,11 +8,13 @@ $snapshot=Join-Path $root 'state\accent-before.clixml'
 $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 if($Action -eq 'Check'){Get-AShellColorValues;return}
 if($Action -eq 'Apply'){
- $Color=ConvertTo-AShellColor $Color
+ if($Color -eq 'list'){Show-AShellColorPresets;return}
+ $selection=Resolve-AShellColor $Color
+ $Color=$selection.Stored
  $saved=Get-AShellDesiredAccent $root
  $active=Read-RegistryValue 'HKCU:\Software\A-Shell' 'AccentColor'
- if($saved -eq $Color -and $active.Exists -and [string]$active.Value -eq $Color) {
-  Write-Output ('[SKIP] Color is already #'+$Color+'. Nothing changed.')
+ if($saved -eq $Color -and $active.Exists -and [string]$active.Value -eq $selection.Hex) {
+  Write-Output ('[SKIP] Color is already '+$selection.Name+'. Nothing changed.')
   return
  }
 }
@@ -27,9 +29,10 @@ try {
    @{Sid=$sid;Values=$previous} | Export-Clixml $snapshot
   }
   if((Import-Clixml $snapshot).Sid -ne $sid){throw 'Accent backup belongs to another account.'}
-  Set-AShellAccent $Color
+  Set-AShellAccent $selection.Hex $selection.Rain
   Set-AShellDesiredAccent $root $Color
-  Write-Output ('[OK] Color: #'+$Color+'. Windows accent + rain synchronized.')
+  if($selection.Rain -eq 'rainbow'){Write-Output '[OK] Color: rainbow. Windows highlight is white; rain is rainbow.'}
+  else {Write-Output ('[OK] Color: '+$selection.Name+' (#'+$selection.Hex+'). Windows accent + rain synchronized.')}
  } elseif(Test-Path $snapshot) {
   $saved=Import-Clixml $snapshot
   if($saved.Sid -ne $sid){throw 'Accent backup belongs to another account.'}

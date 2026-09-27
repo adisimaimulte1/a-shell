@@ -1,0 +1,2118 @@
+{
+    "version":  2,
+    "presets":  [
+                    {
+                        "name":  "default",
+                        "hex":  "D65A00",
+                        "description":  "A-Shell orange",
+                        "aliases":  [
+                                        "orange",
+                                        "ashell"
+                                    ]
+                    },
+                    {
+                        "name":  "vinyl",
+                        "hex":  "1B1B1F",
+                        "description":  "near-black record vinyl",
+                        "aliases":  [
+                                        "vynil",
+                                        "black"
+                                    ]
+                    },
+                    {
+                        "name":  "sky-blue",
+                        "hex":  "38BDF8",
+                        "description":  "clear sky blue",
+                        "aliases":  [
+                                        "sky",
+                                        "skyblue",
+                                        "sky blue"
+                                    ]
+                    },
+                    {
+                        "name":  "light-blue",
+                        "hex":  "7DD3FC",
+                        "description":  "soft light blue",
+                        "aliases":  [
+                                        "lightblue",
+                                        "light blue"
+                                    ]
+                    },
+                    {
+                        "name":  "ice",
+                        "hex":  "A5F3FC",
+                        "description":  "icy cyan"
+                    },
+                    {
+                        "name":  "ocean",
+                        "hex":  "0284C7",
+                        "description":  "deep ocean blue"
+                    },
+                    {
+                        "name":  "cobalt",
+                        "hex":  "2563EB",
+                        "description":  "electric cobalt"
+                    },
+                    {
+                        "name":  "midnight",
+                        "hex":  "312E81",
+                        "description":  "midnight indigo"
+                    },
+                    {
+                        "name":  "violet",
+                        "hex":  "8B5CF6",
+                        "description":  "bright violet",
+                        "aliases":  [
+                                        "purple"
+                                    ]
+                    },
+                    {
+                        "name":  "lavender",
+                        "hex":  "C4B5FD",
+                        "description":  "soft lavender"
+                    },
+                    {
+                        "name":  "magenta",
+                        "hex":  "D946EF",
+                        "description":  "neon magenta"
+                    },
+                    {
+                        "name":  "pink",
+                        "hex":  "EC4899",
+                        "description":  "hot pink"
+                    },
+                    {
+                        "name":  "rose",
+                        "hex":  "F43F5E",
+                        "description":  "vivid rose"
+                    },
+                    {
+                        "name":  "red",
+                        "hex":  "EF4444",
+                        "description":  "signal red"
+                    },
+                    {
+                        "name":  "crimson",
+                        "hex":  "BE123C",
+                        "description":  "deep crimson"
+                    },
+                    {
+                        "name":  "coral",
+                        "hex":  "FB7185",
+                        "description":  "warm coral"
+                    },
+                    {
+                        "name":  "amber",
+                        "hex":  "F59E0B",
+                        "description":  "golden amber"
+                    },
+                    {
+                        "name":  "gold",
+                        "hex":  "EAB308",
+                        "description":  "rich gold",
+                        "aliases":  [
+                                        "yellow"
+                                    ]
+                    },
+                    {
+                        "name":  "lime",
+                        "hex":  "84CC16",
+                        "description":  "acid lime"
+                    },
+                    {
+                        "name":  "green",
+                        "hex":  "22C55E",
+                        "description":  "fresh green"
+                    },
+                    {
+                        "name":  "matrix",
+                        "hex":  "00FF41",
+                        "description":  "classic Matrix green"
+                    },
+                    {
+                        "name":  "emerald",
+                        "hex":  "10B981",
+                        "description":  "emerald green"
+                    },
+                    {
+                        "name":  "mint",
+                        "hex":  "6EE7B7",
+                        "description":  "soft mint"
+                    },
+                    {
+                        "name":  "teal",
+                        "hex":  "14B8A6",
+                        "description":  "balanced teal"
+                    },
+                    {
+                        "name":  "cyan",
+                        "hex":  "06B6D4",
+                        "description":  "electric cyan"
+                    },
+                    {
+                        "name":  "white",
+                        "hex":  "FFFFFF",
+                        "description":  "pure white"
+                    },
+                    {
+                        "name":  "silver",
+                        "hex":  "CBD5E1",
+                        "description":  "cool silver"
+                    },
+                    {
+                        "name":  "graphite",
+                        "hex":  "64748B",
+                        "description":  "blue graphite",
+                        "aliases":  [
+                                        "gray",
+                                        "grey"
+                                    ]
+                    },
+                    {
+                        "name":  "rainbow",
+                        "hex":  "FFFFFF",
+                        "rain":  "rainbow",
+                        "description":  "white highlight + rainbow rain"
+                    },
+                    {
+                        "name":  "alice-blue",
+                        "hex":  "F0F8FF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "antique-white",
+                        "hex":  "FAEBD7",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "aqua",
+                        "hex":  "00FFFF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "aquamarine",
+                        "hex":  "7FFFD4",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "azure",
+                        "hex":  "F0FFFF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "beige",
+                        "hex":  "F5F5DC",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "bisque",
+                        "hex":  "FFE4C4",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "black",
+                        "hex":  "000000",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "blanched-almond",
+                        "hex":  "FFEBCD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "blue",
+                        "hex":  "0000FF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "blue-violet",
+                        "hex":  "8A2BE2",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "brown",
+                        "hex":  "A52A2A",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "burly-wood",
+                        "hex":  "DEB887",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "cadet-blue",
+                        "hex":  "5F9EA0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "chartreuse",
+                        "hex":  "7FFF00",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "chocolate",
+                        "hex":  "D2691E",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "cornflower-blue",
+                        "hex":  "6495ED",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "cornsilk",
+                        "hex":  "FFF8DC",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-blue",
+                        "hex":  "00008B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-cyan",
+                        "hex":  "008B8B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-goldenrod",
+                        "hex":  "B8860B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-gray",
+                        "hex":  "A9A9A9",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-green",
+                        "hex":  "006400",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-khaki",
+                        "hex":  "BDB76B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-magenta",
+                        "hex":  "8B008B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-olive-green",
+                        "hex":  "556B2F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-orange",
+                        "hex":  "FF8C00",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-orchid",
+                        "hex":  "9932CC",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-red",
+                        "hex":  "8B0000",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-salmon",
+                        "hex":  "E9967A",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-sea-green",
+                        "hex":  "8FBC8B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-slate-blue",
+                        "hex":  "483D8B",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-slate-gray",
+                        "hex":  "2F4F4F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-turquoise",
+                        "hex":  "00CED1",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dark-violet",
+                        "hex":  "9400D3",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "deep-pink",
+                        "hex":  "FF1493",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "deep-sky-blue",
+                        "hex":  "00BFFF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dim-gray",
+                        "hex":  "696969",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "dodger-blue",
+                        "hex":  "1E90FF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "firebrick",
+                        "hex":  "B22222",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "floral-white",
+                        "hex":  "FFFAF0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "forest-green",
+                        "hex":  "228B22",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "fuchsia",
+                        "hex":  "FF00FF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "gainsboro",
+                        "hex":  "DCDCDC",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "ghost-white",
+                        "hex":  "F8F8FF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "goldenrod",
+                        "hex":  "DAA520",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "gray",
+                        "hex":  "808080",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "green-yellow",
+                        "hex":  "ADFF2F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "honeydew",
+                        "hex":  "F0FFF0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "hot-pink",
+                        "hex":  "FF69B4",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "indian-red",
+                        "hex":  "CD5C5C",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "indigo",
+                        "hex":  "4B0082",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "ivory",
+                        "hex":  "FFFFF0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "khaki",
+                        "hex":  "F0E68C",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "lavender-blush",
+                        "hex":  "FFF0F5",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "lawn-green",
+                        "hex":  "7CFC00",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "lemon-chiffon",
+                        "hex":  "FFFACD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-coral",
+                        "hex":  "F08080",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-cyan",
+                        "hex":  "E0FFFF",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-goldenrod-yellow",
+                        "hex":  "FAFAD2",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-gray",
+                        "hex":  "D3D3D3",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-green",
+                        "hex":  "90EE90",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-pink",
+                        "hex":  "FFB6C1",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-salmon",
+                        "hex":  "FFA07A",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-sea-green",
+                        "hex":  "20B2AA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-sky-blue",
+                        "hex":  "87CEFA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-slate-gray",
+                        "hex":  "778899",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-steel-blue",
+                        "hex":  "B0C4DE",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "light-yellow",
+                        "hex":  "FFFFE0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "lime-green",
+                        "hex":  "32CD32",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "linen",
+                        "hex":  "FAF0E6",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "maroon",
+                        "hex":  "800000",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-aquamarine",
+                        "hex":  "66CDAA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-blue",
+                        "hex":  "0000CD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-orchid",
+                        "hex":  "BA55D3",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-purple",
+                        "hex":  "9370DB",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-sea-green",
+                        "hex":  "3CB371",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-slate-blue",
+                        "hex":  "7B68EE",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-spring-green",
+                        "hex":  "00FA9A",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-turquoise",
+                        "hex":  "48D1CC",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "medium-violet-red",
+                        "hex":  "C71585",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "midnight-blue",
+                        "hex":  "191970",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "mint-cream",
+                        "hex":  "F5FFFA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "misty-rose",
+                        "hex":  "FFE4E1",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "moccasin",
+                        "hex":  "FFE4B5",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "navajo-white",
+                        "hex":  "FFDEAD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "navy",
+                        "hex":  "000080",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "old-lace",
+                        "hex":  "FDF5E6",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "olive",
+                        "hex":  "808000",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "olive-drab",
+                        "hex":  "6B8E23",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "orange",
+                        "hex":  "FFA500",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "orange-red",
+                        "hex":  "FF4500",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "orchid",
+                        "hex":  "DA70D6",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "pale-goldenrod",
+                        "hex":  "EEE8AA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "pale-green",
+                        "hex":  "98FB98",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "pale-turquoise",
+                        "hex":  "AFEEEE",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "pale-violet-red",
+                        "hex":  "DB7093",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "papaya-whip",
+                        "hex":  "FFEFD5",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "peach-puff",
+                        "hex":  "FFDAB9",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "peru",
+                        "hex":  "CD853F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "plum",
+                        "hex":  "DDA0DD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "powder-blue",
+                        "hex":  "B0E0E6",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "purple",
+                        "hex":  "800080",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "rosy-brown",
+                        "hex":  "BC8F8F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "royal-blue",
+                        "hex":  "4169E1",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "saddle-brown",
+                        "hex":  "8B4513",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "salmon",
+                        "hex":  "FA8072",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "sandy-brown",
+                        "hex":  "F4A460",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "sea-green",
+                        "hex":  "2E8B57",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "sea-shell",
+                        "hex":  "FFF5EE",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "sienna",
+                        "hex":  "A0522D",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "slate-blue",
+                        "hex":  "6A5ACD",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "slate-gray",
+                        "hex":  "708090",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "snow",
+                        "hex":  "FFFAFA",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "spring-green",
+                        "hex":  "00FF7F",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "steel-blue",
+                        "hex":  "4682B4",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "tan",
+                        "hex":  "D2B48C",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "thistle",
+                        "hex":  "D8BFD8",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "tomato",
+                        "hex":  "FF6347",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "turquoise",
+                        "hex":  "40E0D0",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "wheat",
+                        "hex":  "F5DEB3",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "white-smoke",
+                        "hex":  "F5F5F5",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "yellow",
+                        "hex":  "FFFF00",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "yellow-green",
+                        "hex":  "9ACD32",
+                        "description":  "classic web color"
+                    },
+                    {
+                        "name":  "slate-50",
+                        "hex":  "ECEEF1",
+                        "description":  "slate shade 50"
+                    },
+                    {
+                        "name":  "slate-100",
+                        "hex":  "D8DCE2",
+                        "description":  "slate shade 100"
+                    },
+                    {
+                        "name":  "slate-200",
+                        "hex":  "BEC5CE",
+                        "description":  "slate shade 200"
+                    },
+                    {
+                        "name":  "slate-300",
+                        "hex":  "A2ACB9",
+                        "description":  "slate shade 300"
+                    },
+                    {
+                        "name":  "slate-400",
+                        "hex":  "8390A2",
+                        "description":  "slate shade 400"
+                    },
+                    {
+                        "name":  "slate-500",
+                        "hex":  "64748B",
+                        "description":  "slate shade 500"
+                    },
+                    {
+                        "name":  "slate-600",
+                        "hex":  "566478",
+                        "description":  "slate shade 600"
+                    },
+                    {
+                        "name":  "slate-700",
+                        "hex":  "485464",
+                        "description":  "slate shade 700"
+                    },
+                    {
+                        "name":  "slate-800",
+                        "hex":  "3A4351",
+                        "description":  "slate shade 800"
+                    },
+                    {
+                        "name":  "slate-900",
+                        "hex":  "2C333D",
+                        "description":  "slate shade 900"
+                    },
+                    {
+                        "name":  "slate-950",
+                        "hex":  "20252C",
+                        "description":  "slate shade 950"
+                    },
+                    {
+                        "name":  "gray-50",
+                        "hex":  "EDEEF0",
+                        "description":  "gray shade 50"
+                    },
+                    {
+                        "name":  "gray-100",
+                        "hex":  "DADCDF",
+                        "description":  "gray shade 100"
+                    },
+                    {
+                        "name":  "gray-200",
+                        "hex":  "C1C4CA",
+                        "description":  "gray shade 200"
+                    },
+                    {
+                        "name":  "gray-300",
+                        "hex":  "A6AAB3",
+                        "description":  "gray shade 300"
+                    },
+                    {
+                        "name":  "gray-400",
+                        "hex":  "898E99",
+                        "description":  "gray shade 400"
+                    },
+                    {
+                        "name":  "gray-500",
+                        "hex":  "6B7280",
+                        "description":  "gray shade 500"
+                    },
+                    {
+                        "name":  "gray-600",
+                        "hex":  "5C626E",
+                        "description":  "gray shade 600"
+                    },
+                    {
+                        "name":  "gray-700",
+                        "hex":  "4D525C",
+                        "description":  "gray shade 700"
+                    },
+                    {
+                        "name":  "gray-800",
+                        "hex":  "3E424A",
+                        "description":  "gray shade 800"
+                    },
+                    {
+                        "name":  "gray-900",
+                        "hex":  "2F3238",
+                        "description":  "gray shade 900"
+                    },
+                    {
+                        "name":  "gray-950",
+                        "hex":  "222429",
+                        "description":  "gray shade 950"
+                    },
+                    {
+                        "name":  "zinc-50",
+                        "hex":  "EEEEEF",
+                        "description":  "zinc shade 50"
+                    },
+                    {
+                        "name":  "zinc-100",
+                        "hex":  "DCDCDE",
+                        "description":  "zinc shade 100"
+                    },
+                    {
+                        "name":  "zinc-200",
+                        "hex":  "C3C3C7",
+                        "description":  "zinc shade 200"
+                    },
+                    {
+                        "name":  "zinc-300",
+                        "hex":  "AAAAAF",
+                        "description":  "zinc shade 300"
+                    },
+                    {
+                        "name":  "zinc-400",
+                        "hex":  "8D8D95",
+                        "description":  "zinc shade 400"
+                    },
+                    {
+                        "name":  "zinc-500",
+                        "hex":  "71717A",
+                        "description":  "zinc shade 500"
+                    },
+                    {
+                        "name":  "zinc-600",
+                        "hex":  "616169",
+                        "description":  "zinc shade 600"
+                    },
+                    {
+                        "name":  "zinc-700",
+                        "hex":  "515158",
+                        "description":  "zinc shade 700"
+                    },
+                    {
+                        "name":  "zinc-800",
+                        "hex":  "424247",
+                        "description":  "zinc shade 800"
+                    },
+                    {
+                        "name":  "zinc-900",
+                        "hex":  "323236",
+                        "description":  "zinc shade 900"
+                    },
+                    {
+                        "name":  "zinc-950",
+                        "hex":  "242427",
+                        "description":  "zinc shade 950"
+                    },
+                    {
+                        "name":  "stone-50",
+                        "hex":  "EFEEED",
+                        "description":  "stone shade 50"
+                    },
+                    {
+                        "name":  "stone-100",
+                        "hex":  "DDDCDA",
+                        "description":  "stone shade 100"
+                    },
+                    {
+                        "name":  "stone-200",
+                        "hex":  "C6C3C1",
+                        "description":  "stone shade 200"
+                    },
+                    {
+                        "name":  "stone-300",
+                        "hex":  "AEAAA7",
+                        "description":  "stone shade 300"
+                    },
+                    {
+                        "name":  "stone-400",
+                        "hex":  "938D89",
+                        "description":  "stone shade 400"
+                    },
+                    {
+                        "name":  "stone-500",
+                        "hex":  "78716C",
+                        "description":  "stone shade 500"
+                    },
+                    {
+                        "name":  "stone-600",
+                        "hex":  "67615D",
+                        "description":  "stone shade 600"
+                    },
+                    {
+                        "name":  "stone-700",
+                        "hex":  "56514E",
+                        "description":  "stone shade 700"
+                    },
+                    {
+                        "name":  "stone-800",
+                        "hex":  "46423F",
+                        "description":  "stone shade 800"
+                    },
+                    {
+                        "name":  "stone-900",
+                        "hex":  "353230",
+                        "description":  "stone shade 900"
+                    },
+                    {
+                        "name":  "stone-950",
+                        "hex":  "262423",
+                        "description":  "stone shade 950"
+                    },
+                    {
+                        "name":  "red-50",
+                        "hex":  "FDE9E9",
+                        "description":  "red shade 50"
+                    },
+                    {
+                        "name":  "red-100",
+                        "hex":  "FBD0D0",
+                        "description":  "red shade 100"
+                    },
+                    {
+                        "name":  "red-200",
+                        "hex":  "F8B0B0",
+                        "description":  "red shade 200"
+                    },
+                    {
+                        "name":  "red-300",
+                        "hex":  "F58F8F",
+                        "description":  "red shade 300"
+                    },
+                    {
+                        "name":  "red-400",
+                        "hex":  "F26969",
+                        "description":  "red shade 400"
+                    },
+                    {
+                        "name":  "red-500",
+                        "hex":  "EF4444",
+                        "description":  "red shade 500"
+                    },
+                    {
+                        "name":  "red-600",
+                        "hex":  "CE3A3A",
+                        "description":  "red shade 600"
+                    },
+                    {
+                        "name":  "red-700",
+                        "hex":  "AC3131",
+                        "description":  "red shade 700"
+                    },
+                    {
+                        "name":  "red-800",
+                        "hex":  "8B2727",
+                        "description":  "red shade 800"
+                    },
+                    {
+                        "name":  "red-900",
+                        "hex":  "691E1E",
+                        "description":  "red shade 900"
+                    },
+                    {
+                        "name":  "red-950",
+                        "hex":  "4C1616",
+                        "description":  "red shade 950"
+                    },
+                    {
+                        "name":  "orange-50",
+                        "hex":  "FEEEE3",
+                        "description":  "orange shade 50"
+                    },
+                    {
+                        "name":  "orange-100",
+                        "hex":  "FEDCC5",
+                        "description":  "orange shade 100"
+                    },
+                    {
+                        "name":  "orange-200",
+                        "hex":  "FCC49D",
+                        "description":  "orange shade 200"
+                    },
+                    {
+                        "name":  "orange-300",
+                        "hex":  "FBAB73",
+                        "description":  "orange shade 300"
+                    },
+                    {
+                        "name":  "orange-400",
+                        "hex":  "FA8F45",
+                        "description":  "orange shade 400"
+                    },
+                    {
+                        "name":  "orange-500",
+                        "hex":  "F97316",
+                        "description":  "orange shade 500"
+                    },
+                    {
+                        "name":  "orange-600",
+                        "hex":  "D66313",
+                        "description":  "orange shade 600"
+                    },
+                    {
+                        "name":  "orange-700",
+                        "hex":  "B35310",
+                        "description":  "orange shade 700"
+                    },
+                    {
+                        "name":  "orange-800",
+                        "hex":  "90430D",
+                        "description":  "orange shade 800"
+                    },
+                    {
+                        "name":  "orange-900",
+                        "hex":  "6E330A",
+                        "description":  "orange shade 900"
+                    },
+                    {
+                        "name":  "orange-950",
+                        "hex":  "502507",
+                        "description":  "orange shade 950"
+                    },
+                    {
+                        "name":  "amber-50",
+                        "hex":  "FEF3E2",
+                        "description":  "amber shade 50"
+                    },
+                    {
+                        "name":  "amber-100",
+                        "hex":  "FCE7C2",
+                        "description":  "amber shade 100"
+                    },
+                    {
+                        "name":  "amber-200",
+                        "hex":  "FBD699",
+                        "description":  "amber shade 200"
+                    },
+                    {
+                        "name":  "amber-300",
+                        "hex":  "F9C56D",
+                        "description":  "amber shade 300"
+                    },
+                    {
+                        "name":  "amber-400",
+                        "hex":  "F7B13C",
+                        "description":  "amber shade 400"
+                    },
+                    {
+                        "name":  "amber-500",
+                        "hex":  "F59E0B",
+                        "description":  "amber shade 500"
+                    },
+                    {
+                        "name":  "amber-600",
+                        "hex":  "D38809",
+                        "description":  "amber shade 600"
+                    },
+                    {
+                        "name":  "amber-700",
+                        "hex":  "B07208",
+                        "description":  "amber shade 700"
+                    },
+                    {
+                        "name":  "amber-800",
+                        "hex":  "8E5C06",
+                        "description":  "amber shade 800"
+                    },
+                    {
+                        "name":  "amber-900",
+                        "hex":  "6C4605",
+                        "description":  "amber shade 900"
+                    },
+                    {
+                        "name":  "amber-950",
+                        "hex":  "4E3304",
+                        "description":  "amber shade 950"
+                    },
+                    {
+                        "name":  "yellow-50",
+                        "hex":  "FCF6E1",
+                        "description":  "yellow shade 50"
+                    },
+                    {
+                        "name":  "yellow-100",
+                        "hex":  "FAECC1",
+                        "description":  "yellow shade 100"
+                    },
+                    {
+                        "name":  "yellow-200",
+                        "hex":  "F6DF97",
+                        "description":  "yellow shade 200"
+                    },
+                    {
+                        "name":  "yellow-300",
+                        "hex":  "F2D16B",
+                        "description":  "yellow shade 300"
+                    },
+                    {
+                        "name":  "yellow-400",
+                        "hex":  "EEC239",
+                        "description":  "yellow shade 400"
+                    },
+                    {
+                        "name":  "yellow-500",
+                        "hex":  "EAB308",
+                        "description":  "yellow shade 500"
+                    },
+                    {
+                        "name":  "yellow-600",
+                        "hex":  "C99A07",
+                        "description":  "yellow shade 600"
+                    },
+                    {
+                        "name":  "yellow-700",
+                        "hex":  "A88106",
+                        "description":  "yellow shade 700"
+                    },
+                    {
+                        "name":  "yellow-800",
+                        "hex":  "886805",
+                        "description":  "yellow shade 800"
+                    },
+                    {
+                        "name":  "yellow-900",
+                        "hex":  "674F04",
+                        "description":  "yellow shade 900"
+                    },
+                    {
+                        "name":  "yellow-950",
+                        "hex":  "4B3903",
+                        "description":  "yellow shade 950"
+                    },
+                    {
+                        "name":  "lime-50",
+                        "hex":  "F0F9E3",
+                        "description":  "lime shade 50"
+                    },
+                    {
+                        "name":  "lime-100",
+                        "hex":  "E0F2C5",
+                        "description":  "lime shade 100"
+                    },
+                    {
+                        "name":  "lime-200",
+                        "hex":  "CBEA9D",
+                        "description":  "lime shade 200"
+                    },
+                    {
+                        "name":  "lime-300",
+                        "hex":  "B5E073",
+                        "description":  "lime shade 300"
+                    },
+                    {
+                        "name":  "lime-400",
+                        "hex":  "9DD645",
+                        "description":  "lime shade 400"
+                    },
+                    {
+                        "name":  "lime-500",
+                        "hex":  "84CC16",
+                        "description":  "lime shade 500"
+                    },
+                    {
+                        "name":  "lime-600",
+                        "hex":  "72AF13",
+                        "description":  "lime shade 600"
+                    },
+                    {
+                        "name":  "lime-700",
+                        "hex":  "5F9310",
+                        "description":  "lime shade 700"
+                    },
+                    {
+                        "name":  "lime-800",
+                        "hex":  "4D760D",
+                        "description":  "lime shade 800"
+                    },
+                    {
+                        "name":  "lime-900",
+                        "hex":  "3A5A0A",
+                        "description":  "lime shade 900"
+                    },
+                    {
+                        "name":  "lime-950",
+                        "hex":  "2A4107",
+                        "description":  "lime shade 950"
+                    },
+                    {
+                        "name":  "green-50",
+                        "hex":  "E4F8EC",
+                        "description":  "green shade 50"
+                    },
+                    {
+                        "name":  "green-100",
+                        "hex":  "C8F0D7",
+                        "description":  "green shade 100"
+                    },
+                    {
+                        "name":  "green-200",
+                        "hex":  "A2E7BB",
+                        "description":  "green shade 200"
+                    },
+                    {
+                        "name":  "green-300",
+                        "hex":  "7ADC9E",
+                        "description":  "green shade 300"
+                    },
+                    {
+                        "name":  "green-400",
+                        "hex":  "4ED17E",
+                        "description":  "green shade 400"
+                    },
+                    {
+                        "name":  "green-500",
+                        "hex":  "22C55E",
+                        "description":  "green shade 500"
+                    },
+                    {
+                        "name":  "green-600",
+                        "hex":  "1DA951",
+                        "description":  "green shade 600"
+                    },
+                    {
+                        "name":  "green-700",
+                        "hex":  "188E44",
+                        "description":  "green shade 700"
+                    },
+                    {
+                        "name":  "green-800",
+                        "hex":  "147237",
+                        "description":  "green shade 800"
+                    },
+                    {
+                        "name":  "green-900",
+                        "hex":  "0F5729",
+                        "description":  "green shade 900"
+                    },
+                    {
+                        "name":  "green-950",
+                        "hex":  "0B3F1E",
+                        "description":  "green shade 950"
+                    },
+                    {
+                        "name":  "emerald-50",
+                        "hex":  "E2F7F0",
+                        "description":  "emerald shade 50"
+                    },
+                    {
+                        "name":  "emerald-100",
+                        "hex":  "C3EEE0",
+                        "description":  "emerald shade 100"
+                    },
+                    {
+                        "name":  "emerald-200",
+                        "hex":  "9BE2CA",
+                        "description":  "emerald shade 200"
+                    },
+                    {
+                        "name":  "emerald-300",
+                        "hex":  "70D5B3",
+                        "description":  "emerald shade 300"
+                    },
+                    {
+                        "name":  "emerald-400",
+                        "hex":  "40C79A",
+                        "description":  "emerald shade 400"
+                    },
+                    {
+                        "name":  "emerald-500",
+                        "hex":  "10B981",
+                        "description":  "emerald shade 500"
+                    },
+                    {
+                        "name":  "emerald-600",
+                        "hex":  "0E9F6F",
+                        "description":  "emerald shade 600"
+                    },
+                    {
+                        "name":  "emerald-700",
+                        "hex":  "0C855D",
+                        "description":  "emerald shade 700"
+                    },
+                    {
+                        "name":  "emerald-800",
+                        "hex":  "096B4B",
+                        "description":  "emerald shade 800"
+                    },
+                    {
+                        "name":  "emerald-900",
+                        "hex":  "075139",
+                        "description":  "emerald shade 900"
+                    },
+                    {
+                        "name":  "emerald-950",
+                        "hex":  "053B29",
+                        "description":  "emerald shade 950"
+                    },
+                    {
+                        "name":  "teal-50",
+                        "hex":  "E3F6F4",
+                        "description":  "teal shade 50"
+                    },
+                    {
+                        "name":  "teal-100",
+                        "hex":  "C4EDE9",
+                        "description":  "teal shade 100"
+                    },
+                    {
+                        "name":  "teal-200",
+                        "hex":  "9CE1DA",
+                        "description":  "teal shade 200"
+                    },
+                    {
+                        "name":  "teal-300",
+                        "hex":  "72D4CA",
+                        "description":  "teal shade 300"
+                    },
+                    {
+                        "name":  "teal-400",
+                        "hex":  "43C6B8",
+                        "description":  "teal shade 400"
+                    },
+                    {
+                        "name":  "teal-500",
+                        "hex":  "14B8A6",
+                        "description":  "teal shade 500"
+                    },
+                    {
+                        "name":  "teal-600",
+                        "hex":  "119E8F",
+                        "description":  "teal shade 600"
+                    },
+                    {
+                        "name":  "teal-700",
+                        "hex":  "0E8478",
+                        "description":  "teal shade 700"
+                    },
+                    {
+                        "name":  "teal-800",
+                        "hex":  "0C6B60",
+                        "description":  "teal shade 800"
+                    },
+                    {
+                        "name":  "teal-900",
+                        "hex":  "095149",
+                        "description":  "teal shade 900"
+                    },
+                    {
+                        "name":  "teal-950",
+                        "hex":  "063B35",
+                        "description":  "teal shade 950"
+                    },
+                    {
+                        "name":  "cyan-50",
+                        "hex":  "E1F6FA",
+                        "description":  "cyan shade 50"
+                    },
+                    {
+                        "name":  "cyan-100",
+                        "hex":  "C1EDF4",
+                        "description":  "cyan shade 100"
+                    },
+                    {
+                        "name":  "cyan-200",
+                        "hex":  "96E0ED",
+                        "description":  "cyan shade 200"
+                    },
+                    {
+                        "name":  "cyan-300",
+                        "hex":  "6AD3E5",
+                        "description":  "cyan shade 300"
+                    },
+                    {
+                        "name":  "cyan-400",
+                        "hex":  "38C5DD",
+                        "description":  "cyan shade 400"
+                    },
+                    {
+                        "name":  "cyan-500",
+                        "hex":  "06B6D4",
+                        "description":  "cyan shade 500"
+                    },
+                    {
+                        "name":  "cyan-600",
+                        "hex":  "059DB6",
+                        "description":  "cyan shade 600"
+                    },
+                    {
+                        "name":  "cyan-700",
+                        "hex":  "048399",
+                        "description":  "cyan shade 700"
+                    },
+                    {
+                        "name":  "cyan-800",
+                        "hex":  "036A7B",
+                        "description":  "cyan shade 800"
+                    },
+                    {
+                        "name":  "cyan-900",
+                        "hex":  "03505D",
+                        "description":  "cyan shade 900"
+                    },
+                    {
+                        "name":  "cyan-950",
+                        "hex":  "023A44",
+                        "description":  "cyan shade 950"
+                    },
+                    {
+                        "name":  "sky-50",
+                        "hex":  "E2F4FC",
+                        "description":  "sky shade 50"
+                    },
+                    {
+                        "name":  "sky-100",
+                        "hex":  "C3E8FA",
+                        "description":  "sky shade 100"
+                    },
+                    {
+                        "name":  "sky-200",
+                        "hex":  "9AD9F6",
+                        "description":  "sky shade 200"
+                    },
+                    {
+                        "name":  "sky-300",
+                        "hex":  "6EC9F2",
+                        "description":  "sky shade 300"
+                    },
+                    {
+                        "name":  "sky-400",
+                        "hex":  "3EB7ED",
+                        "description":  "sky shade 400"
+                    },
+                    {
+                        "name":  "sky-500",
+                        "hex":  "0EA5E9",
+                        "description":  "sky shade 500"
+                    },
+                    {
+                        "name":  "sky-600",
+                        "hex":  "0C8EC8",
+                        "description":  "sky shade 600"
+                    },
+                    {
+                        "name":  "sky-700",
+                        "hex":  "0A77A8",
+                        "description":  "sky shade 700"
+                    },
+                    {
+                        "name":  "sky-800",
+                        "hex":  "086087",
+                        "description":  "sky shade 800"
+                    },
+                    {
+                        "name":  "sky-900",
+                        "hex":  "064967",
+                        "description":  "sky shade 900"
+                    },
+                    {
+                        "name":  "sky-950",
+                        "hex":  "04354B",
+                        "description":  "sky shade 950"
+                    },
+                    {
+                        "name":  "blue-50",
+                        "hex":  "E7F0FE",
+                        "description":  "blue shade 50"
+                    },
+                    {
+                        "name":  "blue-100",
+                        "hex":  "CEE0FD",
+                        "description":  "blue shade 100"
+                    },
+                    {
+                        "name":  "blue-200",
+                        "hex":  "ADCAFB",
+                        "description":  "blue shade 200"
+                    },
+                    {
+                        "name":  "blue-300",
+                        "hex":  "89B4FA",
+                        "description":  "blue shade 300"
+                    },
+                    {
+                        "name":  "blue-400",
+                        "hex":  "629BF8",
+                        "description":  "blue shade 400"
+                    },
+                    {
+                        "name":  "blue-500",
+                        "hex":  "3B82F6",
+                        "description":  "blue shade 500"
+                    },
+                    {
+                        "name":  "blue-600",
+                        "hex":  "3370D4",
+                        "description":  "blue shade 600"
+                    },
+                    {
+                        "name":  "blue-700",
+                        "hex":  "2A5EB1",
+                        "description":  "blue shade 700"
+                    },
+                    {
+                        "name":  "blue-800",
+                        "hex":  "224B8F",
+                        "description":  "blue shade 800"
+                    },
+                    {
+                        "name":  "blue-900",
+                        "hex":  "1A396C",
+                        "description":  "blue shade 900"
+                    },
+                    {
+                        "name":  "blue-950",
+                        "hex":  "132A4F",
+                        "description":  "blue shade 950"
+                    },
+                    {
+                        "name":  "indigo-50",
+                        "hex":  "ECEDFD",
+                        "description":  "indigo shade 50"
+                    },
+                    {
+                        "name":  "indigo-100",
+                        "hex":  "D8D9FC",
+                        "description":  "indigo shade 100"
+                    },
+                    {
+                        "name":  "indigo-200",
+                        "hex":  "BDBFF9",
+                        "description":  "indigo shade 200"
+                    },
+                    {
+                        "name":  "indigo-300",
+                        "hex":  "A1A3F7",
+                        "description":  "indigo shade 300"
+                    },
+                    {
+                        "name":  "indigo-400",
+                        "hex":  "8285F4",
+                        "description":  "indigo shade 400"
+                    },
+                    {
+                        "name":  "indigo-500",
+                        "hex":  "6366F1",
+                        "description":  "indigo shade 500"
+                    },
+                    {
+                        "name":  "indigo-600",
+                        "hex":  "5558CF",
+                        "description":  "indigo shade 600"
+                    },
+                    {
+                        "name":  "indigo-700",
+                        "hex":  "4749AE",
+                        "description":  "indigo shade 700"
+                    },
+                    {
+                        "name":  "indigo-800",
+                        "hex":  "393B8C",
+                        "description":  "indigo shade 800"
+                    },
+                    {
+                        "name":  "indigo-900",
+                        "hex":  "2C2D6A",
+                        "description":  "indigo shade 900"
+                    },
+                    {
+                        "name":  "indigo-950",
+                        "hex":  "20214D",
+                        "description":  "indigo shade 950"
+                    },
+                    {
+                        "name":  "violet-50",
+                        "hex":  "F1EBFE",
+                        "description":  "violet shade 50"
+                    },
+                    {
+                        "name":  "violet-100",
+                        "hex":  "E2D6FD",
+                        "description":  "violet shade 100"
+                    },
+                    {
+                        "name":  "violet-200",
+                        "hex":  "CEBBFB",
+                        "description":  "violet shade 200"
+                    },
+                    {
+                        "name":  "violet-300",
+                        "hex":  "B99DFA",
+                        "description":  "violet shade 300"
+                    },
+                    {
+                        "name":  "violet-400",
+                        "hex":  "A27DF8",
+                        "description":  "violet shade 400"
+                    },
+                    {
+                        "name":  "violet-500",
+                        "hex":  "8B5CF6",
+                        "description":  "violet shade 500"
+                    },
+                    {
+                        "name":  "violet-600",
+                        "hex":  "784FD4",
+                        "description":  "violet shade 600"
+                    },
+                    {
+                        "name":  "violet-700",
+                        "hex":  "6442B1",
+                        "description":  "violet shade 700"
+                    },
+                    {
+                        "name":  "violet-800",
+                        "hex":  "51358F",
+                        "description":  "violet shade 800"
+                    },
+                    {
+                        "name":  "violet-900",
+                        "hex":  "3D286C",
+                        "description":  "violet shade 900"
+                    },
+                    {
+                        "name":  "violet-950",
+                        "hex":  "2C1D4F",
+                        "description":  "violet shade 950"
+                    },
+                    {
+                        "name":  "purple-50",
+                        "hex":  "F5EBFE",
+                        "description":  "purple shade 50"
+                    },
+                    {
+                        "name":  "purple-100",
+                        "hex":  "E9D4FD",
+                        "description":  "purple shade 100"
+                    },
+                    {
+                        "name":  "purple-200",
+                        "hex":  "DAB8FC",
+                        "description":  "purple shade 200"
+                    },
+                    {
+                        "name":  "purple-300",
+                        "hex":  "CB99FA",
+                        "description":  "purple shade 300"
+                    },
+                    {
+                        "name":  "purple-400",
+                        "hex":  "B977F9",
+                        "description":  "purple shade 400"
+                    },
+                    {
+                        "name":  "purple-500",
+                        "hex":  "A855F7",
+                        "description":  "purple shade 500"
+                    },
+                    {
+                        "name":  "purple-600",
+                        "hex":  "9049D4",
+                        "description":  "purple shade 600"
+                    },
+                    {
+                        "name":  "purple-700",
+                        "hex":  "793DB2",
+                        "description":  "purple shade 700"
+                    },
+                    {
+                        "name":  "purple-800",
+                        "hex":  "61318F",
+                        "description":  "purple shade 800"
+                    },
+                    {
+                        "name":  "purple-900",
+                        "hex":  "4A256D",
+                        "description":  "purple shade 900"
+                    },
+                    {
+                        "name":  "purple-950",
+                        "hex":  "361B4F",
+                        "description":  "purple shade 950"
+                    },
+                    {
+                        "name":  "fuchsia-50",
+                        "hex":  "FAE9FD",
+                        "description":  "fuchsia shade 50"
+                    },
+                    {
+                        "name":  "fuchsia-100",
+                        "hex":  "F6D1FB",
+                        "description":  "fuchsia shade 100"
+                    },
+                    {
+                        "name":  "fuchsia-200",
+                        "hex":  "EFB1F8",
+                        "description":  "fuchsia shade 200"
+                    },
+                    {
+                        "name":  "fuchsia-300",
+                        "hex":  "E890F5",
+                        "description":  "fuchsia shade 300"
+                    },
+                    {
+                        "name":  "fuchsia-400",
+                        "hex":  "E16BF2",
+                        "description":  "fuchsia shade 400"
+                    },
+                    {
+                        "name":  "fuchsia-500",
+                        "hex":  "D946EF",
+                        "description":  "fuchsia shade 500"
+                    },
+                    {
+                        "name":  "fuchsia-600",
+                        "hex":  "BB3CCE",
+                        "description":  "fuchsia shade 600"
+                    },
+                    {
+                        "name":  "fuchsia-700",
+                        "hex":  "9C32AC",
+                        "description":  "fuchsia shade 700"
+                    },
+                    {
+                        "name":  "fuchsia-800",
+                        "hex":  "7E298B",
+                        "description":  "fuchsia shade 800"
+                    },
+                    {
+                        "name":  "fuchsia-900",
+                        "hex":  "5F1F69",
+                        "description":  "fuchsia shade 900"
+                    },
+                    {
+                        "name":  "fuchsia-950",
+                        "hex":  "45164C",
+                        "description":  "fuchsia shade 950"
+                    },
+                    {
+                        "name":  "pink-50",
+                        "hex":  "FDE9F3",
+                        "description":  "pink shade 50"
+                    },
+                    {
+                        "name":  "pink-100",
+                        "hex":  "FAD1E6",
+                        "description":  "pink shade 100"
+                    },
+                    {
+                        "name":  "pink-200",
+                        "hex":  "F7B2D4",
+                        "description":  "pink shade 200"
+                    },
+                    {
+                        "name":  "pink-300",
+                        "hex":  "F491C2",
+                        "description":  "pink shade 300"
+                    },
+                    {
+                        "name":  "pink-400",
+                        "hex":  "F06DAD",
+                        "description":  "pink shade 400"
+                    },
+                    {
+                        "name":  "pink-500",
+                        "hex":  "EC4899",
+                        "description":  "pink shade 500"
+                    },
+                    {
+                        "name":  "pink-600",
+                        "hex":  "CB3E84",
+                        "description":  "pink shade 600"
+                    },
+                    {
+                        "name":  "pink-700",
+                        "hex":  "AA346E",
+                        "description":  "pink shade 700"
+                    },
+                    {
+                        "name":  "pink-800",
+                        "hex":  "892A59",
+                        "description":  "pink shade 800"
+                    },
+                    {
+                        "name":  "pink-900",
+                        "hex":  "682043",
+                        "description":  "pink shade 900"
+                    },
+                    {
+                        "name":  "pink-950",
+                        "hex":  "4C1731",
+                        "description":  "pink shade 950"
+                    },
+                    {
+                        "name":  "rose-50",
+                        "hex":  "FEE8EC",
+                        "description":  "rose shade 50"
+                    },
+                    {
+                        "name":  "rose-100",
+                        "hex":  "FCCFD7",
+                        "description":  "rose shade 100"
+                    },
+                    {
+                        "name":  "rose-200",
+                        "hex":  "FAAEBB",
+                        "description":  "rose shade 200"
+                    },
+                    {
+                        "name":  "rose-300",
+                        "hex":  "F88C9E",
+                        "description":  "rose shade 300"
+                    },
+                    {
+                        "name":  "rose-400",
+                        "hex":  "F6657E",
+                        "description":  "rose shade 400"
+                    },
+                    {
+                        "name":  "rose-500",
+                        "hex":  "F43F5E",
+                        "description":  "rose shade 500"
+                    },
+                    {
+                        "name":  "rose-600",
+                        "hex":  "D23651",
+                        "description":  "rose shade 600"
+                    },
+                    {
+                        "name":  "rose-700",
+                        "hex":  "B02D44",
+                        "description":  "rose shade 700"
+                    },
+                    {
+                        "name":  "rose-800",
+                        "hex":  "8E2537",
+                        "description":  "rose shade 800"
+                    },
+                    {
+                        "name":  "rose-900",
+                        "hex":  "6B1C29",
+                        "description":  "rose shade 900"
+                    },
+                    {
+                        "name":  "rose-950",
+                        "hex":  "4E141E",
+                        "description":  "rose shade 950"
+                    },
+                    {
+                        "name":  "brown-50",
+                        "hex":  "F1ECE8",
+                        "description":  "brown shade 50"
+                    },
+                    {
+                        "name":  "brown-100",
+                        "hex":  "E2D7CE",
+                        "description":  "brown shade 100"
+                    },
+                    {
+                        "name":  "brown-200",
+                        "hex":  "CEBBAD",
+                        "description":  "brown shade 200"
+                    },
+                    {
+                        "name":  "brown-300",
+                        "hex":  "B99E8A",
+                        "description":  "brown shade 300"
+                    },
+                    {
+                        "name":  "brown-400",
+                        "hex":  "A27E63",
+                        "description":  "brown shade 400"
+                    },
+                    {
+                        "name":  "brown-500",
+                        "hex":  "8B5E3C",
+                        "description":  "brown shade 500"
+                    },
+                    {
+                        "name":  "brown-600",
+                        "hex":  "785134",
+                        "description":  "brown shade 600"
+                    },
+                    {
+                        "name":  "brown-700",
+                        "hex":  "64442B",
+                        "description":  "brown shade 700"
+                    },
+                    {
+                        "name":  "brown-800",
+                        "hex":  "513723",
+                        "description":  "brown shade 800"
+                    },
+                    {
+                        "name":  "brown-900",
+                        "hex":  "3D291A",
+                        "description":  "brown shade 900"
+                    },
+                    {
+                        "name":  "brown-950",
+                        "hex":  "2C1E13",
+                        "description":  "brown shade 950"
+                    },
+                    {
+                        "name":  "coral-50",
+                        "hex":  "FFEDED",
+                        "description":  "coral shade 50"
+                    },
+                    {
+                        "name":  "coral-100",
+                        "hex":  "FFDADA",
+                        "description":  "coral shade 100"
+                    },
+                    {
+                        "name":  "coral-200",
+                        "hex":  "FFC1C1",
+                        "description":  "coral shade 200"
+                    },
+                    {
+                        "name":  "coral-300",
+                        "hex":  "FFA6A6",
+                        "description":  "coral shade 300"
+                    },
+                    {
+                        "name":  "coral-400",
+                        "hex":  "FF8989",
+                        "description":  "coral shade 400"
+                    },
+                    {
+                        "name":  "coral-500",
+                        "hex":  "FF6B6B",
+                        "description":  "coral shade 500"
+                    },
+                    {
+                        "name":  "coral-600",
+                        "hex":  "DB5C5C",
+                        "description":  "coral shade 600"
+                    },
+                    {
+                        "name":  "coral-700",
+                        "hex":  "B84D4D",
+                        "description":  "coral shade 700"
+                    },
+                    {
+                        "name":  "coral-800",
+                        "hex":  "943E3E",
+                        "description":  "coral shade 800"
+                    },
+                    {
+                        "name":  "coral-900",
+                        "hex":  "702F2F",
+                        "description":  "coral shade 900"
+                    },
+                    {
+                        "name":  "coral-950",
+                        "hex":  "522222",
+                        "description":  "coral shade 950"
+                    },
+                    {
+                        "name":  "mint-50",
+                        "hex":  "E7FAF3",
+                        "description":  "mint shade 50"
+                    },
+                    {
+                        "name":  "mint-100",
+                        "hex":  "CCF4E6",
+                        "description":  "mint shade 100"
+                    },
+                    {
+                        "name":  "mint-200",
+                        "hex":  "AAEDD4",
+                        "description":  "mint shade 200"
+                    },
+                    {
+                        "name":  "mint-300",
+                        "hex":  "85E5C2",
+                        "description":  "mint shade 300"
+                    },
+                    {
+                        "name":  "mint-400",
+                        "hex":  "5DDCAD",
+                        "description":  "mint shade 400"
+                    },
+                    {
+                        "name":  "mint-500",
+                        "hex":  "34D399",
+                        "description":  "mint shade 500"
+                    },
+                    {
+                        "name":  "mint-600",
+                        "hex":  "2DB584",
+                        "description":  "mint shade 600"
+                    },
+                    {
+                        "name":  "mint-700",
+                        "hex":  "25986E",
+                        "description":  "mint shade 700"
+                    },
+                    {
+                        "name":  "mint-800",
+                        "hex":  "1E7A59",
+                        "description":  "mint shade 800"
+                    },
+                    {
+                        "name":  "mint-900",
+                        "hex":  "175D43",
+                        "description":  "mint shade 900"
+                    },
+                    {
+                        "name":  "mint-950",
+                        "hex":  "114431",
+                        "description":  "mint shade 950"
+                    }
+                ]
+}

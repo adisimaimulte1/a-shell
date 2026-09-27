@@ -11,10 +11,36 @@ public static class AShellAccentNative {
 }
 '@
 }
+function Get-AShellColorPresets {
+ $path=Join-Path (Split-Path $PSScriptRoot) 'assets\color-presets.json'
+ if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'The color preset catalog is missing. Run Setup to repair A-Shell.'}
+ @((Get-Content -LiteralPath $path -Raw | ConvertFrom-Json).presets)
+}
+function Resolve-AShellColor([string]$Color) {
+ $inputValue=([string]$Color).Trim()
+ if($inputValue -match '^#?([0-9a-fA-F]{6})$'){
+  return [pscustomobject]@{Name='custom';Hex=$Matches[1].ToUpperInvariant();Rain='solid';Stored=$Matches[1].ToUpperInvariant()}
+ }
+ $key=$inputValue.ToLowerInvariant()
+ foreach($preset in Get-AShellColorPresets) {
+  if($preset.name -eq $key -or @($preset.aliases) -contains $key) {
+   $rain=if($preset.rain){[string]$preset.rain}else{'solid'}
+   $stored=if($rain -eq 'rainbow'){'RAINBOW'}else{([string]$preset.hex).ToUpperInvariant()}
+   return [pscustomobject]@{Name=[string]$preset.name;Hex=([string]$preset.hex).ToUpperInvariant();Rain=$rain;Stored=$stored}
+  }
+ }
+ throw "Unknown color '$Color'. Use six hexadecimal digits or run 'ashell color list'."
+}
 function ConvertTo-AShellColor([string]$Color) {
- if($Color -eq 'default'){return 'D65A00'}
- if($Color -notmatch '^#?([0-9a-fA-F]{6})$'){throw 'Use six hexadecimal digits, for example 00AAFF, or default.'}
- return $Matches[1].ToUpperInvariant()
+ (Resolve-AShellColor $Color).Hex
+}
+function Show-AShellColorPresets {
+ Write-Output 'A-Shell color presets:'
+ foreach($preset in Get-AShellColorPresets) {
+  $suffix=if($preset.rain -eq 'rainbow'){'  (white highlight + rainbow rain)'}else{"  #$($preset.hex)"}
+  Write-Output ('  {0,-12}{1}  {2}' -f $preset.name,$suffix,$preset.description)
+ }
+ Write-Output "`nUse: ashell color <preset>"
 }
 function Send-AShellPolicyChange {
  $result=[IntPtr]::Zero
@@ -49,15 +75,16 @@ function Get-AShellColorValues {
  )
  @(foreach($entry in $list){Read-RegistryValue $entry[0] $entry[1]})
 }
-function Send-AShellColorChange {
+function Send-AShellColorChange([string]$RainMode='solid') {
  $result=[IntPtr]::Zero
  $stored=Read-RegistryValue 'HKCU:\Software\A-Shell' 'AccentColor'
  $hex=if($stored.Exists){ConvertTo-AShellColor $stored.Value}else{'D65A00'}
+ $rendererValue=if($RainMode -eq 'rainbow'){'RAINBOW'}else{$hex}
  $folder=Join-Path (Split-Path $PSScriptRoot) 'state'
  New-Item -ItemType Directory $folder -Force | Out-Null
  $file=Join-Path $folder 'accent-color.txt'
  $temporary=$file+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
- [IO.File]::WriteAllText($temporary,$hex,[Text.Encoding]::ASCII)
+ [IO.File]::WriteAllText($temporary,$rendererValue,[Text.Encoding]::ASCII)
  if(Test-Path $file){[IO.File]::Replace($temporary,$file,$file+'.previous')}else{[IO.File]::Move($temporary,$file)}
  # Notify the renderer directly first; it returns the RGB value plus one.
  $window=[AShellAccentNative]::FindWindow('MatrixDesktopController',$null)
@@ -69,7 +96,7 @@ function Send-AShellColorChange {
  Send-AShellMaterialPreferenceChange
  # ImmersiveColorSet is sufficient; WM_THEMECHANGED forces expensive global redraws.
 }
-function Set-AShellAccent([string]$Color) {
+function Set-AShellAccent([string]$Color,[string]$RainMode='solid') {
  $hex=ConvertTo-AShellColor $Color
  $r=[Convert]::ToInt32($hex.Substring(0,2),16);$g=[Convert]::ToInt32($hex.Substring(2,2),16);$b=[Convert]::ToInt32($hex.Substring(4,2),16)
  # AccentPalette is eight RGBX entries: light variants, base, dark variants.
@@ -94,5 +121,5 @@ function Set-AShellAccent([string]$Color) {
   @('HKCU:\Software\Microsoft\Windows\DWM','ColorizationColor','DWord',$argb),
   @('HKCU:\Control Panel\Desktop','AutoColorization','DWord',0)
  )) {Write-RegistryValue @{Path=$entry[0];Name=$entry[1];Kind=$entry[2];Value=$entry[3];Exists=$true}}
- Send-AShellColorChange
+ Send-AShellColorChange $RainMode
 }

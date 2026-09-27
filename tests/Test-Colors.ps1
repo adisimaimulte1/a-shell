@@ -2,6 +2,11 @@ $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
 . (Join-Path $root 'scripts\Appearance.Helpers.ps1')
 . (Join-Path $root 'scripts\Color.Support.ps1')
+$presets=@(Get-AShellColorPresets)
+if($presets.Count -lt 400){throw 'The included color range is too small.'}
+if((Resolve-AShellColor 'vynil').Name -ne 'vinyl' -or (Resolve-AShellColor 'sky blue').Name -ne 'sky-blue'){throw 'Expected friendly preset aliases are missing.'}
+$rainbow=Resolve-AShellColor 'rainbow'
+if($rainbow.Hex -ne 'FFFFFF' -or $rainbow.Rain -ne 'rainbow' -or $rainbow.Stored -ne 'RAINBOW'){throw 'Rainbow must use a white Windows accent and rainbow rain mode.'}
 $initial=Get-AShellColorValues
 $pidBefore=(Get-Process MatrixDesktop).Id
 $baseline=Join-Path $root 'state\accent-before.clixml'

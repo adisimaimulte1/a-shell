@@ -16,6 +16,9 @@ if(!$help){throw 'Could not locate CLI help block.'}
 if($help -notmatch 'ashell background' -or $help -match 'ashell bg'){throw 'Help must advertise the full background command, not bg.'}
 if($help -notmatch 'ashell lockscreen on \| off' -or $help -match 'ashell locscreen'){throw 'Help must advertise lockscreen, not the old locscreen typo.'}
 if($help -notmatch 'ashell rain on \| off \| status' -or $help -match 'rain start|rain stop'){throw 'Help must advertise rain on/off/status.'}
+if($help -notmatch 'ashell color list' -or $help -notmatch 'ashell color <preset> \| 00AAFF'){throw 'Help must advertise named color presets and their list.'}
+$matrix=Get-Content (Join-Path $root 'src\MatrixDesktop.cpp') -Raw
+if($matrix -notmatch 'RainbowColor\(size_t column,int row\)' -or $matrix -notmatch 'RainbowColor\(col,row-1\)'){throw 'Rainbow rain must choose a smooth hue for every character, not one color per stream.'}
 if($help -match 'startup install|ashell component'){throw 'Internal/legacy command surface leaked into normal help.'}
 if($console -notmatch '214;90;0' -or $console -notmatch 'Write-AShellCommand' -or $console -notmatch "'WORKING'"){throw 'Concise orange-accent console formatter is missing.'}
 $runtime=Get-Content -LiteralPath (Join-Path $root 'scripts\Runtime.ps1') -Raw

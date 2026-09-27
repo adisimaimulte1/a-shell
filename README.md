@@ -85,8 +85,9 @@ Setup reads the installed version and identifies an upgrade, same-version reinst
 | `ashell lockscreen on/off`  | Toggle A-Shell lock + sign-in styling. |
 | `ashell taskbar on/off` | Toggle taskbar styling.                |
 | `ashell icons on/off`   | Toggle monochrome app icons.           |
-| `ashell color D65A00`   | Change the shared accent color.        |
-| `ashell color default`  | Restore A-Shell orange.                |
+| `ashell color sky-blue` | Apply an included color preset.        |
+| `ashell color D65A00`   | Apply a custom RGB color.              |
+| `ashell color list`     | Show every included preset.            |
 
 Appearance commands only modify settings while A-Shell is running. Otherwise they return $\color{#D65A00}{\textsf{[SKIP]}}$ and change nothing. Lockscreen, taskbar, icon and rain switches are saved immediately, so signing out or rebooting restores the exact combination you left enabled. A-Shell uses Windows' supported clear-logon policy plus its LockApp/LogonUI visual guard without changing your global Transparency Effects preference.
 
@@ -99,6 +100,18 @@ Use any six-digit RGB color:
 ```text
 ashell color 00AAFF
 ```
+
+Or use an included preset:
+
+```text
+ashell color vinyl
+ashell color sky-blue
+ashell color light-blue
+ashell color rainbow
+ashell color list
+```
+
+`rainbow` is the easter egg: Windows uses a clean white highlight while every Matrix character follows a smooth spectrum down its stream. More than 400 curated, classic web and numbered shade presets are included. The complete preset catalog is in [`assets/color-presets.json`](assets/color-presets.json).
 
 Return to the default $\color{#D65A00}{\textsf{A-Shell orange}}$:
 

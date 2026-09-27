@@ -38,6 +38,8 @@ $rejected=$false;try {Import-AShellIcon $fixture $original 'occupied.png'}catch{
 if((Get-FileHash "$fixture\assets\icons\occupied.png").Hash -ne $before){throw 'Collision changed icon'}
 if((Get-AShellAppNameKey 'Adobe Illustrator 2024') -ne 'adobeillustrator'){throw 'Year normalization failed'}
 if((Get-AShellAppNameKey 'Product 3D') -ne 'product3d'){throw 'Product number removed'}
+$anote=Find-AShellIcon (New-AShellIconIndex $root) ([pscustomobject]@{Name='A-Note';AppID='A-Note'}) @{}
+if($anote.Icon -ne 'a-note-96.png'){throw 'Bundled A-Note icon is not an exact automatic match.'}
 'PASS: versioned Illustrator matching, byte-preserving import, repeat import, PNG validation and collision protection.'
 # Explicit system-app aliases, exact-name precedence and ambiguous candidates.
 foreach($name in @('icons8-bar-chart-96.png','icons8-terminal-96.png','icons8-codex-96.png','icons8-chatgpt-96.png','icons8-ambiguous-96.png','ambiguous.png')) {
