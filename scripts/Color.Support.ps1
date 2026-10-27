@@ -25,7 +25,7 @@ function Resolve-AShellColor([string]$Color) {
  foreach($preset in Get-AShellColorPresets) {
   if($preset.name -eq $key -or @($preset.aliases) -contains $key) {
    $rain=if($preset.rain){[string]$preset.rain}else{'solid'}
-   $stored=if($rain -eq 'rainbow'){'RAINBOW'}else{([string]$preset.hex).ToUpperInvariant()}
+   $stored=switch($rain){'rainbow'{'RAINBOW'}'purple-orange'{'PURPLE_ORANGE'}default{([string]$preset.hex).ToUpperInvariant()}}
    return [pscustomobject]@{Name=[string]$preset.name;Hex=([string]$preset.hex).ToUpperInvariant();Rain=$rain;Stored=$stored}
   }
  }
@@ -37,7 +37,7 @@ function ConvertTo-AShellColor([string]$Color) {
 function Show-AShellColorPresets {
  Write-Output 'A-Shell color presets:'
  foreach($preset in Get-AShellColorPresets) {
-  $suffix=if($preset.rain -eq 'rainbow'){'  (white highlight + rainbow rain)'}else{"  #$($preset.hex)"}
+  $suffix=switch($preset.rain){'rainbow'{'  (white highlight + rainbow rain)'}'purple-orange'{'  (#7B5AC6 + orange heart)'}default{"  #$($preset.hex)"}}
   Write-Output ('  {0,-12}{1}  {2}' -f $preset.name,$suffix,$preset.description)
  }
  Write-Output "`nUse: ashell color <preset>"
@@ -79,7 +79,7 @@ function Send-AShellColorChange([string]$RainMode='solid') {
  $result=[IntPtr]::Zero
  $stored=Read-RegistryValue 'HKCU:\Software\A-Shell' 'AccentColor'
  $hex=if($stored.Exists){ConvertTo-AShellColor $stored.Value}else{'D65A00'}
- $rendererValue=if($RainMode -eq 'rainbow'){'RAINBOW'}else{$hex}
+ $rendererValue=switch($RainMode){'rainbow'{'RAINBOW'}'purple-orange'{'PURPLE_ORANGE'}default{$hex}}
  $folder=Join-Path (Split-Path $PSScriptRoot) 'state'
  New-Item -ItemType Directory $folder -Force | Out-Null
  $file=Join-Path $folder 'accent-color.txt'

@@ -7,6 +7,14 @@ if($presets.Count -lt 400){throw 'The included color range is too small.'}
 if((Resolve-AShellColor 'vynil').Name -ne 'vinyl' -or (Resolve-AShellColor 'sky blue').Name -ne 'sky-blue'){throw 'Expected friendly preset aliases are missing.'}
 $rainbow=Resolve-AShellColor 'rainbow'
 if($rainbow.Hex -ne 'FFFFFF' -or $rainbow.Rain -ne 'rainbow' -or $rainbow.Stored -ne 'RAINBOW'){throw 'Rainbow must use a white Windows accent and rainbow rain mode.'}
+$purple=Resolve-AShellColor 'purple'
+$strawberry=Resolve-AShellColor 'strawberry'
+$heart=Resolve-AShellColor 'purple orange'
+if($purple.Hex -ne '7B5AC6' -or $strawberry.Hex -ne 'E4475B'){throw 'Purple and strawberry brand presets are incorrect.'}
+if($heart.Name -ne 'purple-and-orange' -or $heart.Hex -ne '7B5AC6' -or $heart.Rain -ne 'purple-orange' -or $heart.Stored -ne 'PURPLE_ORANGE'){throw 'Purple-and-orange heart preset is incorrect.'}
+if((Resolve-AShellColor 'PURPLE_ORANGE').Name -ne 'purple-and-orange'){throw 'The saved purple-and-orange mode cannot be restored at startup.'}
+$matrixSource=Get-Content -LiteralPath (Join-Path $root 'src\MatrixDesktop.cpp') -Raw
+if($matrixSource -notmatch 'InsideHeart' -or $matrixSource -notmatch 'PURPLE_ORANGE' -or $matrixSource -notmatch 'kOrange=0xD65A00'){throw 'The native centered orange-heart renderer is missing.'}
 $initial=Get-AShellColorValues
 $pidBefore=(Get-Process MatrixDesktop).Id
 $baseline=Join-Path $root 'state\accent-before.clixml'

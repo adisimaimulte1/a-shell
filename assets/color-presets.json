@@ -61,9 +61,27 @@
                     {
                         "name":  "violet",
                         "hex":  "8B5CF6",
-                        "description":  "bright violet",
+                        "description":  "bright violet"
+                    },
+                    {
+                        "name":  "purple",
+                        "hex":  "7B5AC6",
+                        "description":  "A-Shell purple"
+                    },
+                    {
+                        "name":  "strawberry",
+                        "hex":  "E4475B",
+                        "description":  "ripe strawberry red"
+                    },
+                    {
+                        "name":  "purple-and-orange",
+                        "hex":  "7B5AC6",
+                        "rain":  "purple-orange",
+                        "description":  "a cute mix of colors",
                         "aliases":  [
-                                        "purple"
+                                        "purple orange",
+                                        "purple-orange",
+                                        "purple_orange"
                                     ]
                     },
                     {
@@ -682,11 +700,6 @@
                     {
                         "name":  "powder-blue",
                         "hex":  "B0E0E6",
-                        "description":  "classic web color"
-                    },
-                    {
-                        "name":  "purple",
-                        "hex":  "800080",
                         "description":  "classic web color"
                     },
                     {

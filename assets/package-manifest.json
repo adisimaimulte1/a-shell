@@ -1,5 +1,5 @@
 {
-    "version":  "1.9.21",
+    "version":  "1.9.22",
     "files":  [
                   {
                       "sha256":  "A01DED7129DF008FED91E4437BEAAD1635BCCC2739C3EE2432B9839729A685CF",
@@ -34,7 +34,7 @@
                       "path":  "LICENSE"
                   },
                   {
-                      "sha256":  "24D9AF38C1BB9F8284ACAE87035986FB6860D82B350F6E867E5C01831790D15D",
+                      "sha256":  "2C43D520C34DACE0B4F3A572931EA06FB060DFFBF37ECF70432666B7427C788B",
                       "path":  "README.md"
                   },
                   {
@@ -98,7 +98,7 @@
                       "path":  "Use Original Profile PNG.cmd"
                   },
                   {
-                      "sha256":  "FE0A1F47CCA08E9A1B2C5584501F8953A65AE4E5D62D3384598E1AE2F0E9C630",
+                      "sha256":  "CEE62853D21E85065AEDEDBD4B73063F524EAC60025A12E7A8B04D48E647CE82",
                       "path":  "VERSION"
                   },
                   {
@@ -110,7 +110,7 @@
                       "path":  "assets/build-id.txt"
                   },
                   {
-                      "sha256":  "CB915FC9FE7B2DD10B2636CB2982DB179A24928C9B39A0E0727671EF5621FAEA",
+                      "sha256":  "EAABB4B298935B5E112F7152C43CBC51614E00B4FB154033779632181351E225",
                       "path":  "assets/color-presets.json"
                   },
                   {
@@ -1510,7 +1510,7 @@
                       "path":  "assets/profile/personal-icon.png"
                   },
                   {
-                      "sha256":  "AFA6762DB6162838D47256AAF0868EC21AC93E3DBEAFC33A83073DB42F05C055",
+                      "sha256":  "D0C06D7DFC1977B0BFDC0AF8059F7E7E84987E267C2B984F0B30A799C74CF845",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.build.json"
                   },
                   {
@@ -1518,15 +1518,15 @@
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.wh.cpp"
                   },
                   {
-                      "sha256":  "E97450B1B74F8EBC5F47D85187C0C5F748EABC13178873A1A3B281037772B033",
+                      "sha256":  "095C9DF6E73BF70C287A60203AEDAFBA5BD4A9CB39141DDF58C21A5DFDF29F02",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background_1.7.dll"
                   },
                   {
-                      "sha256":  "8ADD90553FD06780A805928120329D08BA11841CC44ED9862132590D16862B0B",
+                      "sha256":  "ACC94CDFE93E8FE8EA08C2C7BF09A539FACE9E09399F990747F126C26DE5688A",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.build.json"
                   },
                   {
-                      "sha256":  "5433FF8B2EE2F133754C083E2D162BBA2D7CCE2FE11AD5F2599B07BE04483A98",
+                      "sha256":  "ABAC3FA356B06B93C4775E982822DE3ABDCC5790406945992E2C13947178E17A",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.dll"
                   },
                   {
@@ -1546,19 +1546,19 @@
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_764291.dll"
                   },
                   {
-                      "sha256":  "62F3A5AEC1BF46EFDE0B854ED1333F7890CB6621C676DD9C306A73D3F19F9D6F",
+                      "sha256":  "8FD9632770B9D6F6E8BF154038BAA9291CCC664A8287E143D61D921DE362336D",
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_ashell_identity1.dll"
                   },
                   {
-                      "sha256":  "D920E62DEEF76CBCAF5E656E00B38A037D8A6FB76D6DA1BE1C38B5B985540DC6",
+                      "sha256":  "FDEC6AB6E7B28392982280B151D1A9E1887FA5D954F38F6FB7DA6737B441F776",
                       "path":  "bin/CursorSessionGuard.exe"
                   },
                   {
-                      "sha256":  "CDD17D6A6C540CD341ED8BBD5C767D8D8CAC7FBDD27C3942416E2AE911B1C0D4",
+                      "sha256":  "B45CC72B6E5C21F7CC5BA2628C282225B2437CB297FBAC90922B9626EF22A661",
                       "path":  "bin/DesktopLayout.exe"
                   },
                   {
-                      "sha256":  "ABE04EF26D98D270DBFFD29D48D6677F8AC9E44B2DA48ACE9FE87DD7435FF4EC",
+                      "sha256":  "B371688B69872E3B160FFA702979DAA1819C442E0454BA346459D3C43ABC5E9F",
                       "path":  "bin/MatrixDesktop.exe"
                   },
                   {
@@ -1566,7 +1566,7 @@
                       "path":  "docs/About.html"
                   },
                   {
-                      "sha256":  "7780C1C83C44FF2AEE77E67A21140536357136EB8C71FFA8324A021DCB9A9F73",
+                      "sha256":  "8398861675B539C650B0B85171A11EE6D363EEF705E7E34B854FD4EC38DE70AF",
                       "path":  "docs/Development.md"
                   },
                   {
@@ -1654,11 +1654,11 @@
                       "path":  "scripts/CLI.ps1"
                   },
                   {
-                      "sha256":  "B56BA89BDD5A43EC619EE4DA17E3306D1F738C2B34419EED8C3FCC060FF5172F",
+                      "sha256":  "BCD00B376E07C03406BCA100D91791B3C3448D943BDBFB6432C71F465D0FE2DD",
                       "path":  "scripts/Color.ps1"
                   },
                   {
-                      "sha256":  "EB7E3F5B9D50BE6BBDA96CFC4D2A907422FC594239C189F422F2325CE2A763A4",
+                      "sha256":  "8F1E47E4F26AF9A782DE0FFF3967424B2F2B5A17F72313079BD791FE37E0D7DF",
                       "path":  "scripts/Color.Support.ps1"
                   },
                   {
@@ -1686,7 +1686,7 @@
                       "path":  "scripts/Export-GitHub.ps1"
                   },
                   {
-                      "sha256":  "520311BF1D709CD963A1C642A04DBD28205460F8ACF4687D7A80C548B2FA25D3",
+                      "sha256":  "2B13C68AC0AC26DB9FE2330EAC8FC6DF26ED7192756890F49D7395B37C3CFB3D",
                       "path":  "scripts/Features.Support.ps1"
                   },
                   {
@@ -1702,7 +1702,7 @@
                       "path":  "scripts/Icons.Support.ps1"
                   },
                   {
-                      "sha256":  "FF039DE314122B455CA610CCB7350A037878C3183C714739E7F686F88D416343",
+                      "sha256":  "224A3654F2D35B2AC0E67AA6B8BFC993E4361CF3C45A2BEDD077F74858669E22",
                       "path":  "scripts/Manage.ps1"
                   },
                   {
@@ -1754,7 +1754,7 @@
                       "path":  "src/Installer.cs"
                   },
                   {
-                      "sha256":  "F93DAA31FA1EAFB1334220D4CCE0D1660B1DEE5D30769C38D9BC0E8BD0775175",
+                      "sha256":  "3A27E0F4776C180C5D5E8D67A8BFB5E6B26C9F923E5F474B7023ABC03F68C691",
                       "path":  "src/MatrixDesktop.cpp"
                   },
                   {
@@ -1790,7 +1790,7 @@
                       "path":  "tests/Test-BootAppearancePersistence.ps1"
                   },
                   {
-                      "sha256":  "66123DDA651106C6037193DB36F370AC69F384EA15719FFB1A98E6B0C5343D36",
+                      "sha256":  "D9F788912E71E23D370CCE77E14527B5B0BDC5F3E01D2DECEF9FDD4890CCF1E5",
                       "path":  "tests/Test-Colors.ps1"
                   },
                   {

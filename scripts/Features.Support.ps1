@@ -67,7 +67,7 @@ function Set-AShellDesiredBackground([string]$Root,[string]$Value) {
 }
 function Get-AShellDesiredAccent([string]$Root) {
  $path=Join-Path $Root 'state\desired-accent.txt'
- if(Test-Path -LiteralPath $path){$value=(Get-Content -LiteralPath $path -Raw).Trim();if($value -match '^[0-9A-Fa-f]{6}$' -or $value -eq 'RAINBOW'){return $value.ToUpperInvariant()}}
+ if(Test-Path -LiteralPath $path){$value=(Get-Content -LiteralPath $path -Raw).Trim();if($value -match '^[0-9A-Fa-f]{6}$' -or $value -in @('RAINBOW','PURPLE_ORANGE')){return $value.ToUpperInvariant()}}
  return 'D65A00'
 }
 function Set-AShellDesiredAccent([string]$Root,[string]$Value) {
@@ -439,6 +439,7 @@ function Write-AShellComponentStatus([string]$Root) {
  Write-Output ('[STATUS] Icons: '+$iconState)
  Write-Output ('[STATUS] Rain: '+$rainState)
  Write-Output ('[STATUS] Background: '+$background)
- Write-Output ('[STATUS] Accent: #'+(Get-AShellDesiredAccent $Root))
+ $accent=Get-AShellDesiredAccent $Root
+ Write-Output ('[STATUS] Accent: '+$(if($accent -match '^[0-9A-Fa-f]{6}$'){'#'+$accent}else{$accent}))
  if($state -eq 'stopped'){Write-Output '[INFO] Saved switches will be restored on the next ashell start.'}
 }

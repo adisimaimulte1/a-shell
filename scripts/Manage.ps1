@@ -96,7 +96,7 @@ switch($Action) {
   if($legacyRepair){Write-Output '[STATUS] Legacy A-Shell sign-in repair task detected. Run Setup/update once to remove it.'}
   $cursorGuard=Get-ScheduledTask -TaskName $cursorGuardTaskName -ErrorAction SilentlyContinue
   if($cursorGuard){Write-Output '[STATUS] Cursor sign-in guard: installed (native/windowless).'}
-  $color=Join-Path $root 'state\accent-color.txt';if(Test-Path $color){Write-Output ('[STATUS] Accent: #'+(Get-Content $color -Raw))}
+  $color=Join-Path $root 'state\accent-color.txt';if(Test-Path $color){$value=(Get-Content $color -Raw).Trim();Write-Output ('[STATUS] Accent: '+$(if($value -match '^[0-9A-Fa-f]{6}$'){'#'+$value}else{$value}))}
  }
  'Install' {
   New-Item -ItemType Directory (Join-Path $root 'backup') -Force | Out-Null

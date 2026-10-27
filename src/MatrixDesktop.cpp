@@ -82,6 +82,9 @@ static std::vector<std::vector<unsigned char>> masks;
 static uint32_t rng=1;
 static uint32_t accent=0xD65A00;
 static bool rainbow=false;
+static bool purpleOrange=false;
+static constexpr uint32_t kPurple=0x7B5AC6;
+static constexpr uint32_t kOrange=0xD65A00;
 static UINT accentMessage=0;
 static bool ParseAccent(const wchar_t* text,uint32_t& result) {
  if(!text || wcslen(text)!=6)return false;
@@ -113,23 +116,41 @@ static uint32_t RainbowColor(size_t column,int row) {
   default:return (255u<<16)|(255-step);
  }
 }
+static bool InsideHeart(double pixelX,double pixelY) {
+ // A large, centered implicit heart. Normalize X and Y independently so the
+ // silhouette remains balanced on ultrawide and portrait displays.
+ if(width<=0 || height<=0)return false;
+ const double x=(pixelX-width*0.5)/(width*0.215);
+ const double y=(height*0.49-pixelY)/(height*0.285);
+ const double q=x*x+y*y-1.0;
+ return q*q*q-x*x*y*y*y<=0.0;
+}
+static uint32_t PurpleOrangeColor(double pixelX,double pixelY) {
+ return InsideHeart(pixelX,pixelY)?kOrange:kPurple;
+}
 static void ReadAccent() {
  wchar_t path[MAX_PATH]{};GetModuleFileNameW(nullptr,path,MAX_PATH);
  auto slash=wcsrchr(path,L'\\');if(slash)wcscpy(slash+1,L"..\\state\\accent-color.txt");
- uint32_t next=0xD65A00;bool nextRainbow=false;
+ uint32_t next=0xD65A00;bool nextRainbow=false,nextPurpleOrange=false;
  FILE* file=_wfopen(path,L"rb");
  if(file) {
-  char bytes[8]{};size_t count=fread(bytes,1,sizeof(bytes),file);fclose(file);
+  char bytes[16]{};size_t count=fread(bytes,1,sizeof(bytes),file);fclose(file);
   if(count==7 && !memcmp(bytes,"RAINBOW",7)){next=0xFFFFFF;nextRainbow=true;}
+  else if(count==13 && !memcmp(bytes,"PURPLE_ORANGE",13)){next=kPurple;nextPurpleOrange=true;}
   else if(count==6){wchar_t value[7]{};for(int i=0;i<6;i++)value[i]=static_cast<unsigned char>(bytes[i]);ParseAccent(value,next);}
  }
- if(next==accent && nextRainbow==rainbow)return;
- accent=next;rainbow=nextRainbow;GdiFlush();
- wchar_t report[64];if(rainbow)wcscpy(report,L"Live accent: RAINBOW");else swprintf(report,64,L"Live accent: #%06X",accent);Log(report);
+ if(next==accent && nextRainbow==rainbow && nextPurpleOrange==purpleOrange)return;
+ accent=next;rainbow=nextRainbow;purpleOrange=nextPurpleOrange;GdiFlush();
+ wchar_t report[64];
+ if(rainbow)wcscpy(report,L"Live accent: RAINBOW");
+ else if(purpleOrange)wcscpy(report,L"Live accent: PURPLE_ORANGE");
+ else swprintf(report,64,L"Live accent: #%06X",accent);
+ Log(report);
  // Recolor existing trails without changing stream positions or their opacity.
  for(auto index:activePixels) {
   unsigned a=pixels[index]>>24;
-  uint32_t color=rainbow?RainbowColor((index%width)/std::max(1,cell),static_cast<int>(index/width)/std::max(1,cell)):accent;
+  uint32_t color=rainbow?RainbowColor((index%width)/std::max(1,cell),static_cast<int>(index/width)/std::max(1,cell)):
+                 purpleOrange?PurpleOrangeColor(index%width,index/width):accent;
   pixels[index]=(a<<24)|((((color>>16)&255)*a/255)<<16)|((((color>>8)&255)*a/255)<<8)|((color&255)*a/255);
  }
  CompositeRain(true); if(IsWindow(wall)){InvalidateRect(wall,nullptr,FALSE);UpdateWindow(wall);}
@@ -249,7 +270,7 @@ static void Advance(double elapsedMs) {
  size_t kept=0;
  for(uint32_t index:activePixels) {
   uint32_t p=pixels[index];
-  if(rainbow){
+  if(rainbow || purpleOrange){
    unsigned a=p>>24, nextA=static_cast<unsigned>(a*0.95);
    const unsigned nextR=static_cast<unsigned>(((p>>16)&255)*0.95);
    const unsigned nextG=static_cast<unsigned>(((p>>8)&255)*0.95);
@@ -275,12 +296,13 @@ static void Advance(double elapsedMs) {
   int y=(row-1)*cell;
   if(y>=0 && y<height) {
 
-   const uint32_t streamColor=rainbow?RainbowColor(col,row-1):accent;
+   const uint32_t streamColor=rainbow?RainbowColor(col,row-1):
+                              purpleOrange?PurpleOrangeColor(x+cell*0.5,y+cell*0.5):accent;
    for(int yy=0;yy<cell && y+yy<height;yy++) for(int xx=0;xx<cell && x+xx<width;xx++) {
     unsigned a=mask[yy*cell+xx]; if(!a)continue;
     const uint32_t index=uint32_t(size_t(y+yy)*width+x+xx);
     auto& p=pixels[index]; unsigned inv=255-a;
-    if(!p){activePixels.push_back(index);p=rainbow?((a<<24)|((((streamColor>>16)&255)*a/255)<<16)|((((streamColor>>8)&255)*a/255)<<8)|((streamColor&255)*a/255)):ink[a];continue;}
+    if(!p){activePixels.push_back(index);p=(rainbow || purpleOrange)?((a<<24)|((((streamColor>>16)&255)*a/255)<<16)|((((streamColor>>8)&255)*a/255)<<8)|((streamColor&255)*a/255)):ink[a];continue;}
     unsigned oa=a+((p>>24)*inv)/255;
     unsigned r=(((streamColor>>16)&255)*a+((p>>16)&255)*inv)/255;
     unsigned g=(((streamColor>>8)&255)*a+((p>>8)&255)*inv)/255;

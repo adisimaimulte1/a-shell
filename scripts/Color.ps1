@@ -32,6 +32,7 @@ try {
   Set-AShellAccent $selection.Hex $selection.Rain
   Set-AShellDesiredAccent $root $Color
   if($selection.Rain -eq 'rainbow'){Write-Output '[OK] Color: rainbow. Windows highlight is white; rain is rainbow.'}
+  elseif($selection.Rain -eq 'purple-orange'){Write-Output '[OK] Color: purple-and-orange. Windows accent is purple; rain includes a centered orange heart.'}
   else {Write-Output ('[OK] Color: '+$selection.Name+' (#'+$selection.Hex+'). Windows accent + rain synchronized.')}
  } elseif(Test-Path $snapshot) {
   $saved=Import-Clixml $snapshot
