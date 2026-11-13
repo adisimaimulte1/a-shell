@@ -16,6 +16,37 @@ function Get-AShellColorPresets {
  if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'The color preset catalog is missing. Run Setup to repair A-Shell.'}
  @((Get-Content -LiteralPath $path -Raw | ConvertFrom-Json).presets)
 }
+function Get-AShellVarietySortedColorPresets {
+ # Greedily choose the RGB color farthest from the previous item. This keeps
+ # long families of similar colors from clumping together in the CLI catalog.
+ $remaining=[Collections.ArrayList]@(Get-AShellColorPresets)
+ $ordered=[Collections.Generic.List[object]]::new()
+ $current=$remaining | Where-Object name -eq 'default' | Select-Object -First 1
+ if(!$current){$current=$remaining[0]}
+ while($remaining.Count) {
+  [void]$ordered.Add($current)
+  [void]$remaining.Remove($current)
+  if(!$remaining.Count){break}
+  $hex=[string]$current.hex
+  $red=[Convert]::ToInt32($hex.Substring(0,2),16)
+  $green=[Convert]::ToInt32($hex.Substring(2,2),16)
+  $blue=[Convert]::ToInt32($hex.Substring(4,2),16)
+  $next=$null;$bestDistance=-1;$bestName=''
+  foreach($item in $remaining) {
+   $candidate=[string]$item.hex
+   $dr=$red-[Convert]::ToInt32($candidate.Substring(0,2),16)
+   $dg=$green-[Convert]::ToInt32($candidate.Substring(2,2),16)
+   $db=$blue-[Convert]::ToInt32($candidate.Substring(4,2),16)
+   $distance=$dr*$dr+$dg*$dg+$db*$db
+   $name=[string]$item.name
+   if($distance -gt $bestDistance -or ($distance -eq $bestDistance -and [string]::CompareOrdinal($name,$bestName) -lt 0)) {
+    $next=$item;$bestDistance=$distance;$bestName=$name
+   }
+  }
+  $current=$next
+ }
+ @($ordered)
+}
 function Resolve-AShellColor([string]$Color) {
  $inputValue=([string]$Color).Trim()
  if($inputValue -match '^#?([0-9a-fA-F]{6})$'){
@@ -34,11 +65,27 @@ function Resolve-AShellColor([string]$Color) {
 function ConvertTo-AShellColor([string]$Color) {
  (Resolve-AShellColor $Color).Hex
 }
+function Format-AShellColorSwatch([string]$Hex,[bool]$Enabled=$true) {
+ if(!$Enabled){return ''}
+ $value=$Hex.TrimStart('#').ToUpperInvariant()
+ if($value -notmatch '^[0-9A-F]{6}$'){return ''}
+ $red=[Convert]::ToInt32($value.Substring(0,2),16)
+ $green=[Convert]::ToInt32($value.Substring(2,2),16)
+ $blue=[Convert]::ToInt32($value.Substring(4,2),16)
+ $escape=[char]27
+ $escape+'[38;2;'+$red+';'+$green+';'+$blue+'m'+[char]0x25A0+$escape+'[0m'
+}
 function Show-AShellColorPresets {
  Write-Output 'A-Shell color presets:'
- foreach($preset in Get-AShellColorPresets) {
-  $suffix=switch($preset.rain){'rainbow'{'  (white highlight + rainbow rain)'}'purple-orange'{'  (#7B5AC6 + orange heart)'}default{"  #$($preset.hex)"}}
-  Write-Output ('  {0,-12}{1}  {2}' -f $preset.name,$suffix,$preset.description)
+ $supportsSwatches=$false
+ try {
+  $property=$Host.UI.PSObject.Properties['SupportsVirtualTerminal']
+  $supportsSwatches=$property -and [bool]$property.Value -and ![Console]::IsOutputRedirected
+ } catch {}
+ foreach($preset in Get-AShellVarietySortedColorPresets) {
+  $swatch=Format-AShellColorSwatch ([string]$preset.hex) $supportsSwatches
+  $suffix=if($preset.rain -eq 'rainbow'){"  #$($preset.hex) $swatch  (rainbow rain)"}else{"  #$($preset.hex) $swatch"}
+  Write-Output ('  {0,-22}{1}  {2}' -f $preset.name,$suffix,$preset.description)
  }
  Write-Output "`nUse: ashell color <preset>"
 }

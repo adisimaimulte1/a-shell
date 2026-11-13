@@ -1,5 +1,5 @@
 {
-    "version":  "1.9.22",
+    "version":  "1.9.23",
     "files":  [
                   {
                       "sha256":  "A01DED7129DF008FED91E4437BEAAD1635BCCC2739C3EE2432B9839729A685CF",
@@ -34,7 +34,7 @@
                       "path":  "LICENSE"
                   },
                   {
-                      "sha256":  "2C43D520C34DACE0B4F3A572931EA06FB060DFFBF37ECF70432666B7427C788B",
+                      "sha256":  "64AB1949842644A803311D341881415A71DBD0BCEDB13E8A41AC665E8311C487",
                       "path":  "README.md"
                   },
                   {
@@ -98,7 +98,7 @@
                       "path":  "Use Original Profile PNG.cmd"
                   },
                   {
-                      "sha256":  "CEE62853D21E85065AEDEDBD4B73063F524EAC60025A12E7A8B04D48E647CE82",
+                      "sha256":  "1C9824AAED2A0945894D6054CE13FD472F98F008F1F0B509B65552A18220DF4E",
                       "path":  "VERSION"
                   },
                   {
@@ -106,11 +106,11 @@
                       "path":  ".github/ISSUE_TEMPLATE/icon-contribution.yml"
                   },
                   {
-                      "sha256":  "BC9142E679BAC1AD0B4D21710D15AB4CB75EF75EDD7FA5D95521B812E7749F71",
+                      "sha256":  "AFBBB4B18DDF0CE9FE08B44B28011AF8C22652857DEA452C471DE8FD790179B3",
                       "path":  "assets/build-id.txt"
                   },
                   {
-                      "sha256":  "EAABB4B298935B5E112F7152C43CBC51614E00B4FB154033779632181351E225",
+                      "sha256":  "C4E1FB795D462CC2EB72277CEEF39BDAD0736BCAC33BBA448C9354CE1EC94538",
                       "path":  "assets/color-presets.json"
                   },
                   {
@@ -1510,7 +1510,7 @@
                       "path":  "assets/profile/personal-icon.png"
                   },
                   {
-                      "sha256":  "D0C06D7DFC1977B0BFDC0AF8059F7E7E84987E267C2B984F0B30A799C74CF845",
+                      "sha256":  "6CDCF766831F9C62D271A37C8321638C3243BAA324ABEA367FC9138D40EEBD06",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.build.json"
                   },
                   {
@@ -1518,15 +1518,15 @@
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background.wh.cpp"
                   },
                   {
-                      "sha256":  "095C9DF6E73BF70C287A60203AEDAFBA5BD4A9CB39141DDF58C21A5DFDF29F02",
+                      "sha256":  "E297984E9BCAD2C1EB391ED27E6DDC5F307DB1946B1772E7689D968DE623F298",
                       "path":  "assets/windhawk/ashell-lockscreen-clear-background_1.7.dll"
                   },
                   {
-                      "sha256":  "ACC94CDFE93E8FE8EA08C2C7BF09A539FACE9E09399F990747F126C26DE5688A",
+                      "sha256":  "51AE49A0D3728675B6A3E3402548FDC31CC5783D7AF18A7467D63E9EC5D33466",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.build.json"
                   },
                   {
-                      "sha256":  "ABAC3FA356B06B93C4775E982822DE3ABDCC5790406945992E2C13947178E17A",
+                      "sha256":  "6FD5442EF1B6CA0E6DE78551CB052D902A73236EC6A33A8BA6D129A719285403",
                       "path":  "assets/windhawk/ashell-signin-clear-background_1.0.dll"
                   },
                   {
@@ -1546,19 +1546,19 @@
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_764291.dll"
                   },
                   {
-                      "sha256":  "8FD9632770B9D6F6E8BF154038BAA9291CCC664A8287E143D61D921DE362336D",
+                      "sha256":  "1556B5688FE4525BB85BBC3C78767F32665DAD5755FBF2FBFB20D120C16B5D0A",
                       "path":  "assets/windhawk/windows-11-taskbar-styler_1.9_ashell_identity1.dll"
                   },
                   {
-                      "sha256":  "FDEC6AB6E7B28392982280B151D1A9E1887FA5D954F38F6FB7DA6737B441F776",
+                      "sha256":  "27844EDDD4F4B8DF08D83C183B703718D29C87D53ADA156EB1BAB9943B47E276",
                       "path":  "bin/CursorSessionGuard.exe"
                   },
                   {
-                      "sha256":  "B45CC72B6E5C21F7CC5BA2628C282225B2437CB297FBAC90922B9626EF22A661",
+                      "sha256":  "DC2EADDD2F7552A4275F300CBF778FF9E3080D1CCF56B7317EFC83170A17EF26",
                       "path":  "bin/DesktopLayout.exe"
                   },
                   {
-                      "sha256":  "B371688B69872E3B160FFA702979DAA1819C442E0454BA346459D3C43ABC5E9F",
+                      "sha256":  "362A68D19D12FD33AD89F6F73CAE4F097F7EA8DB64F29F1FB4AD2C877E63C6DB",
                       "path":  "bin/MatrixDesktop.exe"
                   },
                   {
@@ -1634,7 +1634,7 @@
                       "path":  "scripts/Build-Installer.ps1"
                   },
                   {
-                      "sha256":  "D427F301E98E47ABF7DDAD823A9079FD66940FF8949C83E40C4D1F3582C54365",
+                      "sha256":  "563B3BF61595C6CC43F4633A2E4A4C66E5C3E250B0621D66D6DA4BA8408EC0D4",
                       "path":  "scripts/Build-Package.ps1"
                   },
                   {
@@ -1658,7 +1658,7 @@
                       "path":  "scripts/Color.ps1"
                   },
                   {
-                      "sha256":  "8F1E47E4F26AF9A782DE0FFF3967424B2F2B5A17F72313079BD791FE37E0D7DF",
+                      "sha256":  "EDD1B17E1BA5FE75FA6ED33210E2A8423EB78FA857A1C5489C72B9CCE5BDD7F5",
                       "path":  "scripts/Color.Support.ps1"
                   },
                   {
@@ -1686,7 +1686,7 @@
                       "path":  "scripts/Export-GitHub.ps1"
                   },
                   {
-                      "sha256":  "2B13C68AC0AC26DB9FE2330EAC8FC6DF26ED7192756890F49D7395B37C3CFB3D",
+                      "sha256":  "744A25D59EBE98117EC971EE0622E76B276B00B93622FD2CB4361FA9A5BA3549",
                       "path":  "scripts/Features.Support.ps1"
                   },
                   {
@@ -1790,7 +1790,7 @@
                       "path":  "tests/Test-BootAppearancePersistence.ps1"
                   },
                   {
-                      "sha256":  "D9F788912E71E23D370CCE77E14527B5B0BDC5F3E01D2DECEF9FDD4890CCF1E5",
+                      "sha256":  "745D144242FB4985FE79A5529041D36D59C967EC081BB4E453064F22880E876A",
                       "path":  "tests/Test-Colors.ps1"
                   },
                   {

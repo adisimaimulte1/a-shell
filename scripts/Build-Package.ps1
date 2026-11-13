@@ -25,7 +25,7 @@ $outPath=[IO.Path]::GetFullPath($Output)
 if($outPath.StartsWith($projectRoot.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Write the release ZIP outside the project folder.'}
 $files=@(Get-ChildItem -LiteralPath $projectRoot -File -Recurse | Where-Object {
  $relative=$_.FullName.Substring($projectRoot.Length+1)
- $relative -notmatch '^(state|backup|\.git|\.codex|outputs)\\' -and $_.Extension -notin @('.log','.zip') -and $relative -ne 'assets\package-manifest.json'
+ $relative -notmatch '^(state|backup|\.git|\.codex|outputs)\\' -and $_.Extension -notin @('.log','.zip') -and $relative -notin @('assets\package-manifest.json','assets\TODO')
 })
 $entries=@(foreach($file in $files){@{path=$file.FullName.Substring($projectRoot.Length+1).Replace('\','/');sha256=(Get-FileHash -LiteralPath $file.FullName).Hash}})
 $manifestJson=(@{version=$version;files=$entries} | ConvertTo-Json -Depth 5).Replace("`r`n","`n")+"`n"

@@ -106,12 +106,15 @@ Or use an included preset:
 ```text
 ashell color vinyl
 ashell color sky-blue
-ashell color light-blue
+ashell color icy-blue
+ashell color lila
+ashell color strawberry
+ashell color mango
 ashell color rainbow
 ashell color list
 ```
 
-`rainbow` is the easter egg: Windows uses a clean white highlight while every Matrix character follows a smooth spectrum down its stream. More than 400 curated, classic web and numbered shade presets are included. The complete preset catalog is in [`assets/color-presets.json`](assets/color-presets.json).
+`rainbow` is the easter egg: Windows uses a clean white highlight while every Matrix character follows a smooth spectrum down its stream. The catalog mixes curated, classic web and fruit-named colors, and `ashell color list` variety-sorts them so similar colors do not bunch together. The complete preset catalog is in [`assets/color-presets.json`](assets/color-presets.json).
 
 Return to the default $\color{#D65A00}{\textsf{A-Shell orange}}$:
 
